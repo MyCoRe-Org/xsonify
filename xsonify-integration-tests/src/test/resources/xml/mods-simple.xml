@@ -1,0 +1,18 @@
+<mods:mods xmlns:mods="http://www.loc.gov/mods/v3" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <mods:titleInfo supplied="yes" usage="primary" xml:lang="de" xlink:type="simple">
+    <mods:title>DINI-Zertifikat für Open-Access-Repositorien und -Publikationsdienste 2013</mods:title>
+  </mods:titleInfo>
+  <mods:titleInfo supplied="yes" usage="primary" xml:lang="en" xlink:type="simple">
+    <mods:title>DINI Certificate for Open Access Repositories and Publication Services 2013</mods:title>
+  </mods:titleInfo>
+  <mods:genre type="intern" authorityURI="http://www.mycore.org/classifications/mir_genres"
+              valueURI="http://www.mycore.org/classifications/mir_genres#article" usage="primary"/>
+
+  <mods:accessCondition>
+    <access type="public">
+      Open <b>S
+    </b>ource
+    </access>
+  </mods:accessCondition>
+
+</mods:mods>

@@ -1,0 +1,24 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+
+  <xs:redefine schemaLocation="redefineB.xsd">
+    <xs:complexType name="contentB">
+      <xs:complexContent>
+        <xs:extension base="contentB">
+          <xs:choice>
+            <xs:element name="c" type="xs:string" />
+          </xs:choice>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:redefine>
+
+  <xs:complexType name="contentC">
+    <xs:choice>
+      <xs:element name="c" type="xs:string"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:element name="elementC" type="contentC"/>
+
+</xs:schema>

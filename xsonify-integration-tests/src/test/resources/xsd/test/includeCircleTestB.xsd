@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<xs:schema elementFormDefault="qualified"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:include schemaLocation="includeCircleTestA.xsd"/>
+
+  <xs:element name="includeB" type="includeB"/>
+
+  <xs:complexType name="includeB">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element ref="includeA"/>
+      <xs:element name="B" type="xs:string" />
+    </xs:choice>
+  </xs:complexType>
+
+</xs:schema>

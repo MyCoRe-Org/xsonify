@@ -1,0 +1,77 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="https://test.com/element" targetNamespace="https://test.com/element"
+           elementFormDefault="qualified">
+
+  <!-- DEEP ELEMENT TEST -->
+  <xs:element name="deepTest">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="l_1_1">
+          <xs:complexType>
+            <xs:choice>
+              <xs:element name="l_1_2">
+                <xs:complexType>
+                  <xs:choice>
+                    <xs:element ref="name"/>
+                    <xs:element ref="first-name"/>
+                  </xs:choice>
+                </xs:complexType>
+              </xs:element>
+            </xs:choice>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="l_2_1">
+          <xs:complexType>
+            <xs:choice>
+              <xs:element name="l_2_2">
+                <xs:complexType>
+                  <xs:choice>
+                    <xs:element ref="name"/>
+                    <xs:element ref="last-name"/>
+                  </xs:choice>
+                </xs:complexType>
+              </xs:element>
+            </xs:choice>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- PARENT/CHILD TEST -->
+  <xs:complexType name="parentType">
+    <xs:choice maxOccurs="unbounded">
+      <xs:element ref="child"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="childType">
+    <xs:choice>
+      <xs:element ref="name"/>
+      <xs:sequence>
+        <xs:element ref="first-name"/>
+        <xs:element ref="middle-name" minOccurs="0"/>
+        <xs:element ref="last-name"/>
+      </xs:sequence>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:element name="parent" type="parentType"/>
+
+  <xs:element name="child" type="childType"/>
+
+  <xs:element name="name" type="xs:string"/>
+  <xs:element name="first-name" type="xs:string"/>
+  <xs:element name="middle-name" type="xs:string"/>
+  <xs:element name="last-name" type="xs:string"/>
+
+  <!-- MIXED CONTENT TEST -->
+  <xs:element name="mixedContentTest">
+    <xs:complexType mixed="true">
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="child"/>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

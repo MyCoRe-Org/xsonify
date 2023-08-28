@@ -1,0 +1,29 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="https://test.com/attribute" targetNamespace="https://test.com/attribute"
+           elementFormDefault="qualified">
+
+  <xs:attribute name="globalAttribute" type="xs:string" />
+
+  <xs:element name="attributeTest">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="textElement"/>
+        <xs:element ref="anyAttributeElement"/>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="textElement">
+    <xs:complexType>
+      <xs:attribute name="type" type="xs:string"/>
+      <xs:attribute name="text" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="anyAttributeElement">
+    <xs:complexType>
+      <xs:anyAttribute />
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

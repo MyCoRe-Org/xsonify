@@ -1,0 +1,145 @@
+<mycoreobject xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="datamodel-jpjournal.xsd" ID="jportal_jpjournal_00000109" version="2.0"
+              label="jportal_jpjournal_00000109">
+  <structure>
+    <children class="MCRMetaLinkID">
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00134247"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00294697"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00295020"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00134252"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00134253"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00295406"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00296005"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00134466"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00281810"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00136331"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068806"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068807"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00510299"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068808"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068812"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068830"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068831"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068832"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068833"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068834"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068835"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068836"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068837"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068838"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00265700"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00266076"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068841"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068842"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068843"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068844"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00068845"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00092751"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00092752"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00092753"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00092754"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00092844"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00107975"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00107995"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00107996"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00107997"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00111449"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00125044"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00511014"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00511334"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00511652"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00511969"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00512532"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00512850"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00513088"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00513407"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00513725"/>
+      <child inherited="0" xlink:type="locator" xlink:href="jportal_jpvolume_00514044"/>
+    </children>
+  </structure>
+  <metadata>
+    <maintitles class="MCRMetaLangText" heritable="false" notinherit="true">
+      <maintitle inherited="0" form="plain">Jenaer Volksblatt</maintitle>
+    </maintitles>
+    <dates class="JPMetaDate" heritable="false" notinherit="false">
+      <date type="published" inherited="0" from="1890" until="1941"/>
+    </dates>
+    <identis class="MCRMetaLangText" heritable="false" notinherit="false">
+      <identi type="zdb-id" inherited="0" form="plain">2773244-7</identi>
+    </identis>
+    <languages class="MCRMetaClassification" heritable="false" notinherit="false">
+      <language inherited="0" classid="jportal_class_00000004" categid="de"/>
+    </languages>
+    <ddcs class="MCRMetaClassification" heritable="false" notinherit="false">
+      <ddc inherited="0" classid="jportal_class_00000003" categid="07"/>
+      <ddc inherited="0" classid="jportal_class_00000003" categid="914"/>
+      <ddc inherited="0" classid="jportal_class_00000003" categid="943"/>
+    </ddcs>
+    <contentClassis1 class="MCRMetaClassification" heritable="false" notinherit="false">
+      <contentClassi1 inherited="0" classid="jportal_class_00000061" categid="historical"/>
+    </contentClassis1>
+    <contentClassis3 class="MCRMetaClassification" heritable="false" notinherit="false">
+      <contentClassi3 inherited="0" classid="jportal_class_00000063" categid="thulb"/>
+    </contentClassis3>
+    <contentClassis4 class="MCRMetaClassification" heritable="false" notinherit="false">
+      <contentClassi4 inherited="0" classid="jportal_class_00000068" categid="GESCH"/>
+    </contentClassis4>
+    <contentClassis5 class="MCRMetaClassification" heritable="false" notinherit="false">
+      <contentClassi5 inherited="0" classid="jportal_class_00000069" categid="300-399.340"/>
+    </contentClassis5>
+    <contentClassis6 class="MCRMetaClassification" heritable="false" notinherit="false">
+      <contentClassi6 inherited="0" classid="jportal_class_00000064" categid="z"/>
+    </contentClassis6>
+    <hidden_templates class="MCRMetaLangText" heritable="false" notinherit="false">
+      <hidden_template inherited="0" form="plain">template_jenaerVolksblatt</hidden_template>
+    </hidden_templates>
+    <hidden_websitecontexts class="MCRMetaLangText" heritable="false" notinherit="false">
+      <hidden_websitecontext inherited="0" form="plain">/content/main/journals/jvb.xml</hidden_websitecontext>
+    </hidden_websitecontexts>
+    <hidden_classispub class="MCRMetaLangText" heritable="false" notinherit="false">
+      <hidden_classipub inherited="0" form="plain">rubrics2JenaischeZS</hidden_classipub>
+    </hidden_classispub>
+    <hidden_rubricsID class="MCRMetaLangText" heritable="false" notinherit="false">
+      <hidden_rubricID inherited="0" form="plain">rubricsJenaischeZS</hidden_rubricID>
+    </hidden_rubricsID>
+    <hidden_jpjournalsID class="MCRMetaLangText" heritable="true" notinherit="false">
+      <hidden_jpjournalID inherited="0" form="plain">jportal_jpjournal_00000109</hidden_jpjournalID>
+    </hidden_jpjournalsID>
+    <participants class="MCRMetaLinkID" heritable="false" notinherit="true">
+      <participant type="partner" inherited="0" xlink:type="locator" xlink:title="Stadtarchiv Jena"
+                   xlink:href="jportal_jpinst_00024740"/>
+      <participant type="partner" inherited="0" xlink:type="locator" xlink:title="Thüringen"
+                   xlink:href="jportal_jpinst_00017882"/>
+      <participant type="owner" inherited="0" xlink:type="locator"
+                   xlink:title="Thüringer Universitäts- und Landesbibliothek Jena (ThULB)"
+                   xlink:href="jportal_jpinst_00000001"/>
+      <participant type="spn" inherited="0" xlink:type="locator" xlink:title="Thüringen"
+                   xlink:href="jportal_jpinst_00017882"/>
+    </participants>
+    <journalTypes class="MCRMetaClassification" heritable="false" notinherit="true">
+      <journalType inherited="0" classid="jportal_class_00000200" categid="newspapers"/>
+    </journalTypes>
+    <autosort class="MCRMetaElementXML" heritable="false" notinherit="true">
+      <sortby inherited="0">fsu.jportal.backend.sort.JPMagicSorter</sortby>
+    </autosort>
+    <contentClassis2 class="MCRMetaClassification" heritable="false" notinherit="true">
+      <contentClassi2 inherited="0" classid="jportal_class_00000062" categid="kp_zeitung"/>
+      <contentClassi2 inherited="0" classid="jportal_class_00000062" categid="kp_thuringica"/>
+    </contentClassis2>
+    <licences class="MCRMetaClassification" heritable="false" notinherit="true">
+      <licence inherited="0" classid="jportal_class_00000220" categid="cc0"/>
+    </licences>
+    <notes class="MCRMetaLangText" heritable="false" notinherit="true">
+      <note inherited="0" form="plain">41.1930 - 52.1941 keine Artikelerschließung, nur schmutzige OCR</note>
+    </notes>
+  </metadata>
+  <service>
+    <servdates class="MCRMetaISO8601Date">
+      <servdate type="modifydate" inherited="0">2022-11-14T10:29:54.833Z</servdate>
+      <servdate type="createdate" inherited="0">2009-01-14T12:47:38.705Z</servdate>
+    </servdates>
+    <servflags class="MCRMetaLangText">
+      <servflag type="modifiedby" inherited="0" form="plain">f9gosy</servflag>
+    </servflags>
+  </service>
+</mycoreobject>

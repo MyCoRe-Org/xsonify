@@ -1,0 +1,21 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="https://test.com/order" targetNamespace="https://test.com/order"
+           elementFormDefault="qualified">
+
+  <xs:element name="orderTest">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="o1" />
+        <xs:element ref="o2" minOccurs="0" />
+        <xs:element ref="o1" maxOccurs="unbounded"/>
+        <xs:element ref="o3" />
+        <xs:element ref="o1" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="o1" type="xs:string" />
+  <xs:element name="o2" type="xs:string" />
+  <xs:element name="o3" type="xs:string" />
+
+</xs:schema>

@@ -1,0 +1,231 @@
+<mycoreobject xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="datamodel-mods.xsd" ID="openagrar_mods_00084602"
+              version="2021.06.2-SNAPSHOT" label="openagrar_mods_00084602">
+  <structure>
+    <parents class="MCRMetaLinkID">
+      <parent inherited="0" xlink:type="locator" xlink:href="openagrar_mods_00076303"/>
+    </parents>
+    <derobjects xmlns:mods="http://www.loc.gov/mods/v3" class="MCRMetaEnrichedLinkID">
+      <derobject inherited="0" xlink:type="locator" xlink:href="openagrar_derivate_00050809">
+        <order>1</order>
+        <maindoc>2022_0283.pdf</maindoc>
+        <classification classid="derivate_types" categid="content"/>
+      </derobject>
+    </derobjects>
+  </structure>
+  <metadata>
+    <def.modsContainer class="MCRMetaXML" heritable="false" notinherit="true">
+      <modsContainer inherited="0">
+        <mods:mods xmlns:mods="http://www.loc.gov/mods/v3">
+          <mods:titleInfo xml:lang="en" xlink:type="simple">
+            <mods:title>Tare Soil Disinfestation from Cyst Nematodes Using Inundation</mods:title>
+          </mods:titleInfo>
+          <mods:name type="personal" xlink:type="simple">
+            <mods:displayForm>Berger, Beatrice</mods:displayForm>
+            <mods:role>
+              <mods:roleTerm authority="marcrelator" type="code">aut</mods:roleTerm>
+            </mods:role>
+            <mods:nameIdentifier type="gnd">1175986992</mods:nameIdentifier>
+            <mods:namePart type="family">Berger</mods:namePart>
+            <mods:namePart type="given">Beatrice</mods:namePart>
+            <mods:affiliation>Julius Kühn-Institute (JKI), Institute of Plant Protection in Field Crops and Grassland,
+              Germany
+            </mods:affiliation>
+          </mods:name>
+          <mods:name type="personal" xlink:type="simple">
+            <mods:displayForm>Daub, Matthias</mods:displayForm>
+            <mods:nameIdentifier type="gnd">135911168</mods:nameIdentifier>
+            <mods:role>
+              <mods:roleTerm authority="marcrelator" type="code">aut</mods:roleTerm>
+            </mods:role>
+            <mods:namePart type="family">Daub</mods:namePart>
+            <mods:namePart type="given">Matthias</mods:namePart>
+            <mods:affiliation>Julius Kühn-Institute (JKI), Institute of Plant Protection in Field Crops and Grassland,
+              Germany
+            </mods:affiliation>
+          </mods:name>
+          <mods:classification generator="typeOfResource2dataciteResType-mycore"
+                               authorityURI="http://www.mycore.org/classifications/dataciteResType"
+                               valueURI="http://www.mycore.org/classifications/dataciteResType#text"/>
+          <mods:name type="personal" xlink:type="simple">
+            <mods:displayForm>Gärtner, Kathleen</mods:displayForm>
+            <mods:role>
+              <mods:roleTerm authority="marcrelator" type="code">aut</mods:roleTerm>
+            </mods:role>
+            <mods:namePart type="family">Gärtner</mods:namePart>
+            <mods:namePart type="given">Kathleen</mods:namePart>
+            <mods:affiliation>University College London (UCL) Great Ormond Street Institute of Child Health, UK
+            </mods:affiliation>
+          </mods:name>
+          <mods:name type="personal" xlink:type="simple">
+            <mods:displayForm>Becker, Matthias</mods:displayForm>
+            <mods:role>
+              <mods:roleTerm authority="marcrelator" type="code">aut</mods:roleTerm>
+            </mods:role>
+            <mods:nameIdentifier type="gnd">1205678026</mods:nameIdentifier>
+            <mods:namePart type="family">Becker</mods:namePart>
+            <mods:namePart type="given">Matthias</mods:namePart>
+            <mods:affiliation>Julius Kühn-Institute (JKI), Institute for National and International Plant Health,
+              Germany
+            </mods:affiliation>
+          </mods:name>
+          <mods:name type="personal" xlink:type="simple">
+            <mods:displayForm>König, Stephan</mods:displayForm>
+            <mods:nameIdentifier type="gnd">143103393</mods:nameIdentifier>
+            <mods:role>
+              <mods:roleTerm authority="marcrelator" type="code">aut</mods:roleTerm>
+            </mods:role>
+            <mods:namePart type="family">König</mods:namePart>
+            <mods:namePart type="given">Stephan</mods:namePart>
+            <mods:affiliation>Julius Kühn-Institute (JKI), Institute for National and International Plant Health,
+              Germany
+            </mods:affiliation>
+          </mods:name>
+          <mods:originInfo>
+            <mods:publisher>MDPI AG</mods:publisher>
+          </mods:originInfo>
+          <mods:relatedItem type="host" xlink:href="openagrar_mods_00076303" xlink:type="simple">
+            <mods:part>
+              <mods:detail type="volume">
+                <mods:number>13</mods:number>
+              </mods:detail>
+              <mods:detail type="issue">
+                <mods:number>1</mods:number>
+              </mods:detail>
+              <mods:detail type="article_number">
+                <mods:number>57</mods:number>
+              </mods:detail>
+            </mods:part>
+            <mods:titleInfo xml:lang="de" xlink:type="simple">
+              <mods:title>Life</mods:title>
+            </mods:titleInfo>
+            <mods:originInfo eventType="publication">
+              <mods:place>
+                <mods:placeTerm type="text">Basel</mods:placeTerm>
+              </mods:place>
+              <mods:publisher>MDPI</mods:publisher>
+              <mods:dateIssued point="start" encoding="w3cdtf">2011</mods:dateIssued>
+            </mods:originInfo>
+            <mods:classification generator="typeOfResource2dataciteResType-mycore"
+                                 authorityURI="http://www.mycore.org/classifications/dataciteResType"
+                                 valueURI="http://www.mycore.org/classifications/dataciteResType#text"/>
+            <mods:language>
+              <mods:languageTerm authority="rfc5646" type="code">en</mods:languageTerm>
+            </mods:language>
+            <mods:classification displayLabel="sdnb" authority="sdnb">570</mods:classification>
+            <mods:location>
+              <mods:url>http://www.bibliothek.uni-regensburg.de/ezeit/?2662250</mods:url>
+              <mods:url>http://www.mdpi.com/journal/life</mods:url>
+              <mods:url>https://www.ncbi.nlm.nih.gov/pmc/journals/2582/</mods:url>
+            </mods:location>
+            <mods:identifier type="zdbid">2662250-6</mods:identifier>
+            <mods:identifier type="issn">2075-1729</mods:identifier>
+            <mods:genre type="intern" authorityURI="https://www.openagrar.de/classifications/genres"
+                        valueURI="https://www.openagrar.de/classifications/genres#journal"/>
+            <mods:typeOfResource>text</mods:typeOfResource>
+            <mods:extension displayLabel="metrics">
+              <!-- mods:extension is not accessable for guest -->
+            </mods:extension>
+            <mods:accessCondition type="restriction on access"
+                                  xlink:href="http://www.mycore.org/classifications/mir_access#unlimited"
+                                  xlink:type="simple"/>
+            <mods:accessCondition type="use and reproduction"
+                                  xlink:href="http://www.mycore.org/classifications/mir_licenses#oa"
+                                  xlink:type="simple"/>
+            <mods:extension displayLabel="characteristics">
+              <!-- mods:extension is not accessable for guest -->
+            </mods:extension>
+          </mods:relatedItem>
+          <mods:location>
+            <mods:url access="raw object">https://www.mdpi.com/2075-1729/13/1/57/pdf?version=1671892053</mods:url>
+          </mods:location>
+          <mods:accessCondition type="use and reproduction"
+                                xlink:href="http://www.mycore.org/classifications/mir_licenses#cc_by_4.0"
+                                xlink:type="simple"/>
+          <mods:identifier type="doi">10.3390/life13010057</mods:identifier>
+          <mods:genre type="intern" authorityURI="https://www.openagrar.de/classifications/genres"
+                      valueURI="https://www.openagrar.de/classifications/genres#article"/>
+          <mods:typeOfResource>text</mods:typeOfResource>
+          <mods:language>
+            <mods:languageTerm authority="rfc5646" type="code">en</mods:languageTerm>
+          </mods:language>
+          <mods:classification displayLabel="sdnb" authority="sdnb">630</mods:classification>
+          <mods:subject xlink:type="simple">
+            <mods:topic>tare soil residues</mods:topic>
+            <mods:topic>potato and sugar beet cyst nematodes</mods:topic>
+            <mods:topic>Brukner basin</mods:topic>
+            <mods:topic>sedimentation basin</mods:topic>
+            <mods:topic>lactic acid</mods:topic>
+            <mods:topic>phytosanitary measures</mods:topic>
+          </mods:subject>
+          <mods:abstract altRepGroup="48-be69-e3cfe165e66a" xml:lang="en" contentType="text/xml"
+                         altFormat="data:text/xml;charset=UTF-8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48YWJzdHJhY3QgYWx0UmVwR3JvdXA9IjQ4LWJlNjktZTNjZmUxNjVlNjZhIiB4bWw6bGFuZz0iZW4iPiZsdDtwJmd0O1RoZSBkaXNzZW1pbmF0aW9uIG9mIHNvaWwgdGFyZXMgaW4gdGhlIHBvdGF0byBhbmQgc3VnYXIgYmVldCBwcm9jZXNzaW5nIGluZHVzdHJ5IGlzIG9uZSBvZiB0aGUgbWFpbiBwYXRocyBmb3IgdGhlIHNwcmVhZCBvZiBwb3RhdG8gY3lzdCBuZW1hdG9kZXMgKFBDTiksIGEgc2V2ZXJlIHF1YXJhbnRpbmUgcGVzdC4gRWZmaWNpZW50IG1lYXN1cmVzIGZvciB0aGUgZGlzaW5mZXN0YXRpb24gb2YgdGFyZSBzb2lsIGZyb20gUENOLCBidXQgYWxzbyBmcm9tIGJlZXQgY3lzdCBuZW1hdG9kZXMgKEJDTiksIGFyZSBuZWVkZWQuIEluIG91ciBzdHVkeSwmYW1wOyN4YTA7R2xvYm9kZXJhIHBhbGxpZGEmYW1wOyN4YTA7KGEgUENOKSBhbmQmYW1wOyN4YTA7SGV0ZXJvZGVyYSBzY2hhY2h0aWkmYW1wOyN4YTA7KGEgQkNOKSBjeXN0cyB3ZXJlIHNlYWxlZCBpbiBnYXV6ZSBiYWdzIGFuZCBpbWJlZGRlZCBpbiBzZWRpbWVudGF0aW9uIGJhc2lucy4gVGhlIGN5c3RzIHdlcmUgZWl0aGVyIHBsYWNlZCBhKSBpbiBhIHByZXNlZGltZW50YXRpb24gYmFzaW4gKEJydWtuZXIgYmFzaW4pIGZvciB0aHJlZSBkYXlzLCBiKSBpbiB0aGUgcHJlc2VkaW1lbnRhdGlvbiBiYXNpbiBmb3IgdGhyZWUgZGF5cyBhbmQgc3Vic2VxdWVudGx5IGluIHNlZGltZW50YXRpb24gYmFzaW5zIGZvciBuaW5lIHdlZWtzIG9yIGMpIGluIHNlZGltZW50YXRpb24gYmFzaW5zIGZvciBuaW5lIHdlZWtzICh3aXRob3V0IHByZXNlZGltZW50YXRpb24pLiBXZSB0ZXN0ZWQgdGhlIHZpYWJpbGl0eSBvZiB0aGUgZWdncyBhbmQganV2ZW5pbGVzIGJ5IGhhdGNoaW5nIGFzc2F5cyBhbmQgdXNpbmcgdGhlIHJlcHJvZHVjdGlvbiByYXRlcyBpbiBiaW9hc3NheXMuIFdlIGRlbW9uc3RyYXRlZCB0aGF0IFBDTiBhbmQgQkNOIGltYmVkZGVkIGluIGEgc2VkaW1lbnRhdGlvbiBiYXNpbiB3ZXJlIG9ubHkgc3RpbGwgc2hvd2luZyBzb21lIGhhdGNoaW5nIGFjdGl2aXR5IGFmdGVyIDIuNSB3ZWVrcywgd2hpbGUgbm8gaGF0Y2hpbmcgd2FzIG9ic2VydmVkIHdoZW4gYW4gYWRkaXRpb25hbCBCcnVrbmVyIGJhc2luIHRyZWF0bWVudCB3YXMgY29uZHVjdGVkIGJlZm9yZSBzZWRpbWVudGF0aW9uLiZsdDsvcCZndDs8L2Fic3RyYWN0Pg"
+                         xlink:type="simple"/>
+          <mods:abstract altRepGroup="48-be69-e3cfe165e66a" xml:lang="en" xlink:type="simple">The dissemination of soil
+            tares in the potato and sugar beet processing industry is one of the main paths for the spread of potato
+            cyst nematodes (PCN), a severe quarantine pest. Efficient measures for the disinfestation of tare soil from
+            PCN, but also from beet cyst nematodes (BCN), are needed. In our study, Globodera pallida (a PCN) and
+            Heterodera schachtii (a BCN) cysts were sealed in gauze bags and imbedded in sedimentation basins. The cysts
+            were either placed a) in a presedimentation basin (Brukner basin) for three days, b) in the presedimentation
+            basin for three days and subsequently in sedimentation basins for nine weeks or c) in sedimentation basins
+            for nine weeks (without presedimentation). We tested the viability of the eggs and juveniles by hatching
+            assays and using the reproduction rates in bioassays. We demonstrated that PCN and BCN imbedded in a
+            sedimentation basin were only still showing some hatching activity after 2.5 weeks, while no hatching was
+            observed when an additional Brukner basin treatment was conducted before sedimentation.
+          </mods:abstract>
+          <mods:originInfo eventType="publication">
+            <mods:dateIssued encoding="w3cdtf">2023</mods:dateIssued>
+          </mods:originInfo>
+          <mods:name ID="N1013C-18929" type="corporate"
+                     authorityURI="https://www.openagrar.de/classifications/institutes"
+                     valueURI="https://www.openagrar.de/classifications/institutes#jki_a" xlink:type="simple">
+            <mods:role>
+              <mods:roleTerm authority="marcrelator" type="code">his</mods:roleTerm>
+            </mods:role>
+          </mods:name>
+          <mods:name ID="N1014D-23933" type="corporate"
+                     authorityURI="https://www.openagrar.de/classifications/institutes"
+                     valueURI="https://www.openagrar.de/classifications/institutes#jki_ag" xlink:type="simple">
+            <mods:role>
+              <mods:roleTerm authority="marcrelator" type="code">his</mods:roleTerm>
+            </mods:role>
+          </mods:name>
+          <mods:accessCondition type="restriction on access"
+                                xlink:href="http://www.mycore.org/classifications/mir_access#unlimited"
+                                xlink:type="simple"/>
+          <mods:accessCondition type="copyrightMD" xlink:type="simple">
+            <cmd:copyright xmlns:cmd="http://www.cdlib.org/inside/diglib/copyrightMD" copyright.status="copyrighted"
+                           publication.status="published"
+                           xsi:schemaLocation="http://www.cdlib.org/inside/diglib/copyrightMD https://www.cdlib.org/groups/rmg/docs/copyrightMD.xsd">
+              <cmd:rights.holder>
+                <cmd:name>2022 by the authors.</cmd:name>
+              </cmd:rights.holder>
+            </cmd:copyright>
+          </mods:accessCondition>
+          <mods:originInfo eventType="publication_print">
+            <mods:dateIssued encoding="w3cdtf">2023</mods:dateIssued>
+          </mods:originInfo>
+          <mods:originInfo eventType="publication_online">
+            <mods:dateIssued encoding="w3cdtf">2022-12-24</mods:dateIssued>
+          </mods:originInfo>
+          <mods:extension displayLabel="metrics">
+            <!-- mods:extension is not accessable for guest -->
+          </mods:extension>
+        </mods:mods>
+      </modsContainer>
+    </def.modsContainer>
+  </metadata>
+  <service>
+    <servdates class="MCRMetaISO8601Date">
+      <servdate type="createdate" inherited="0">2022-12-29T08:58:02.314Z</servdate>
+      <servdate type="modifydate" inherited="0">2022-12-29T09:01:54.347Z</servdate>
+    </servdates>
+    <servflags class="MCRMetaLangText">
+      <servflag type="createdby" inherited="0" form="plain">vkappes</servflag>
+      <servflag type="modifiedby" inherited="0" form="plain">vkappes</servflag>
+    </servflags>
+    <servstates class="MCRMetaClassification">
+      <servstate inherited="0" classid="state" categid="published"/>
+    </servstates>
+  </service>
+</mycoreobject>

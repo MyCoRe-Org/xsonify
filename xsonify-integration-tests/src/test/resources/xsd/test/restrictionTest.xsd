@@ -1,0 +1,20 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:se="https://test.com/simpleElement"
+           xmlns="https://test.com/restriction" targetNamespace="https://test.com/restriction"
+           elementFormDefault="qualified">
+
+  <xs:import namespace="https://test.com/simpleElement" schemaLocation="simpleElement.xsd"/>
+
+  <xs:element name="elementRestrictionTest" type="elementRestriction"/>
+
+  <xs:complexType name="elementRestriction">
+    <xs:complexContent>
+      <xs:restriction base="se:elementType">
+        <xs:choice>
+          <xs:element ref="se:element" maxOccurs="unbounded"/>
+        </xs:choice>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+
+</xs:schema>

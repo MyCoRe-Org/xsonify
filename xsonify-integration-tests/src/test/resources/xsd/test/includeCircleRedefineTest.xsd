@@ -1,0 +1,28 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="https://test.com/redefine" targetNamespace="https://test.com/redefine"
+           elementFormDefault="qualified">
+
+  <xs:redefine schemaLocation="includeCircleTestA.xsd">
+    <xs:complexType name="includeA">
+      <xs:complexContent>
+        <xs:restriction base="includeA">
+          <xs:choice minOccurs="0">
+            <xs:element name="A" type="xs:string" />
+            <xs:element ref="includeB" />
+          </xs:choice>
+        </xs:restriction>
+      </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="includeB">
+      <xs:complexContent>
+        <xs:extension base="includeB">
+          <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="C" type="xs:string" />
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:redefine>
+
+</xs:schema>

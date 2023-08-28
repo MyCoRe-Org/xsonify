@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+
+  <system systemId="http://www.loc.gov/mods/xml.xsd" uri="xsd/xml.xsd"/>
+
+  <!-- mycore -->
+  <system systemId="datamodel-jpjournal.xsd" uri="xsd/mycore/datamodel-jpjournal.xsd"/>
+  <system systemId="datamodel-mods.xsd" uri="xsd/mycore/datamodel-mods.xsd"/>
+  <system systemId="mcrcommon-datamodel.xsd" uri="xsd/mycore/mcrcommon-datamodel.xsd"/>
+  <system systemId="MCRCondition.xsd" uri="xsd/mycore/MCRCondition.xsd"/>
+  <system systemId="http://www.w3.org/XML/2008/06/xlink.xsd" uri="xsd/mycore/xlink.xsd"/>
+  <system systemId="http://www.w3.org/2001/xml.xsd" uri="xsd/mycore/xml.xsd"/>
+  <system systemId="xlink-2008-06.xsd" uri="xsd/mycore/xlink.xsd"/>
+  <system systemId="xml-2001.xsd" uri="xsd/mycore/xml.xsd"/>
+
+  <!-- mods -->
+  <system systemId="http://www.loc.gov/mods/v3" uri="xsd/mods/mods-3-8.xsd"/>
+  <system systemId="mods-3-8.xsd" uri="xsd/mods/mods-3-8.xsd"/>
+  <system systemId="http://www.loc.gov/standards/mods/v3/mods-3-8.xsd" uri="xsd/mods/mods-3-8.xsd"/>
+  <system systemId="http://www.loc.gov/standards/xlink/xlink.xsd" uri="xsd/mods/xlink-mods.xsd"/>
+
+  <!-- test cases -->
+  <system systemId="simpleElement.xsd" uri="xsd/test/simpleElement.xsd"/>
+
+  <system systemId="test.xsd" uri="xsd/test/test.xsd"/>
+  <system systemId="elementTest.xsd" uri="xsd/test/elementTest.xsd"/>
+  <system systemId="circularTest.xsd" uri="xsd/test/circularTest.xsd"/>
+  <system systemId="restrictionTest.xsd" uri="xsd/test/restrictionTest.xsd"/>
+  <system systemId="extensionTest.xsd" uri="xsd/test/extensionTest.xsd"/>
+
+  <system systemId="includeCircleTestA.xsd" uri="xsd/test/includeCircleTestA.xsd"/>
+  <system systemId="includeCircleTestB.xsd" uri="xsd/test/includeCircleTestB.xsd"/>
+  <system systemId="includeCircleRedefineTest.xsd" uri="xsd/test/includeCircleRedefineTest.xsd"/>
+
+  <system systemId="includeReferenceTestA.xsd" uri="xsd/test/includeReferenceTestA.xsd"/>
+  <system systemId="includeReferenceTestB.xsd" uri="xsd/test/includeReferenceTestB.xsd"/>
+
+  <system systemId="sameNameTestA.xsd" uri="xsd/test/sameNameTestA.xsd"/>
+  <system systemId="sameNameTestB.xsd" uri="xsd/test/sameNameTestB.xsd"/>
+
+  <system systemId="redefineA.xsd" uri="xsd/test/redefineA.xsd"/>
+  <system systemId="redefineB.xsd" uri="xsd/test/redefineB.xsd"/>
+  <system systemId="redefineC.xsd" uri="xsd/test/redefineC.xsd"/>
+
+  <system systemId="attributeTest.xsd" uri="xsd/test/attributeTest.xsd"/>
+
+  <system systemId="orderTest.xsd" uri="xsd/test/orderTest.xsd"/>
+
+</catalog>

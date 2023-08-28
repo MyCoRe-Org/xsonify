@@ -1,0 +1,31 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:se="https://test.com/simpleElement"
+           xmlns="https://test.com/extension" targetNamespace="https://test.com/extension"
+           elementFormDefault="qualified">
+
+  <xs:import namespace="https://test.com/simpleElement" schemaLocation="simpleElement.xsd"/>
+
+  <xs:element name="elementExtensionTest" type="elementExtension"/>
+
+  <xs:complexType name="elementExtension">
+    <xs:complexContent>
+      <xs:extension base="se:elementType">
+        <xs:sequence>
+          <xs:element name="element2" type="xs:int"/>
+          <xs:element name="subExtension">
+            <xs:complexType>
+              <xs:complexContent>
+                <xs:extension base="se:elementType">
+                  <xs:sequence maxOccurs="unbounded">
+                    <xs:element name="element3" type="xs:int"/>
+                  </xs:sequence>
+                </xs:extension>
+              </xs:complexContent>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+</xs:schema>

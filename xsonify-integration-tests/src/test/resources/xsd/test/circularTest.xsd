@@ -1,0 +1,71 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tt="https://test.com/v1"
+           xmlns="https://test.com/circular"
+           targetNamespace="https://test.com/circular"
+           elementFormDefault="qualified">
+
+  <xs:import namespace="https://test.com/v1" schemaLocation="test.xsd"/>
+
+  <xs:include schemaLocation="includeCircleTestB.xsd"/>
+  <xs:include schemaLocation="sameNameTestB.xsd"/>
+
+  <!--IMPORT TEST -->
+  <xs:element name="importCircleTest">
+    <xs:complexType>
+      <xs:choice>
+        <xs:element ref="tt:root"/>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
+  <!--INCLUDE TEST -->
+  <xs:element name="includeCircleTest">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="includeA"/>
+        <xs:element ref="sameNameElement" />
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- ELEMENT REFERENCE TEST -->
+  <xs:element name="refCircleTest">
+    <xs:complexType>
+      <xs:choice>
+        <xs:element ref="refCircleTest"/>
+        <xs:element ref="circleEnd"/>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- COMPLEX TYPE TEST -->
+  <xs:element name="complexTypeCircleTest" type="complexTypeCircle"/>
+  <xs:complexType name="complexTypeCircle">
+    <xs:choice>
+      <xs:element name="circle" type="complexTypeCircle"/>
+      <xs:element ref="circleEnd"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <!-- GROUP TEST -->
+  <xs:element name="groupCircleTest">
+    <xs:complexType>
+      <xs:group ref="groupCircle" maxOccurs="unbounded"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:group name="groupCircle">
+    <xs:choice>
+      <xs:element name="circle">
+        <xs:complexType>
+          <xs:choice>
+            <xs:group ref="groupCircle"/>
+            <xs:element ref="circleEnd"/>
+          </xs:choice>
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+  </xs:group>
+
+  <xs:element name="circleEnd" type="xs:string"/>
+
+</xs:schema>

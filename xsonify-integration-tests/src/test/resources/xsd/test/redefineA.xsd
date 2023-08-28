@@ -1,0 +1,38 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="https://test.com/redefineA" targetNamespace="https://test.com/redefineA"
+           elementFormDefault="qualified">
+
+  <xs:redefine schemaLocation="redefineB.xsd">
+    <xs:complexType name="contentC">
+      <xs:complexContent>
+        <xs:extension base="contentC">
+          <xs:choice>
+            <xs:element name="a" type="xs:string"/>
+          </xs:choice>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:redefine>
+
+  <xs:redefine schemaLocation="redefineC.xsd">
+    <xs:complexType name="contentB">
+      <xs:complexContent>
+        <xs:extension base="contentB">
+          <xs:choice>
+            <xs:element name="a" type="xs:string"/>
+          </xs:choice>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:redefine>
+
+  <xs:element name="root">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="elementB"/>
+        <xs:element ref="elementC"/>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

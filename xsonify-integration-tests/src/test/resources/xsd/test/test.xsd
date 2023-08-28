@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:et="https://test.com/element"
+           xmlns:ct="https://test.com/circular"
+           xmlns:rt="https://test.com/restriction"
+           xmlns:xt="https://test.com/extension"
+           xmlns:re="https://test.com/redefine"
+           xmlns:at="https://test.com/attribute"
+           xmlns:ot="https://test.com/order"
+           xmlns="https://test.com/v1" targetNamespace="https://test.com/v1"
+           elementFormDefault="qualified">
+
+  <xs:import namespace="https://test.com/element" schemaLocation="elementTest.xsd"/>
+  <xs:import namespace="https://test.com/circular" schemaLocation="circularTest.xsd"/>
+  <xs:import namespace="https://test.com/restriction" schemaLocation="restrictionTest.xsd"/>
+  <xs:import namespace="https://test.com/extension" schemaLocation="extensionTest.xsd"/>
+  <xs:import namespace="https://test.com/redefine" schemaLocation="includeCircleRedefineTest.xsd"/>
+  <xs:import namespace="https://test.com/attribute" schemaLocation="attributeTest.xsd"/>
+  <xs:import namespace="https://test.com/order" schemaLocation="orderTest.xsd"/>
+
+  <xs:include schemaLocation="includeCircleTestA.xsd"/>
+  <xs:include schemaLocation="sameNameTestA.xsd"/>
+
+  <!-- root -->
+  <xs:element name="root" type="rootDefinition"/>
+
+  <xs:complexType name="rootDefinition">
+    <xs:group ref="rootGroup" minOccurs="0" maxOccurs="unbounded"/>
+  </xs:complexType>
+
+  <!-- element links -->
+  <xs:group name="rootGroup">
+    <xs:choice>
+      <xs:element ref="groupLink"/>
+      <xs:element ref="include"/>
+      <xs:element ref="ct:includeCircleTest"/>
+      <xs:element ref="ct:refCircleTest"/>
+      <xs:element ref="ct:complexTypeCircleTest"/>
+      <xs:element ref="ct:groupCircleTest"/>
+      <xs:element ref="et:deepTest"/>
+      <xs:element ref="et:parent"/>
+      <xs:element ref="et:mixedContentTest"/>
+      <xs:element ref="rt:elementRestrictionTest"/>
+      <xs:element ref="xt:elementExtensionTest"/>
+      <xs:element ref="re:includeA"/>
+      <xs:element ref="re:includeB"/>
+      <xs:element ref="includeA"/>
+      <xs:element ref="includeB"/>
+      <xs:element ref="at:attributeTest"/>
+      <xs:element ref="ot:orderTest"/>
+    </xs:choice>
+  </xs:group>
+
+  <!-- complexType link -->
+  <xs:element name="complexTypeLink" type="ct:complexTypeCircle">
+  </xs:element>
+
+  <!-- group link -->
+  <xs:element name="groupLink">
+    <xs:complexType>
+      <xs:group ref="ct:groupCircle"/>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- include -->
+  <xs:element name="include">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="includeA"/>
+        <xs:element ref="includeB"/>
+        <xs:element ref="sameNameElement"/>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

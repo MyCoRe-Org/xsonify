@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns="https://test.com/v1"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:et="https://test.com/element"
+      xmlns:ct="https://test.com/circular"
+      xmlns:re="https://test.com/redefine"
+      xmlns:at="https://test.com/attribute"
+      xmlns:ot="https://test.com/order"
+      xsi:schemaLocation="https://test.com/v1 test.xsd">
+
+  <ct:includeCircleTest>
+    <ct:includeA>
+      <ct:includeB>
+        <ct:B>B</ct:B>
+      </ct:includeB>
+    </ct:includeA>
+    <ct:sameNameElement xmlns:etx="https://test.com/element">
+      <etx:parent>
+        <etx:child>
+          <etx:name>Same Name Element</etx:name>
+        </etx:child>
+      </etx:parent>
+    </ct:sameNameElement>
+  </ct:includeCircleTest>
+
+  <ct:refCircleTest>
+    <ct:refCircleTest>
+      <ct:refCircleTest>
+        <ct:circleEnd>refCircleTest</ct:circleEnd>
+      </ct:refCircleTest>
+    </ct:refCircleTest>
+  </ct:refCircleTest>
+
+  <ct:complexTypeCircleTest>
+    <ct:circle>
+      <ct:circle>
+        <ct:circleEnd>refCircleTest</ct:circleEnd>
+      </ct:circle>
+    </ct:circle>
+  </ct:complexTypeCircleTest>
+
+  <ct:groupCircleTest>
+    <ct:circle>
+      <ct:circle>
+        <ct:circleEnd>refCircleTest</ct:circleEnd>
+      </ct:circle>
+    </ct:circle>
+  </ct:groupCircleTest>
+
+  <et:deepTest>
+    <et:l_1_1>
+      <et:l_1_2>
+        <et:name>John</et:name>
+      </et:l_1_2>
+    </et:l_1_1>
+    <et:l_2_1>
+      <et:l_2_2>
+        <et:last-name>Doe</et:last-name>
+      </et:l_2_2>
+    </et:l_2_1>
+  </et:deepTest>
+
+  <et:parent>
+    <et:child>
+      <et:name>Uwe Mueller</et:name>
+    </et:child>
+    <et:child>
+      <et:first-name>Klaus</et:first-name>
+      <et:last-name>Ludwig</et:last-name>
+    </et:child>
+  </et:parent>
+
+  <et:mixedContentTest>
+    Hallo
+    <et:child>
+      <et:name>Mixed Content</et:name>
+    </et:child>
+    .
+  </et:mixedContentTest>
+
+  <include>
+    <includeA>
+      <includeB>
+        <B>B</B>
+      </includeB>
+    </includeA>
+    <includeB>
+      <includeA>
+        <A>A</A>
+      </includeA>
+    </includeB>
+    <sameNameElement>
+      <et:child>
+        <et:name>Same Name Element</et:name>
+      </et:child>
+    </sameNameElement>
+  </include>
+
+  <includeB>
+    <B>TEST</B>
+  </includeB>
+
+  <re:includeB>
+    <re:B>B</re:B>
+  </re:includeB>
+
+  <re:includeB>
+    <re:B>B2</re:B>
+  </re:includeB>
+
+  <re:includeA>
+    <re:includeB>
+      <re:B>B</re:B>
+      <re:C>C</re:C>
+    </re:includeB>
+  </re:includeA>
+
+  <at:attributeTest>
+    <at:textElement text="just text" type="plain" />
+    <at:anyAttributeElement at:globalAttribute="some attribute"/>
+  </at:attributeTest>
+
+  <ot:orderTest>
+    <ot:o1>1</ot:o1>
+    <ot:o2>2</ot:o2>
+    <ot:o1>3</ot:o1>
+    <ot:o1>4</ot:o1>
+    <ot:o3>5</ot:o3>
+    <ot:o1>6</ot:o1>
+  </ot:orderTest>
+
+</root>
