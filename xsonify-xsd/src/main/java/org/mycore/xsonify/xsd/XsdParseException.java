@@ -1,7 +1,7 @@
 package org.mycore.xsonify.xsd;
 
 /**
- * Exception while parsing a xsd.
+ * Exception thrown during the parsing process of an XSD.
  */
 public class XsdParseException extends RuntimeException {
 

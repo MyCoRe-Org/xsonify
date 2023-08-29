@@ -7,6 +7,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Represents a node in the XSD (XML Schema Definition) hierarchy.
+ * This class captures various properties and behaviors of an XSD node,
+ * like its type, attributes, children, and links.
+ */
 public class XsdNode {
 
     private final Xsd xsd;
@@ -39,6 +44,15 @@ public class XsdNode {
      */
     private Boolean hasAnyAttribute;
 
+    /**
+     * Constructs a new XsdNode.
+     *
+     * @param xsd      The XSD object to which this node belongs.
+     * @param uri      The URI that identifies the XML namespace of this node.
+     * @param nodeType The type of this node.
+     * @param element  The XmlElement representing this node in the XML document.
+     * @param parent   The parent node of this node in the XSD hierarchy.
+     */
     public XsdNode(Xsd xsd, String uri, XsdNodeType nodeType, XmlElement element, XsdNode parent) {
         this.xsd = xsd;
         this.uri = uri;
@@ -104,7 +118,7 @@ public class XsdNode {
     }
 
     /**
-     * Clones this and all children.
+     * Clones this node and all of its children.
      * <p>Be aware that this method does not add the cloned node to the newParent.</p>
      *
      * @param newParent the newParent node
@@ -146,8 +160,9 @@ public class XsdNode {
     }
 
     /**
-     * Builds the cache for this node. This is usually called at the end of the {@link XsdParser} through
-     * {@link Xsd#buildCache()}.
+     * Builds various caches for optimizing node operations.
+     * <p>This is usually called at the end of the {@link XsdParser} through
+     * {@link Xsd#buildCache()}.</p>
      */
     public void buildCache() {
         this.collectElements();

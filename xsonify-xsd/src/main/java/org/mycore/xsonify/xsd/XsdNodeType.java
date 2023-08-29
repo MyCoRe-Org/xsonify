@@ -6,7 +6,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Xsd element types.
+ * <p>Enumeration of different types of XSD elements.</p>
+ * <p>Provides utility methods and lists to categorize and identify XSD node types.</p>
  * <p>Implementation details:
  * <ul>
  *   <li>Use uppercase: avoid reserved java keywords.</li>

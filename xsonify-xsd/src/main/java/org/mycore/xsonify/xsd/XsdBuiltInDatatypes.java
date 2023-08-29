@@ -6,7 +6,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Xsd built-in datatypes.
+ * Provides a list of XSD built-in datatypes, both primitive and derived.
+ * Includes utility methods to check if a given type is a built-in type.
  *
  * @see <a href="https://www.w3.org/TR/xmlschema-2/#built-in-datatypes">Built-In Datatypes.</a>
  */

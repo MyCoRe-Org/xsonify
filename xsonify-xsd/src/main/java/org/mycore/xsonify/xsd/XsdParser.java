@@ -14,6 +14,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * The XsdParser class is responsible for parsing an XSD (XML Schema Definition)
+ * schema file to generate an Xsd object.
+ *
+ * <p>
+ * The parser performs the following steps:
+ * <ul>
+ *  <li>Resolves the XSD documents by their schema locations.</li>
+ *  <li>Resolves the fragments within the XSD documents.</li>
+ *  <li>Creates a new Xsd object based on the resolved documents and fragments.</li>
+ *  <li>Resolves the nodes that make up the XSD object.</li>
+ * </ul>
+ * </p>
+ */
 public class XsdParser {
 
     private final XmlDocumentLoader documentLoader;
@@ -44,6 +58,18 @@ public class XsdParser {
         return xsd;
     }
 
+    /**
+     * Helper class to resolve and load XSD schema documents.
+     *
+     * <p>
+     * This class performs the following steps:
+     * <ul>
+     *  <li>Loads an XSD by its system ID using the provided XmlDocumentLoader.</li>
+     *  <li>Stores the loaded XmlDocument in a map for future reference.</li>
+     *  <li>Recursively resolves any import, include, or redefine elements within the XSD.</li>
+     * </ul>
+     * </p>
+     */
     private static class DocumentResolver {
 
         private final String systemId;
@@ -51,12 +77,23 @@ public class XsdParser {
 
         private final LinkedHashMap<String, XmlDocument> documentMap;
 
+        /**
+         * Constructs a new DocumentResolver instance.
+         *
+         * @param systemId       The system ID of the root XSD to resolve.
+         * @param documentLoader The loader responsible for fetching and loading XSD documents.
+         */
         public DocumentResolver(String systemId, XmlDocumentLoader documentLoader) {
             this.systemId = systemId;
             this.documentLoader = documentLoader;
             this.documentMap = new LinkedHashMap<>();
         }
 
+        /**
+         * Initiates the resolution process for the root XSD document .
+         *
+         * @throws XsdParseException if unable to resolve the document.
+         */
         public void resolve() throws XsdParseException {
             resolve(this.systemId);
         }
@@ -94,28 +131,62 @@ public class XsdParser {
             resolve(schemaLocation);
         }
 
+        /**
+         * Returns the target namespace of the root XSD document.
+         *
+         * @return The target namespace as a String, or null if not specified.
+         */
         public String getTargetNamespace() {
             XmlDocument rootDocument = this.documentMap.get(this.systemId);
             return rootDocument.getRoot().getAttribute("targetNamespace");
         }
 
+        /**
+         * Returns the map of resolved XSD documents.
+         *
+         * @return A LinkedHashMap containing the resolved XSD documents, keyed by their system IDs.
+         */
         public LinkedHashMap<String, XmlDocument> getDocumentMap() {
             return documentMap;
         }
 
     }
 
+    /**
+     * Helper class for resolving and constructing fragments of an XSD schema.
+     *
+     * <p>
+     * This class performs the following steps:
+     * <ul>
+     *  <li>Constructs fragments of the loaded XSD documents.</li>
+     *  <li>Recursively resolves any imports, includes, or redefines within each fragment.</li>
+     *  <li>Stores the resolved fragments in a map for future reference.</li>
+     * </ul>
+     * </p>
+     */
     private static class FragmentResolver {
 
         private final Map<String, XmlDocument> documentMap;
 
         private final LinkedHashMap<FragmentId, Fragment> fragmentMap;
 
+        /**
+         * Constructs a new FragmentResolver instance.
+         *
+         * @param documentMap The map of loaded XSD documents, keyed by their schema location.
+         */
         public FragmentResolver(Map<String, XmlDocument> documentMap) {
             this.documentMap = documentMap;
             this.fragmentMap = new LinkedHashMap<>();
         }
 
+        /**
+         * Initiates the resolution process for the fragments starting from the specified schema location.
+         *
+         * @param schemaLocation The location of the schema from which to begin fragment resolution.
+         * @return A map of resolved fragments, keyed by their unique FragmentId.
+         * @throws XsdParseException if unable to resolve the fragments.
+         */
         public LinkedHashMap<FragmentId, Fragment> resolve(String schemaLocation) throws XsdParseException {
             XmlDocument document = documentMap.get(schemaLocation);
             String targetNamespace = document.getRoot().getAttribute("targetNamespace");
@@ -125,6 +196,12 @@ public class XsdParser {
             return fragmentMap;
         }
 
+        /**
+         * Resolves the given fragment recursively.
+         *
+         * @param fragment The fragment to be resolved.
+         * @throws XsdParseException if unable to resolve the fragment.
+         */
         public void resolve(Fragment fragment) throws XsdParseException {
             for (XmlElement element : fragment.document().getRoot().getElements()) {
                 resolve(fragment, element);
@@ -170,6 +247,9 @@ public class XsdParser {
 
     }
 
+    /**
+     * Resolves XSD nodes, handles linking between nodes, and sets up the XSD tree structure.
+     */
     private static class NodeResolver {
 
         private final Xsd xsd;
@@ -178,12 +258,23 @@ public class XsdParser {
 
         private final LinkedHashMap<RedefineId, XsdNode> redefineMap;
 
+        /**
+         * Creates a new NodeResolver.
+         *
+         * @param xsd         The main XSD object.
+         * @param fragmentMap A map containing fragment identifiers and corresponding fragment data.
+         */
         public NodeResolver(Xsd xsd, LinkedHashMap<FragmentId, Fragment> fragmentMap) {
             this.xsd = xsd;
             this.fragmentMap = fragmentMap;
             this.redefineMap = new LinkedHashMap<>();
         }
 
+        /**
+         * Kicks off the node resolution process.
+         *
+         * @throws XsdParseException if there is a problem parsing the XSD.
+         */
         public void resolve() throws XsdParseException {
             fragmentMap.values().stream().map(Fragment::document).forEach(this::resolveRootNodes);
             resolveHierarchy();
@@ -487,19 +578,47 @@ public class XsdParser {
 
     }
 
+    /**
+     * A unique identifier for an XSD fragment, consisting of a schema location and a target namespace.
+     *
+     * <p>
+     * The schema location is the URL or file path of the XSD document, and the target namespace is the
+     * XML namespace to which the fragment belongs. An empty string is used for target namespaces that are
+     * not defined.
+     * </p>
+     */
     private record FragmentId(String schemaLocation, String targetNamespace) {
+        /**
+         * Constructs a new FragmentId with the given schema location and target namespace.
+         *
+         * @param schemaLocation  The location of the schema, typically a URL or file path.
+         * @param targetNamespace The XML namespace to which this fragment belongs. Uses an empty string if null.
+         */
         public FragmentId(String schemaLocation, String targetNamespace) {
             this.schemaLocation = schemaLocation;
             this.targetNamespace = targetNamespace == null ? "" : targetNamespace;
         }
     }
 
+    /**
+     * Represents a fragment of an XSD schema, encapsulating its unique identifier and associated document.
+     */
     private record Fragment(FragmentId id, XsdDocument document) {
 
+        /**
+         * Retrieves the target namespace associated with this fragment.
+         *
+         * @return The target namespace as a string.
+         */
         public String getTargetNamespace() {
             return document.getTargetNamespace();
         }
 
+        /**
+         * Retrieves the schema location associated with this fragment.
+         *
+         * @return The schema location as a string, typically a URL or file path.
+         */
         public String getSchemaLocation() {
             return document.getSchemaLocation();
         }

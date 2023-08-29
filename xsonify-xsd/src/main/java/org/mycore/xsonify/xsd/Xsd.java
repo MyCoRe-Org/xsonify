@@ -20,6 +20,10 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
+/**
+ * Represents an XSD (XML Schema Definition) and provides methods to interact with its structure and elements.
+ * This class encapsulates the XSD's target namespace, associated documents, and named nodes.
+ */
 public class Xsd {
 
     public static final List<XsdNodeType> NAMED_TYPES = List.of(
@@ -33,6 +37,12 @@ public class Xsd {
 
     private final LinkedHashMap<XsdNodeType, Map<XmlExpandedName, XsdNode>> namedMap;
 
+    /**
+     * Constructor to initialize the XSD with the given target namespace and document map.
+     *
+     * @param targetNamespace the target namespace for the XSD
+     * @param documentMap a map of associated XML documents
+     */
     public Xsd(String targetNamespace, LinkedHashMap<String, XmlDocument> documentMap) {
         this.targetNamespace = targetNamespace != null ? targetNamespace : XmlNamespace.EMPTY.uri();
         this.documentMap = documentMap;
@@ -40,6 +50,11 @@ public class Xsd {
         NAMED_TYPES.forEach(type -> this.namedMap.put(type, new LinkedHashMap<>()));
     }
 
+    /**
+     * Returns the target namespace of the XSD.
+     *
+     * @return the target namespace
+     */
     public String getTargetNamespace() {
         return targetNamespace;
     }
