@@ -168,31 +168,33 @@
   </xs:element>
   <xs:element name="derobject">
     <xs:complexType>
-      <xs:choice>
+      <xs:all>
         <xs:element type="xs:byte" name="order" minOccurs="0"/>
         <xs:element type="xs:string" name="maindoc"/>
-        <xs:element name="title" maxOccurs="unbounded" minOccurs="0">
-          <xs:complexType>
-            <xs:simpleContent>
-              <xs:extension base="xs:string">
-                <xs:attribute ref="xml:lang"/>
-                <xs:attribute type="xs:byte" name="inherited" use="optional"/>
-                <xs:attribute type="xs:string" name="form" use="optional"/>
-              </xs:extension>
-            </xs:simpleContent>
-          </xs:complexType>
-        </xs:element>
-        <xs:element name="classification" maxOccurs="unbounded" minOccurs="0">
-          <xs:complexType>
-            <xs:simpleContent>
-              <xs:extension base="xs:string">
-                <xs:attribute type="xs:string" name="classid" use="optional"/>
-                <xs:attribute type="xs:string" name="categid" use="optional"/>
-              </xs:extension>
-            </xs:simpleContent>
-          </xs:complexType>
-        </xs:element>
-      </xs:choice>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="title">
+            <xs:complexType>
+              <xs:simpleContent>
+                <xs:extension base="xs:string">
+                  <xs:attribute ref="xml:lang"/>
+                  <xs:attribute type="xs:byte" name="inherited" use="optional"/>
+                  <xs:attribute type="xs:string" name="form" use="optional"/>
+                </xs:extension>
+              </xs:simpleContent>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="classification">
+            <xs:complexType>
+              <xs:simpleContent>
+                <xs:extension base="xs:string">
+                  <xs:attribute type="xs:string" name="classid" use="optional"/>
+                  <xs:attribute type="xs:string" name="categid" use="optional"/>
+                </xs:extension>
+              </xs:simpleContent>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:all>
       <xs:attribute name="inherited" use="required" type="xs:integer" fixed="0" />
       <xs:attribute name="sequence" type="xs:integer" />
       <xs:attributeGroup ref="supportedXlinks" />
