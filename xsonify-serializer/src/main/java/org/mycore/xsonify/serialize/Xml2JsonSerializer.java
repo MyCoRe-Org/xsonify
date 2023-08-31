@@ -13,6 +13,7 @@ import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xml.XmlText;
 import org.mycore.xsonify.xsd.Xsd;
+import org.mycore.xsonify.xsd.XsdBuiltInDatatypes;
 import org.mycore.xsonify.xsd.XsdNode;
 import org.mycore.xsonify.xsd.XsdNodeType;
 
@@ -165,7 +166,14 @@ public class Xml2JsonSerializer extends SerializerBase {
         if (SerializerSettings.PlainTextHandling.ALWAYS_WRAP.equals(settings().plainTextHandling())) {
             return false;
         }
-        // SIMPLIFY OR WRAP
+        // SIMPLETYPE
+        if (isSimpleType(element)) {
+            return true;
+        }
+        // NOT a SIMPLETYPE
+        if (SerializerSettings.PlainTextHandling.SIMPLIFY_SIMPLETYPE.equals(settings().plainTextHandling())) {
+            return false;
+        }
         // check elements and attributes
         if (element.hasElements() || element.hasAttributes()) {
             return false;
@@ -183,6 +191,40 @@ public class Xml2JsonSerializer extends SerializerBase {
             return false;
         }
         return !isChildOfXsAny(element);
+    }
+
+    private Boolean isSimpleType(XmlElement element) {
+        XsdNode xsdNode = xsd().resolveXmlElement(element);
+        return isSimpleType(xsdNode);
+    }
+
+    private Boolean isSimpleType(XsdNode xsdNode) {
+        if (xsdNode == null) {
+            return null;
+        }
+        // check if we already found a simpletype
+        if (XsdNodeType.SIMPLETYPE.equals(xsdNode.getNodeType())) {
+            return true;
+        }
+        // check @type
+        String type = xsdNode.getElement().getAttribute("type", XmlNamespace.EMPTY.uri());
+        if (type != null) {
+            if (XsdBuiltInDatatypes.is(XmlExpandedName.of(type))) {
+                return true;
+            }
+            XsdNode linkedNode = xsdNode.getLinkedNode();
+            if (linkedNode != null) {
+                return isSimpleType(linkedNode);
+            }
+            throw new SerializerException("Unable to @type '" + type + "'.");
+        }
+        // check first child
+        if (xsdNode.getChildren().isEmpty()) {
+            throw new SerializerException("XsdNode has neither @type nor any children '" + xsdNode + "'.");
+        }
+        XsdNode child = xsdNode.getChildren().get(0);
+        // TODO extension/restriction
+        return XsdNodeType.SIMPLETYPE.equals(child.getNodeType());
     }
 
     private void handleNamespaces(XmlElement element, JsonObject json, XmlNamespace parentNamespace) {

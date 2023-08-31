@@ -4,7 +4,7 @@ import static org.mycore.xsonify.serialize.SerializerSettings.AdditionalNamespac
 import static org.mycore.xsonify.serialize.SerializerSettings.JsonStructure.SCHEMA_BASED;
 import static org.mycore.xsonify.serialize.SerializerSettings.MixedContentHandling.JSON_CONVERSION;
 import static org.mycore.xsonify.serialize.SerializerSettings.NamespaceHandling.ADD_IF_XS_ANY;
-import static org.mycore.xsonify.serialize.SerializerSettings.PlainTextHandling.ALWAYS_WRAP;
+import static org.mycore.xsonify.serialize.SerializerSettings.PlainTextHandling.SIMPLIFY_SIMPLETYPE;
 import static org.mycore.xsonify.serialize.SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT;
 import static org.mycore.xsonify.serialize.SerializerSettings.XsAnyNamespaceStrategy.USE_EMPTY;
 
@@ -102,55 +102,40 @@ public record SerializerSettings(
     }
 
     /**
-     * Defines the strategy for handling plain text in the resulting JSON.
+     * <p>Defines the strategy for handling plain text in the resulting JSON. Text can be either wrapped or simplified.</p>
+     * <p>If a text is wrapped the json key is set by the {@link SerializerStyle#textKey()}.</p>
+     * <b>Example:</b>
+     * <pre>
+     * {@code
+     * <message>Hello, World!</message>
+     *
+     * Wrapped:
+     *   "message": {
+     *     "$": "Hello, World!"
+     *   }
+     * Simplified:
+     *   "message": "Hello, World!"
+     * }
+     * </pre>
      */
     public enum PlainTextHandling {
         /**
-         * Text is always represented as a value within a JSON object. The key for the text value is given by {@link SerializerStyle#textKey()}.
-         * <p>For instance, an XML element like:</p>
-         * <pre>
-         * &lt;message&gt;Hello, World!&lt;/message&gt;
-         * </pre>
-         * <p>will be converted into JSON as follows when the default key is "$":</p>
-         * <pre>
-         * {@code
-         *     "message": {
-         *         "$": "Hello, World!"
-         *     }
-         * }
-         * </pre>
+         * Text is always wrapped.
          */
         ALWAYS_WRAP,
         /**
-         * Text is represented simply as "element: text" if an element only contains text.
-         * If the element contains more than just text, the default object representation is used.
-         * <p>For instance, an XML element like:</p>
-         * <pre>
-         * &lt;message&gt;Hello, World!&lt;/message&gt;
-         * </pre>
-         * <p>will be converted into JSON as follows:</p>
-         * <pre>
-         * {@code
-         *     "message": "Hello, World!"
-         * }
-         * </pre>
-         * <p>But, if the XML element has other content or attributes, like:</p>
-         * <pre>
-         * {@code
-         *     <message lang="en">Hello, World!</message>
-         * }
-         * </pre>
-         * <p>the default object representation is used:</p>
-         * <pre>
-         * {@code
-         *     "message": {
-         *         "@lang": "en",
-         *         "$": "Hello, World!"
-         *     }
-         * }
-         * </pre>
+         * Text will be simplified if it's of type xs:simpleType. This includes all types of
+         * {@link org.mycore.xsonify.xsd.XsdBuiltInDatatypes}.
          */
-        SIMPLIFY_OR_WRAP
+        SIMPLIFY_SIMPLETYPE,
+        /**
+         * Text will be simplified if:
+         * <ul>
+         *     <li>is of type xs:simpleContent</li>
+         *     <li>if an element only contains text - no attributes and no namespaces</li>
+         * </ul>
+         */
+        SIMPLIFY_IF_POSSIBLE
     }
 
     /**
@@ -233,7 +218,7 @@ public record SerializerSettings(
     public static final PrefixHandling DEFAULT_ELEMENT_PREFIX_HANDLING = OMIT_IF_NO_CONFLICT;
     public static final PrefixHandling DEFAULT_ATTRIBUTE_PREFIX_HANDLING = OMIT_IF_NO_CONFLICT;
     public static final JsonStructure DEFAULT_JSON_STRUCTURE = SCHEMA_BASED;
-    public static final PlainTextHandling DEFAULT_PLAIN_TEXT_HANDLING = ALWAYS_WRAP;
+    public static final PlainTextHandling DEFAULT_PLAIN_TEXT_HANDLING = SIMPLIFY_SIMPLETYPE;
     public static final MixedContentHandling DEFAULT_MIXED_CONTENT_HANDLING = JSON_CONVERSION;
     public static final AdditionalNamespaceDeclarationStrategy DEFAULT_ADDITIONAL_NAMESPACE_DECLARATION_STRATEGY
         = MOVE_TO_COMMON_ANCESTOR;

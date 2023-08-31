@@ -35,7 +35,7 @@ public class SerializerIntegrationTest {
     @Test
     public void main() throws Exception {
         // load xml
-        URL resource = getResource("/xml/test.xml");
+        URL resource = getResource("/xml/openagrar_mods_00084602.xml");
         XmlParser parser = new XmlSaxParser();
         XmlDocument xmlDocument = parser.parse(resource);
 
