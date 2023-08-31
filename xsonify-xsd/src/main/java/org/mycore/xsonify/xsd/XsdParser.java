@@ -17,8 +17,7 @@ import java.util.stream.Collectors;
 /**
  * The XsdParser class is responsible for parsing an XSD (XML Schema Definition)
  * schema file to generate an Xsd object.
- *
- * <p>
+ * <br />
  * The parser performs the following steps:
  * <ul>
  *  <li>Resolves the XSD documents by their schema locations.</li>
@@ -26,7 +25,6 @@ import java.util.stream.Collectors;
  *  <li>Creates a new Xsd object based on the resolved documents and fragments.</li>
  *  <li>Resolves the nodes that make up the XSD object.</li>
  * </ul>
- * </p>
  */
 public class XsdParser {
 

@@ -10,7 +10,7 @@ package org.mycore.xsonify.xml;
  * <p>This class also defines some commonly used namespaces as constants, such as the empty namespace,
  * the XML namespace, and the XMLNS namespace.</p>
  *
- * Furthermore, it provides the URIs for the XML Schema and the XML Schema Instance namespaces as constants.</p>
+ * <p>Furthermore, it provides the URIs for the XML Schema and the XML Schema Instance namespaces as constants.</p>
  */
 public record XmlNamespace(String prefix, String uri) {
 

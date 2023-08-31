@@ -4,16 +4,16 @@ import org.mycore.xsonify.xml.XmlElement;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * <p>Enumeration of different types of XSD elements.</p>
  * <p>Provides utility methods and lists to categorize and identify XSD node types.</p>
- * <p>Implementation details:
+ * Implementation details:
  * <ul>
  *   <li>Use uppercase: avoid reserved java keywords.</li>
  *   <li>Omit underscore: faster string comparison.</li>
  * </ul>
- * </p>
  */
 public enum XsdNodeType {
     IMPORT, INCLUDE, REDEFINE,
@@ -56,7 +56,7 @@ public enum XsdNodeType {
     public static XsdNodeType of(XmlElement element) {
         XsdNodeType type;
         try {
-            String name = element.getLocalName().toUpperCase();
+            String name = element.getLocalName().toUpperCase(Locale.ROOT);
             type = XsdNodeType.valueOf(name);
         } catch (IllegalArgumentException ignored) {
             return null;

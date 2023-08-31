@@ -36,13 +36,11 @@ public record XmlQualifiedName(String prefix, String localName) {
      * The qualified name string is expected to be in the format "prefix:localName". If there is no colon,
      * then the entire string is treated as the local name with an empty prefix.
      * </p>
-     * <p>
      * Examples:
      * <ul>
      *   <li>{@code XmlQualifiedName.of("pfx:elementName")} would result in prefix "pfx" and local name "elementName".</li>
      *   <li>{@code XmlQualifiedName.of("elementName")} would result in an empty prefix and local name "elementName".</li>
      * </ul>
-     * </p>
      *
      * @param qualifiedName the qualified name string.
      * @return an instance of {@code XmlQualifiedName} representing the provided qualified name.
