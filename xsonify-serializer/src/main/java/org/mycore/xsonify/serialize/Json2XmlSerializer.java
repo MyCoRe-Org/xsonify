@@ -226,8 +226,7 @@ public class Json2XmlSerializer extends SerializerBase {
         for (Map.Entry<String, JsonElement> child : context.jsonNode().getChildren().entrySet()) {
             serializeElement(child.getKey(), child.getValue(), context);
         }
-        // TODO ignore building xmlns:* -> do that in the aftermath -> still required?
-        // TODO order nodes based on Xsd structure
+        // TODO order xs:sequence nodes
     }
 
     private void handleNamespace(SerializationContext context) {
@@ -470,6 +469,7 @@ public class Json2XmlSerializer extends SerializerBase {
         }
         return xsdNode;
     }
+
 
     private XsdNode getXsdNode(JsonNode jsonNode, SerializationContext parentContext,
         List<XsdNode> candidates) {

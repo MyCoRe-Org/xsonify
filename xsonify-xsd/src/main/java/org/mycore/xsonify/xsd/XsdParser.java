@@ -561,7 +561,7 @@ public class XsdParser {
         private static void linkExtensionNode(XsdNode extensionNode, XsdNode baseNode) {
             List<XsdNode> children = baseNode.getChildren();
             if (children.isEmpty()) {
-                // TODO handle simple type stuff
+                // TODO handle simple type stuff -> no test case found yet -> can this be removed?
                 return;
             }
             for (int i = children.size() - 1; i >= 0; i--) {

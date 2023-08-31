@@ -171,15 +171,15 @@ public class Xml2JsonSerializer extends SerializerBase {
             return false;
         }
         // check namespaces
-        if(element.getNamespacesIntroduced().isEmpty()) {
+        if (element.getNamespacesIntroduced().isEmpty()) {
             return true;
         }
         // we introduce at least one namespace -> check the strategy
         NamespaceHandling namespaceHandling = settings().namespaceHandling();
-        if(NamespaceHandling.OMIT.equals(namespaceHandling)) {
+        if (NamespaceHandling.OMIT.equals(namespaceHandling)) {
             return true;
         }
-        if(NamespaceHandling.ADD.equals(namespaceHandling)) {
+        if (NamespaceHandling.ADD.equals(namespaceHandling)) {
             return false;
         }
         return !isChildOfXsAny(element);
@@ -187,7 +187,8 @@ public class Xml2JsonSerializer extends SerializerBase {
 
     private void handleNamespaces(XmlElement element, JsonObject json, XmlNamespace parentNamespace) {
         NamespaceHandling namespaceHandling = settings().namespaceHandling();
-        if(NamespaceHandling.OMIT.equals(namespaceHandling)) {
+        if (NamespaceHandling.OMIT.equals(namespaceHandling) ||
+            (NamespaceHandling.ADD_IF_XS_ANY.equals(namespaceHandling) && !isChildOfXsAny(element))) {
             return;
         }
         // element namespace
@@ -201,7 +202,7 @@ public class Xml2JsonSerializer extends SerializerBase {
 
     private boolean isChildOfXsAny(XmlElement element) {
         XmlElement parent = element.getParent();
-        if(parent == null) {
+        if (parent == null) {
             return false;
         }
         XsdNode parentXsdNode = xsd().getNamedNode(XsdNodeType.ELEMENT, parent.getExpandedName());
@@ -216,7 +217,7 @@ public class Xml2JsonSerializer extends SerializerBase {
     private void handleMixedContent(XmlElement element, JsonObject json) {
         if (SerializerSettings.MixedContentHandling.UTF_8_ENCODING.equals(settings().mixedContentHandling())) {
             String mixedContentAsString = element.encodeContent(StandardCharsets.UTF_8);
-            if(!mixedContentAsString.isEmpty()) {
+            if (!mixedContentAsString.isEmpty()) {
                 json.addProperty(style().mixedContentKey(), mixedContentAsString);
             }
             return;
