@@ -5,6 +5,7 @@
     <groupId>org.mycore</groupId>
     <artifactId>xsonify-parent</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>xsonify-integration-tests</artifactId>
