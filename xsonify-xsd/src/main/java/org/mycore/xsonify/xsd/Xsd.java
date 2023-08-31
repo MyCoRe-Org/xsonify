@@ -41,7 +41,7 @@ public class Xsd {
      * Constructor to initialize the XSD with the given target namespace and document map.
      *
      * @param targetNamespace the target namespace for the XSD
-     * @param documentMap a map of associated XML documents
+     * @param documentMap     a map of associated XML documents
      */
     public Xsd(String targetNamespace, LinkedHashMap<String, XmlDocument> documentMap) {
         this.targetNamespace = targetNamespace != null ? targetNamespace : XmlNamespace.EMPTY.uri();
@@ -308,13 +308,22 @@ public class Xsd {
         return nodes;
     }
 
-    public XsdNode resolveXmlElement(XmlElement element) {
+    /**
+     * Returns the {@link XsdNode} matching the element.
+     *
+     * @param element the requested element
+     * @return xsd node matching the element
+     * @throws NoSuchElementException thrown if a node with the requested name couldn't be found
+     * @throws XsdAnyException        thrown if the path reaches a xs:any, and it's unclear how to process further
+     */
+    public XsdNode resolveXmlElement(XmlElement element) throws NoSuchElementException, XsdAnyException {
         XmlPath path = XmlPath.of(element);
         List<XsdNode> nodes = resolvePath(path);
         return !nodes.isEmpty() ? nodes.get(nodes.size() - 1) : null;
     }
 
-    private XsdNode resolvePathForElement(XsdNode parent, XmlName elementToFind) {
+    private XsdNode resolvePathForElement(XsdNode parent, XmlName elementToFind) throws XsdAnyException,
+        NoSuchElementException {
         List<XsdNode> children = parent.collectElements();
         for (XsdNode childNode : children) {
             XsdNode namedNode = childNode.getReferenceOrSelf();

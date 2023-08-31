@@ -13,6 +13,7 @@ import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xml.XmlText;
 import org.mycore.xsonify.xsd.Xsd;
+import org.mycore.xsonify.xsd.XsdAnyException;
 import org.mycore.xsonify.xsd.XsdBuiltInDatatypes;
 import org.mycore.xsonify.xsd.XsdNode;
 import org.mycore.xsonify.xsd.XsdNodeType;
@@ -194,8 +195,12 @@ public class Xml2JsonSerializer extends SerializerBase {
     }
 
     private Boolean isSimpleType(XmlElement element) {
-        XsdNode xsdNode = xsd().resolveXmlElement(element);
-        return isSimpleType(xsdNode);
+        try {
+            XsdNode xsdNode = xsd().resolveXmlElement(element);
+            return isSimpleType(xsdNode);
+        } catch (XsdAnyException xsdAnyException) {
+            return false;
+        }
     }
 
     private Boolean isSimpleType(XsdNode xsdNode) {
