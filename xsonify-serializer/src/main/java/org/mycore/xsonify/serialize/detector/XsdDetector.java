@@ -7,20 +7,20 @@ import org.mycore.xsonify.xml.XmlPath;
 
 import java.util.Map;
 
-public interface XsdDetector {
+public interface XsdDetector<R> {
 
-    default boolean is(String path, Map<String, XmlNamespace> namespaceMap) {
-        return is(XmlPath.of(path, namespaceMap));
+    default R detect(String path, Map<String, XmlNamespace> namespaceMap) {
+        return detect(XmlPath.of(path, namespaceMap));
     }
 
-    default boolean is(XmlElement element) {
-        return is(XmlPath.of(element));
+    default R detect(XmlElement element) {
+        return detect(XmlPath.of(element));
     }
 
-    default boolean is(XmlAttribute attribute) {
-        return is(XmlPath.of(attribute));
+    default R detect(XmlAttribute attribute) {
+        return detect(XmlPath.of(attribute));
     }
 
-    boolean is(XmlPath path);
+    R detect(XmlPath path);
 
 }

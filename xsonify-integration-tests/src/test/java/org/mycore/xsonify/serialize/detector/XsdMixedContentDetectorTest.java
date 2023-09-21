@@ -2,7 +2,6 @@ package org.mycore.xsonify.serialize.detector;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mycore.xsonify.xml.XmlException;
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xsd.Xsd;
@@ -19,7 +18,7 @@ public class XsdMixedContentDetectorTest extends XsdDetectorTest {
 
     @Test
     public void getMixedContentElements() throws Exception {
-        Xsd modsXsd = XsdUtil.getXsd("mods-3-8.xsd");
+        Xsd modsXsd = XsdUtil.getXsdFromCatalog("mods-3-8.xsd");
         XsdMixedContentDetector feature = new XsdMixedContentDetector(modsXsd);
 
         Set<XmlExpandedName> mixed = feature.getMixedContentElements();
@@ -32,12 +31,12 @@ public class XsdMixedContentDetectorTest extends XsdDetectorTest {
 
     @Test
     public void is() throws Exception {
-        Xsd testXsd = XsdUtil.getXsd("test.xsd");
+        Xsd testXsd = XsdUtil.getXsdFromCatalog("test.xsd");
         Map<String, XmlNamespace> ns = getNamespaces(testXsd);
         XsdMixedContentDetector feature = new XsdMixedContentDetector(testXsd);
 
-        Assertions.assertFalse(feature.is("/root", ns));
-        Assertions.assertTrue(feature.is("/root/et:mixedContentTest", ns));
+        Assertions.assertFalse(feature.detect("/root", ns));
+        Assertions.assertTrue(feature.detect("/root/et:mixedContentTest", ns));
     }
 
 }

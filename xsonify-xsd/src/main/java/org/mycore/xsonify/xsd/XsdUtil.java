@@ -2,8 +2,10 @@ package org.mycore.xsonify.xsd;
 
 import org.mycore.xsonify.xml.XmlDocument;
 import org.mycore.xsonify.xml.XmlDocumentLoader;
+import org.mycore.xsonify.xml.XmlEntityResolverDocumentLoader;
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xml.XmlNamespace;
+import org.mycore.xsonify.xml.XmlResourceDocumentLoader;
 import org.mycore.xsonify.xml.XmlSaxParser;
 import org.xml.sax.SAXException;
 
@@ -102,10 +104,10 @@ public abstract class XsdUtil {
      * @throws ParserConfigurationException If the xml sax parser couldn't be created.
      * @throws SAXException                 for SAX errors.
      */
-    public static Xsd getXsd(String schemaLocation)
+    public static Xsd getXsdFromCatalog(String schemaLocation)
         throws IOException, XsdParseException, ParserConfigurationException, SAXException {
         CatalogResolver catalogResolver = XsdUtil.createCatalogResolver("catalog.xml");
-        return getXsd(schemaLocation, catalogResolver);
+        return getXsdFromCatalog(schemaLocation, catalogResolver);
     }
 
     /**
@@ -118,11 +120,17 @@ public abstract class XsdUtil {
      * @throws ParserConfigurationException If the xml sax parser couldn't be created.
      * @throws SAXException                 for SAX errors.
      */
-    public static Xsd getXsd(String schemaLocation, CatalogResolver catalogResolver)
+    public static Xsd getXsdFromCatalog(String schemaLocation, CatalogResolver catalogResolver)
         throws ParserConfigurationException, SAXException {
-        XmlDocumentLoader loader = new XmlDocumentLoader(catalogResolver, new XmlSaxParser());
+        XmlDocumentLoader loader = new XmlEntityResolverDocumentLoader(catalogResolver, new XmlSaxParser());
         XsdParser parser = new XsdParser(loader);
         return parser.parse(schemaLocation);
+    }
+
+    public static Xsd getXsdFromResource(String systemResource) throws ParserConfigurationException, SAXException {
+        XmlDocumentLoader loader = new XmlResourceDocumentLoader(new XmlSaxParser());
+        XsdParser parser = new XsdParser(loader);
+        return parser.parse(systemResource);
     }
 
 }

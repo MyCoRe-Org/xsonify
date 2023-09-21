@@ -23,12 +23,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.mycore.xsonify.xml.XmlBaseTest.CMD_NS;
+import static org.mycore.xsonify.xml.XmlBaseTest.MODS_NS;
+import static org.mycore.xsonify.xml.XmlBaseTest.XLINK_NS;
+import static org.mycore.xsonify.xml.XmlBaseTest.XSI_NS;
+
 public class SerializerIntegrationTest {
 
-    public static final XmlNamespace XSI_NS = new XmlNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance");
-    public static final XmlNamespace XLINK_NS = new XmlNamespace("xlink", "http://www.w3.org/1999/xlink");
-    public static final XmlNamespace MODS_NS = new XmlNamespace("mods", "http://www.loc.gov/mods/v3");
-    public static final XmlNamespace CMD_NS = new XmlNamespace("cmd", "http://www.cdlib.org/inside/diglib/copyrightMD");
     public static final XmlNamespace TEST_NS = new XmlNamespace("", "https://test.com/v1");
 
     @Disabled
@@ -43,7 +44,7 @@ public class SerializerIntegrationTest {
 
         // load xsd
         String schemaLocation = XsdUtil.getXsdSchemaLocation(xmlDocument);
-        Xsd xsd = XsdUtil.getXsd(schemaLocation);
+        Xsd xsd = XsdUtil.getXsdFromCatalog(schemaLocation);
 
         // to json
         SerializerSettings settings = new SerializerSettingsBuilder()
@@ -109,7 +110,7 @@ public class SerializerIntegrationTest {
         XmlDocument xmlDocument = parser.parse(resource);
 
         String schemaLocation = XsdUtil.getXsdSchemaLocation(xmlDocument);
-        Xsd xsd = XsdUtil.getXsd(schemaLocation);
+        Xsd xsd = XsdUtil.getXsdFromCatalog(schemaLocation);
 
         SerializerSettingsBuilder serializerSettingsBuilder = new SerializerSettingsBuilder();
 

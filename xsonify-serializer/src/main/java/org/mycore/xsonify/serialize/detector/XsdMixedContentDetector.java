@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class XsdMixedContentDetector implements XsdDetector {
+public class XsdMixedContentDetector implements XsdDetector<Boolean> {
 
     private final Set<XmlExpandedName> mixedContentElements;
 
@@ -83,7 +83,7 @@ public class XsdMixedContentDetector implements XsdDetector {
     }
 
     @Override
-    public boolean is(XmlPath path) {
+    public Boolean detect(XmlPath path) {
         XmlPath.Node last = path.last();
         if(last == null) {
             return false;

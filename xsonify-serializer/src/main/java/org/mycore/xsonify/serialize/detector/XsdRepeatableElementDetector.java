@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class XsdRepeatableElementDetector implements XsdDetector {
+public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
 
     private final XsdRoot root;
 
@@ -24,7 +24,7 @@ public class XsdRepeatableElementDetector implements XsdDetector {
     }
 
     @Override
-    public boolean is(XmlPath path) {
+    public Boolean detect(XmlPath path) {
         if (path.isEmpty() || path.size() == 1) {
             return false;
         }

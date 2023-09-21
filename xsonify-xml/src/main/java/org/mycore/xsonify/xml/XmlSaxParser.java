@@ -7,6 +7,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 /**
  * XmlSaxParser is an implementation of the XmlParser interface that uses a SAX parser and a custom SAX handler
@@ -36,6 +37,7 @@ public class XmlSaxParser implements XmlParser {
      */
     @Override
     public XmlDocument parse(InputStream inputStream) throws XmlParseException, IOException {
+        Objects.requireNonNull(inputStream);
         XmlSaxBuilder saxBuilder = new XmlSaxBuilder();
         try {
             saxParser.parse(inputStream, saxBuilder);

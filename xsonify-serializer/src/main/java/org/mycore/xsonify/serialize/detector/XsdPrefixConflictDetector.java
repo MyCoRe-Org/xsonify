@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 /**
  * Helper class to check for element and attribute name conflicts if prefixes are omitted.
  */
-public class XsdPrefixConflictDetector implements XsdDetector {
+public class XsdPrefixConflictDetector implements XsdDetector<Boolean> {
 
     private final Xsd xsd;
 
@@ -85,7 +85,7 @@ public class XsdPrefixConflictDetector implements XsdDetector {
     }
 
     @Override
-    public boolean is(XmlPath path) {
+    public Boolean detect(XmlPath path) {
         XmlPath.Node lastNode = path.last();
         if (XmlPath.Type.ELEMENT.equals(lastNode.type())) {
             return checkElement(path);

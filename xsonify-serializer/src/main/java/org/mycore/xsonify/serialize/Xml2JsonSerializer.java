@@ -121,7 +121,7 @@ public class Xml2JsonSerializer extends SerializerBase {
 
     private String getName(XmlElement element) {
         if (SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT.equals(settings().elementPrefixHandling())) {
-            boolean hasNameConflict = prefixConflictDetector().is(element);
+            boolean hasNameConflict = prefixConflictDetector().detect(element);
             return hasNameConflict ? element.getQualifiedName().toString() : element.getLocalName();
         }
         return element.getQualifiedName().toString();
@@ -129,7 +129,7 @@ public class Xml2JsonSerializer extends SerializerBase {
 
     private String getAttributeName(XmlAttribute attribute) {
         if (SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT.equals(settings().attributePrefixHandling())) {
-            boolean hasNameConflict = prefixConflictDetector().is(attribute);
+            boolean hasNameConflict = prefixConflictDetector().detect(attribute);
             return getAttributeName(hasNameConflict ?
                                     attribute.getQualifiedName() :
                                     attribute.getLocalName());
@@ -149,12 +149,12 @@ public class Xml2JsonSerializer extends SerializerBase {
     }
 
     private boolean hasMixedContent(XmlElement element) {
-        return mixedContentDetector().is(element);
+        return mixedContentDetector().detect(element);
     }
 
     private boolean useArray(List<XmlElement> elements) {
         if (this.repeatableElementDetector() != null) {
-            return this.repeatableElementDetector().is(elements.get(0));
+            return this.repeatableElementDetector().detect(elements.get(0));
         }
         if (SerializerSettings.JsonStructure.ENFORCE_ARRAY.equals(settings().jsonStructure())) {
             return true;
