@@ -4,6 +4,24 @@ import org.mycore.xsonify.xml.XmlDocument;
 import org.mycore.xsonify.xml.XmlDocumentLoader;
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xml.XmlExpandedName;
+import org.mycore.xsonify.xsd.node.XsdAll;
+import org.mycore.xsonify.xsd.node.XsdAny;
+import org.mycore.xsonify.xsd.node.XsdAnyAttribute;
+import org.mycore.xsonify.xsd.node.XsdAttribute;
+import org.mycore.xsonify.xsd.node.XsdAttributeGroup;
+import org.mycore.xsonify.xsd.node.XsdChoice;
+import org.mycore.xsonify.xsd.node.XsdComplexContent;
+import org.mycore.xsonify.xsd.node.XsdComplexType;
+import org.mycore.xsonify.xsd.node.XsdElement;
+import org.mycore.xsonify.xsd.node.XsdExtension;
+import org.mycore.xsonify.xsd.node.XsdGroup;
+import org.mycore.xsonify.xsd.node.XsdImport;
+import org.mycore.xsonify.xsd.node.XsdInclude;
+import org.mycore.xsonify.xsd.node.XsdRedefine;
+import org.mycore.xsonify.xsd.node.XsdRestriction;
+import org.mycore.xsonify.xsd.node.XsdSequence;
+import org.mycore.xsonify.xsd.node.XsdSimpleContent;
+import org.mycore.xsonify.xsd.node.XsdSimpleType;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -326,11 +344,35 @@ public class XsdParser {
             if (type == null) {
                 return null;
             }
-            XsdNode node = new XsdNode(this.xsd, uri, type, element, parentNode);
+            XsdNode node = createNode(uri, element, parentNode, type);
             if (parentNode != null) {
                 parentNode.getChildren().add(node);
             }
             return node;
+        }
+
+        private XsdNode createNode(String uri, XmlElement element, XsdNode parentNode, XsdNodeType type) {
+            return switch (type) {
+                case ELEMENT -> new XsdElement(xsd, uri, element, parentNode);
+                case GROUP -> new XsdGroup(xsd, uri, element, parentNode);
+                case COMPLEXTYPE -> new XsdComplexType(xsd, uri, element, parentNode);
+                case SIMPLETYPE -> new XsdSimpleType(xsd, uri, element, parentNode);
+                case CHOICE -> new XsdChoice(xsd, uri, element, parentNode);
+                case ALL -> new XsdAll(xsd, uri, element, parentNode);
+                case SEQUENCE -> new XsdSequence(xsd, uri, element, parentNode);
+                case ANY -> new XsdAny(xsd, uri, element, parentNode);
+                case SIMPLECONTENT -> new XsdSimpleContent(xsd, uri, element, parentNode);
+                case COMPLEXCONTENT -> new XsdComplexContent(xsd, uri, element, parentNode);
+                case ATTRIBUTE -> new XsdAttribute(xsd, uri, element, parentNode);
+                case ATTRIBUTEGROUP -> new XsdAttributeGroup(xsd, uri, element, parentNode);
+                case ANYATTRIBUTE -> new XsdAnyAttribute(xsd, uri, element, parentNode);
+                case RESTRICTION -> new XsdRestriction(xsd, uri, element, parentNode);
+                case EXTENSION -> new XsdExtension(xsd, uri, element, parentNode);
+                case IMPORT -> new XsdImport(xsd, uri, element, parentNode);
+                case INCLUDE -> new XsdInclude(xsd, uri, element, parentNode);
+                case REDEFINE -> new XsdRedefine(xsd, uri, element, parentNode);
+                default -> throw new RuntimeException("Invalid type " + type);
+            };
         }
 
         private void resolveElement(XsdNode elementNode) {
@@ -556,7 +598,7 @@ public class XsdParser {
             return false;
         }
 
-        private static void linkExtensionNode(XsdNode extensionNode, XsdNode baseNode) {
+        private void linkExtensionNode(XsdNode extensionNode, XsdNode baseNode) {
             List<XsdNode> children = baseNode.getChildren();
             if (children.isEmpty()) {
                 // TODO handle simple type stuff -> no test case found yet -> can this be removed?
@@ -564,9 +606,25 @@ public class XsdParser {
             }
             for (int i = children.size() - 1; i >= 0; i--) {
                 XsdNode baseChildNode = children.get(i);
-                XsdNode clonedBaseChildNode = baseChildNode.cloneTo(extensionNode);
+                XsdNode clonedBaseChildNode = cloneTo(baseChildNode, extensionNode);
                 extensionNode.getChildren().add(0, clonedBaseChildNode);
             }
+        }
+
+        /**
+         * Clones the baseNode and all of its children.
+         *
+         * @param baseNode  node to clone
+         * @param newParent the newParent node
+         * @return the cloned node
+         */
+        private XsdNode cloneTo(XsdNode baseNode, XsdNode newParent) {
+            XsdNode clone = createNode(baseNode.getUri(), baseNode.getElement(), newParent, baseNode.getNodeType());
+            clone.setLink(baseNode.getLink());
+            baseNode.getChildren().stream()
+                .map(thisChild -> cloneTo(thisChild, clone))
+                .forEach(clonedChild -> clone.getChildren().add(clonedChild));
+            return clone;
         }
 
         @FunctionalInterface

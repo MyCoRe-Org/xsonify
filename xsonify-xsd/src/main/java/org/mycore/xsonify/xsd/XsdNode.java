@@ -12,7 +12,7 @@ import java.util.List;
  * This class captures various properties and behaviors of an XSD node,
  * like its type, attributes, children, and links.
  */
-public class XsdNode {
+public abstract class XsdNode {
 
     private final Xsd xsd;
 
@@ -115,22 +115,6 @@ public class XsdNode {
 
     public XsdDocument getDocument() {
         return ((XsdDocument) this.getElement().getDocument());
-    }
-
-    /**
-     * Clones this node and all of its children.
-     * <p>Be aware that this method does not add the cloned node to the newParent.</p>
-     *
-     * @param newParent the newParent node
-     * @return the cloned node
-     */
-    public XsdNode cloneTo(XsdNode newParent) {
-        XsdNode clone = new XsdNode(this.getXsd(), this.getUri(), this.getNodeType(), this.getElement(), newParent);
-        clone.setLink(this.link);
-        getChildren().stream()
-            .map(thisChild -> thisChild.cloneTo(clone))
-            .forEach(clonedChild -> clone.getChildren().add(clonedChild));
-        return clone;
     }
 
     @Override
