@@ -16,8 +16,8 @@ import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
 import org.mycore.xsonify.xsd.XsdBuiltInDatatypes;
 import org.mycore.xsonify.xsd.XsdNode;
-import org.mycore.xsonify.xsd.XsdNodeType;
 import org.mycore.xsonify.xsd.node.XsdElement;
+import org.mycore.xsonify.xsd.node.XsdSimpleType;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -209,7 +209,7 @@ public class Xml2JsonSerializer extends SerializerBase {
             return null;
         }
         // check if we already found a simpletype
-        if (XsdNodeType.SIMPLETYPE.equals(xsdNode.getNodeType())) {
+        if (XsdSimpleType.TYPE.equals(xsdNode.getType())) {
             return true;
         }
         // check @type
@@ -230,7 +230,7 @@ public class Xml2JsonSerializer extends SerializerBase {
         }
         XsdNode child = xsdNode.getChildren().get(0);
         // TODO extension/restriction
-        return XsdNodeType.SIMPLETYPE.equals(child.getNodeType());
+        return XsdSimpleType.TYPE.equals(child.getType());
     }
 
     private void handleNamespaces(XmlElement element, JsonObject json, XmlNamespace parentNamespace) {

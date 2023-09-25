@@ -7,7 +7,7 @@ import org.mycore.xsonify.xsd.XsdNodeType;
 
 public class XsdGroup extends XsdNode implements XsdReferencable<XsdGroup> {
 
-    public static final String XML_NAME = "group";
+    public static final String TYPE = "group";
 
     /**
      * Constructs a new XsdNode.
@@ -27,8 +27,8 @@ public class XsdGroup extends XsdNode implements XsdReferencable<XsdGroup> {
     }
 
     @Override
-    public String getXmlName() {
-        return XML_NAME;
+    public String getType() {
+        return TYPE;
     }
 
 }

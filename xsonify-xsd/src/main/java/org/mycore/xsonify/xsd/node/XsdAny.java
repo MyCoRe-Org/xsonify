@@ -7,7 +7,7 @@ import org.mycore.xsonify.xsd.XsdNodeType;
 
 public class XsdAny extends XsdNode {
 
-    public static final String XML_NAME = "any";
+    public static final String TYPE = "any";
 
     /**
      * Constructs a new XsdNode.
@@ -22,8 +22,8 @@ public class XsdAny extends XsdNode {
     }
 
     @Override
-    public String getXmlName() {
-        return XML_NAME;
+    public String getType() {
+        return TYPE;
     }
 
 }

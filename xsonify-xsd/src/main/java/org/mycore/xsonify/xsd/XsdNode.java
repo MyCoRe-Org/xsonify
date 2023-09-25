@@ -121,7 +121,7 @@ public abstract class XsdNode {
         return ((XsdDocument) this.getElement().getDocument());
     }
 
-    public abstract String getXmlName();
+    public abstract String getType();
 
     @Override
     public String toString() {

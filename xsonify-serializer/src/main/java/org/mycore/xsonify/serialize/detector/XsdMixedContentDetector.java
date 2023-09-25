@@ -4,7 +4,6 @@ import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
-import org.mycore.xsonify.xsd.XsdNodeType;
 import org.mycore.xsonify.xsd.node.XsdComplexContent;
 import org.mycore.xsonify.xsd.node.XsdComplexType;
 import org.mycore.xsonify.xsd.node.XsdElement;
@@ -33,10 +32,10 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
             if (!isMixedContent(node)) {
                 continue;
             }
-            if (XsdNodeType.COMPLEXCONTENT.equals(node.getNodeType())) {
+            if (XsdComplexContent.TYPE.equals(node.getType())) {
                 node = node.getParent();
             }
-            expectNodeType(node, XsdNodeType.COMPLEXTYPE);
+            expectNodeType(node, XsdComplexType.TYPE);
             mixedComplexTypes.add(node);
         }
         return mixedComplexTypes;
@@ -58,18 +57,18 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
     }
 
     private void addMixedContentElement(XsdNode node) {
-        expectNodeType(node, XsdNodeType.ELEMENT);
-        if (node.getLinkedNode() != null && XsdNodeType.ELEMENT.equals(node.getLinkedNode().getNodeType())) {
+        expectNodeType(node, XsdElement.TYPE);
+        if (node.getLinkedNode() != null && XsdElement.TYPE.equals(node.getLinkedNode().getType())) {
             node = node.getLinkedNode();
         }
         mixedContentElements.add(node.getName());
     }
 
-    private void expectNodeType(XsdNode node, XsdNodeType type) {
-        if (!type.equals(node.getNodeType())) {
+    private void expectNodeType(XsdNode node, String xmlName) {
+        if (!xmlName.equals(node.getType())) {
             throw new XsdDetectorException(
-                "Couldn't build XsdMixedContentDetector. Expected node type " + type + " but found "
-                    + node.getNodeType());
+                "Couldn't build XsdMixedContentDetector. Expected node '" + xmlName + "' but found "
+                    + node.getType());
         }
     }
 
@@ -88,7 +87,7 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
     @Override
     public Boolean detect(XmlPath path) {
         XmlPath.Node last = path.last();
-        if(last == null) {
+        if (last == null) {
             return false;
         }
         return getMixedContentElements().contains(last.name().expandedName());

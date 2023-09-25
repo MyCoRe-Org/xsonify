@@ -9,7 +9,7 @@ import java.util.List;
 
 public class XsdElement extends XsdNode implements XsdReferencable<XsdElement> {
 
-    public static final String XML_NAME = "element";
+    public static final String TYPE = "element";
 
     /**
      * List of nodes which can contain elements. Either as a child or somewhere down their hierarchy.
@@ -41,8 +41,8 @@ public class XsdElement extends XsdNode implements XsdReferencable<XsdElement> {
     }
 
     @Override
-    public String getXmlName() {
-        return XML_NAME;
+    public String getType() {
+        return TYPE;
     }
 
 }

@@ -7,7 +7,7 @@ import org.mycore.xsonify.xsd.XsdNodeType;
 
 public class XsdChoice extends XsdNode {
 
-    public static final String XML_NAME = "choice";
+    public static final String TYPE = "choice";
 
     /**
      * Constructs a new XsdNode.
@@ -22,8 +22,8 @@ public class XsdChoice extends XsdNode {
     }
 
     @Override
-    public String getXmlName() {
-        return XML_NAME;
+    public String getType() {
+        return TYPE;
     }
 
 }

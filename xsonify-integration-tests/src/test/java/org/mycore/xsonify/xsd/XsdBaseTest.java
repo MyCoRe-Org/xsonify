@@ -32,11 +32,11 @@ import java.util.List;
 
 public abstract class XsdBaseTest {
 
-    public static List<Class<? extends XsdNode>> NODE_CLASSES = List.of(
-        XsdAll.class, XsdAny.class, XsdAnyAttribute.class, XsdAttribute.class, XsdAttributeGroup.class,
-        XsdChoice.class, XsdComplexContent.class, XsdComplexType.class, XsdElement.class,
-        XsdExtension.class, XsdGroup.class, XsdImport.class, XsdInclude.class, XsdRedefine.class,
-        XsdRestriction.class, XsdSequence.class, XsdSimpleContent.class, XsdSimpleType.class
+    public static List<String> NODE_TYPES = List.of(
+        XsdAll.TYPE, XsdAny.TYPE, XsdAnyAttribute.TYPE, XsdAttribute.TYPE, XsdAttributeGroup.TYPE,
+        XsdChoice.TYPE, XsdComplexContent.TYPE, XsdComplexType.TYPE, XsdElement.TYPE,
+        XsdExtension.TYPE, XsdGroup.TYPE, XsdImport.TYPE, XsdInclude.TYPE, XsdRedefine.TYPE,
+        XsdRestriction.TYPE, XsdSequence.TYPE, XsdSimpleContent.TYPE, XsdSimpleType.TYPE
     );
 
     public XmlDocument getXml(String resourceName) throws ParserConfigurationException, SAXException, IOException {

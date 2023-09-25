@@ -7,7 +7,7 @@ import org.mycore.xsonify.xsd.XsdNodeType;
 
 public class XsdSimpleContent extends XsdNode {
 
-    public static final String XML_NAME = "simpleContent";
+    public static final String TYPE = "simpleContent";
 
     /**
      * Constructs a new XsdNode.
@@ -22,8 +22,8 @@ public class XsdSimpleContent extends XsdNode {
     }
 
     @Override
-    public String getXmlName() {
-        return XML_NAME;
+    public String getType() {
+        return TYPE;
     }
 
 }

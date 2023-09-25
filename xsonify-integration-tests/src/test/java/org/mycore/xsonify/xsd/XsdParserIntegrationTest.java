@@ -30,27 +30,27 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
     @Test
     public void mods() throws Exception {
         Xsd xsd = getXsd("mods-3-8.xsd");
-        Map<Class<? extends XsdNode>, AtomicInteger> modsCounter = createCounter(xsd);
+        Map<String, AtomicInteger> modsCounter = createCounter(xsd);
 
         System.out.println(xsd.toTreeString());
 
-        assertEquals(247, modsCounter.get(XsdElement.class).get());
-        assertEquals(61, modsCounter.get(XsdComplexType.class).get());
+        assertEquals(247, modsCounter.get(XsdElement.TYPE).get());
+        assertEquals(61, modsCounter.get(XsdComplexType.TYPE).get());
         // 30
         // - 20 in mods
         // - 6 due to extensions -> temporalDefinition & dateOtherDefinition
         // - 4 from xml namespace & xlink namespace
-        assertEquals(20 + 6 + 4, modsCounter.get(XsdSimpleType.class).get());
-        assertEquals(3, modsCounter.get(XsdGroup.class).get());
-        assertEquals(0, modsCounter.get(XsdAll.class).get());
-        assertEquals(16, modsCounter.get(XsdChoice.class).get());
+        assertEquals(20 + 6 + 4, modsCounter.get(XsdSimpleType.TYPE).get());
+        assertEquals(3, modsCounter.get(XsdGroup.TYPE).get());
+        assertEquals(0, modsCounter.get(XsdAll.TYPE).get());
+        assertEquals(16, modsCounter.get(XsdChoice.TYPE).get());
         // an additional xs:sequence is copied from xs:extension
-        assertEquals(11, modsCounter.get(XsdSequence.class).get());
+        assertEquals(11, modsCounter.get(XsdSequence.TYPE).get());
         // an additional xs:any is copied from xs:extension
-        assertEquals(2, modsCounter.get(XsdAny.class).get());
-        assertEquals(1, modsCounter.get(XsdComplexContent.class).get());
+        assertEquals(2, modsCounter.get(XsdAny.TYPE).get());
+        assertEquals(1, modsCounter.get(XsdComplexContent.TYPE).get());
         // 36 + 52 due to extensions
-        assertEquals(36 + 52, modsCounter.get(XsdSimpleContent.class).get());
+        assertEquals(36 + 52, modsCounter.get(XsdSimpleContent.TYPE).get());
 
         // check if links are correctly mapped
         checkLinks(xsd);
@@ -59,13 +59,13 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
     @Test
     public void elementTest() throws Exception {
         Xsd xsd = getXsd("elementTest.xsd");
-        Map<Class<? extends XsdNode>, AtomicInteger> counter = createCounter(xsd);
+        Map<String, AtomicInteger> counter = createCounter(xsd);
 
         // https://test.com/element
-        assertEquals(22, counter.get(XsdElement.class).get());
-        assertEquals(8, counter.get(XsdComplexType.class).get());
-        assertEquals(8, counter.get(XsdChoice.class).get());
-        assertEquals(1, counter.get(XsdSequence.class).get());
+        assertEquals(22, counter.get(XsdElement.TYPE).get());
+        assertEquals(8, counter.get(XsdComplexType.TYPE).get());
+        assertEquals(8, counter.get(XsdChoice.TYPE).get());
+        assertEquals(1, counter.get(XsdSequence.TYPE).get());
 
         // check if links are correctly mapped
         checkLinks(xsd);
@@ -74,7 +74,7 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
     @Test
     public void testXsd() throws Exception {
         Xsd xsd = getXsd("test.xsd");
-        Map<Class<? extends XsdNode>, AtomicInteger> counter = createCounter(xsd);
+        Map<String, AtomicInteger> counter = createCounter(xsd);
 
         //System.out.println(xsd.toTreeString());
 
@@ -82,17 +82,17 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
         // - includes includeTestA
         // - includes includeTestB
         // - includes sameNameTestA
-        assertEquals(108, counter.get(XsdElement.class).get());
-        assertEquals(33, counter.get(XsdComplexType.class).get());
-        assertEquals(0, counter.get(XsdSimpleType.class).get());
-        assertEquals(6, counter.get(XsdGroup.class).get());
-        assertEquals(0, counter.get(XsdAll.class).get());
-        assertEquals(29, counter.get(XsdChoice.class).get());
-        assertEquals(5, counter.get(XsdSequence.class).get());
-        assertEquals(5, counter.get(XsdComplexContent.class).get());
-        assertEquals(0, counter.get(XsdSimpleContent.class).get());
-        assertEquals(2, counter.get(XsdRestriction.class).get());
-        assertEquals(3, counter.get(XsdExtension.class).get());
+        assertEquals(108, counter.get(XsdElement.TYPE).get());
+        assertEquals(33, counter.get(XsdComplexType.TYPE).get());
+        assertEquals(0, counter.get(XsdSimpleType.TYPE).get());
+        assertEquals(6, counter.get(XsdGroup.TYPE).get());
+        assertEquals(0, counter.get(XsdAll.TYPE).get());
+        assertEquals(29, counter.get(XsdChoice.TYPE).get());
+        assertEquals(5, counter.get(XsdSequence.TYPE).get());
+        assertEquals(5, counter.get(XsdComplexContent.TYPE).get());
+        assertEquals(0, counter.get(XsdSimpleContent.TYPE).get());
+        assertEquals(2, counter.get(XsdRestriction.TYPE).get());
+        assertEquals(3, counter.get(XsdExtension.TYPE).get());
 
         // check if links are correctly mapped
         checkLinks(xsd);
@@ -101,7 +101,7 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
     @Test
     public void testCircular() throws Exception {
         Xsd xsd = getXsd("circularTest.xsd");
-        Map<Class<? extends XsdNode>, AtomicInteger> counter = createCounter(xsd);
+        Map<String, AtomicInteger> counter = createCounter(xsd);
 
         System.out.println(xsd.toTreeString());
 
@@ -109,10 +109,10 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
         // - includes includeTestA
         // - includes includeTestB
         // - includes sameNameTestB
-        assertEquals(108, counter.get(XsdElement.class).get());
-        assertEquals(33, counter.get(XsdComplexType.class).get());
-        assertEquals(6, counter.get(XsdGroup.class).get());
-        assertEquals(29, counter.get(XsdChoice.class).get());
+        assertEquals(108, counter.get(XsdElement.TYPE).get());
+        assertEquals(33, counter.get(XsdComplexType.TYPE).get());
+        assertEquals(6, counter.get(XsdGroup.TYPE).get());
+        assertEquals(29, counter.get(XsdChoice.TYPE).get());
 
         // check if links are correctly mapped
         checkLinks(xsd);
@@ -121,15 +121,15 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
     @Test
     public void testRestriction() throws Exception {
         Xsd xsd = getXsd("restrictionTest.xsd");
-        Map<Class<? extends XsdNode>, AtomicInteger> counter = createCounter(xsd);
+        Map<String, AtomicInteger> counter = createCounter(xsd);
 
         System.out.println(xsd.toTreeString());
 
         // https://test.com/restriction
         // - restricts childType in elementTest.xsd
-        assertEquals(4, counter.get(XsdElement.class).get());
-        assertEquals(2, counter.get(XsdComplexType.class).get());
-        assertEquals(1, counter.get(XsdRestriction.class).get());
+        assertEquals(4, counter.get(XsdElement.TYPE).get());
+        assertEquals(2, counter.get(XsdComplexType.TYPE).get());
+        assertEquals(1, counter.get(XsdRestriction.TYPE).get());
 
         // check if links are correctly mapped
         checkLinks(xsd);
@@ -138,17 +138,17 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
     @Test
     public void testExtension() throws Exception {
         Xsd xsd = getXsd("extensionTest.xsd");
-        Map<Class<? extends XsdNode>, AtomicInteger> counter = createCounter(xsd);
+        Map<String, AtomicInteger> counter = createCounter(xsd);
 
         System.out.println(xsd.toTreeString());
 
         // https://test.com/extension
         // - extends childType in elementTest.xsd
-        assertEquals(8, counter.get(XsdElement.class).get());
-        assertEquals(3, counter.get(XsdComplexType.class).get());
-        assertEquals(2, counter.get(XsdSequence.class).get());
-        assertEquals(3, counter.get(XsdChoice.class).get());
-        assertEquals(2, counter.get(XsdExtension.class).get());
+        assertEquals(8, counter.get(XsdElement.TYPE).get());
+        assertEquals(3, counter.get(XsdComplexType.TYPE).get());
+        assertEquals(2, counter.get(XsdSequence.TYPE).get());
+        assertEquals(3, counter.get(XsdChoice.TYPE).get());
+        assertEquals(2, counter.get(XsdExtension.TYPE).get());
 
         // check if links are correctly mapped
         checkLinks(xsd);
@@ -157,15 +157,15 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
     @Test
     public void includeCircleTest() throws Exception {
         Xsd xsd = getXsd("includeCircleTestA.xsd");
-        Map<Class<? extends XsdNode>, AtomicInteger> includeTestCounter = createCounter(xsd);
+        Map<String, AtomicInteger> includeTestCounter = createCounter(xsd);
 
         System.out.println(xsd.toTreeString());
 
         // includeTestA
         // - includes includeTestB
-        assertEquals(6, includeTestCounter.get(XsdElement.class).get());
-        assertEquals(2, includeTestCounter.get(XsdComplexType.class).get());
-        assertEquals(2, includeTestCounter.get(XsdChoice.class).get());
+        assertEquals(6, includeTestCounter.get(XsdElement.TYPE).get());
+        assertEquals(2, includeTestCounter.get(XsdComplexType.TYPE).get());
+        assertEquals(2, includeTestCounter.get(XsdChoice.TYPE).get());
 
         // check if links are correctly mapped
         checkLinks(xsd);
@@ -174,16 +174,16 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
     @Test
     public void testRedefine() throws Exception {
         Xsd xsd = getXsd("includeCircleRedefineTest.xsd");
-        Map<Class<? extends XsdNode>, AtomicInteger> redefineCounter = createCounter(xsd);
+        Map<String, AtomicInteger> redefineCounter = createCounter(xsd);
 
         System.out.println(xsd.toTreeString());
 
         // https://test.com/redefine
         // - extends childType in elementTest.xsd
-        assertEquals(7, redefineCounter.get(XsdElement.class).get());
-        assertEquals(2, redefineCounter.get(XsdComplexContent.class).get());
-        assertEquals(1, redefineCounter.get(XsdExtension.class).get());
-        assertEquals(1, redefineCounter.get(XsdRestriction.class).get());
+        assertEquals(7, redefineCounter.get(XsdElement.TYPE).get());
+        assertEquals(2, redefineCounter.get(XsdComplexContent.TYPE).get());
+        assertEquals(1, redefineCounter.get(XsdExtension.TYPE).get());
+        assertEquals(1, redefineCounter.get(XsdRestriction.TYPE).get());
 
         XsdNode includeAComplexType = xsd.getNamedNode(XsdComplexType.class,
             "{https://test.com/redefine}includeA");
@@ -198,13 +198,13 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
     @Test
     public void testRedefineABC() throws Exception {
         Xsd xsd = getXsd("redefineA.xsd");
-        Map<Class<? extends XsdNode>, AtomicInteger> counter = createCounter(xsd);
+        Map<String, AtomicInteger> counter = createCounter(xsd);
 
         System.out.println(xsd.toTreeString());
 
-        assertEquals(11, counter.get(XsdElement.class).get());
-        assertEquals(7, counter.get(XsdChoice.class).get());
-        assertEquals(4, counter.get(XsdExtension.class).get());
+        assertEquals(11, counter.get(XsdElement.TYPE).get());
+        assertEquals(7, counter.get(XsdChoice.TYPE).get());
+        assertEquals(4, counter.get(XsdExtension.TYPE).get());
 
         // check if links are correctly mapped
         checkLinks(xsd);
@@ -213,11 +213,11 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
     @Test
     public void includeReferenceTest() throws Exception {
         Xsd xsd = getXsd("includeReferenceTestA.xsd");
-        Map<Class<? extends XsdNode>, AtomicInteger> counter = createCounter(xsd);
+        Map<String, AtomicInteger> counter = createCounter(xsd);
 
-        assertEquals(3, counter.get(XsdElement.class).get());
-        assertEquals(1, counter.get(XsdComplexType.class).get());
-        assertEquals(1, counter.get(XsdChoice.class).get());
+        assertEquals(3, counter.get(XsdElement.TYPE).get());
+        assertEquals(1, counter.get(XsdComplexType.TYPE).get());
+        assertEquals(1, counter.get(XsdChoice.TYPE).get());
 
         System.out.println(xsd.toTreeString());
 
@@ -228,10 +228,10 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
     @Test
     public void attributeTest() throws Exception {
         Xsd xsd = getXsd("attributeTest.xsd");
-        Map<Class<? extends XsdNode>, AtomicInteger> counter = createCounter(xsd);
+        Map<String, AtomicInteger> counter = createCounter(xsd);
 
-        assertEquals(3, counter.get(XsdAttribute.class).get());
-        assertEquals(1, counter.get(XsdAnyAttribute.class).get());
+        assertEquals(3, counter.get(XsdAttribute.TYPE).get());
+        assertEquals(1, counter.get(XsdAnyAttribute.TYPE).get());
     }
 
     private void checkLinks(Xsd xsd) {
@@ -245,12 +245,12 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
         }
     }
 
-    private Map<Class<? extends XsdNode>, AtomicInteger> createCounter(Xsd xsd) {
-        Map<Class<? extends XsdNode>, AtomicInteger> counterMap = new LinkedHashMap<>();
-        for (Class<? extends XsdNode> nodeType : NODE_CLASSES) {
+    private Map<String, AtomicInteger> createCounter(Xsd xsd) {
+        Map<String, AtomicInteger> counterMap = new LinkedHashMap<>();
+        for (String nodeType : NODE_TYPES) {
             counterMap.put(nodeType, new AtomicInteger(0));
         }
-        xsd.collectAll().forEach(node -> counterMap.get(node.getClass()).incrementAndGet());
+        xsd.collectAll().forEach(node -> counterMap.get(node.getType()).incrementAndGet());
         return counterMap;
     }
 

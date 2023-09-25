@@ -77,24 +77,24 @@ public class XsdParser {
     public static Class<? extends XsdNode> of(XmlElement element) {
         String type = element.getLocalName();
         return switch (type) {
-            case XsdElement.XML_NAME -> XsdElement.class;
-            case XsdGroup.XML_NAME -> XsdGroup.class;
-            case XsdComplexType.XML_NAME -> XsdComplexType.class;
-            case XsdSimpleType.XML_NAME -> XsdSimpleType.class;
-            case XsdChoice.XML_NAME -> XsdChoice.class;
-            case XsdAll.XML_NAME -> XsdAll.class;
-            case XsdSequence.XML_NAME -> XsdSequence.class;
-            case XsdAny.XML_NAME -> XsdAny.class;
-            case XsdSimpleContent.XML_NAME -> XsdSimpleContent.class;
-            case XsdComplexContent.XML_NAME -> XsdComplexContent.class;
-            case XsdAttribute.XML_NAME -> XsdAttribute.class;
-            case XsdAttributeGroup.XML_NAME -> XsdAttributeGroup.class;
-            case XsdAnyAttribute.XML_NAME -> XsdAnyAttribute.class;
-            case XsdRestriction.XML_NAME -> XsdRestriction.class;
-            case XsdExtension.XML_NAME -> XsdExtension.class;
-            case XsdImport.XML_NAME -> XsdImport.class;
-            case XsdInclude.XML_NAME -> XsdInclude.class;
-            case XsdRedefine.XML_NAME -> XsdRedefine.class;
+            case XsdElement.TYPE -> XsdElement.class;
+            case XsdGroup.TYPE -> XsdGroup.class;
+            case XsdComplexType.TYPE -> XsdComplexType.class;
+            case XsdSimpleType.TYPE -> XsdSimpleType.class;
+            case XsdChoice.TYPE -> XsdChoice.class;
+            case XsdAll.TYPE -> XsdAll.class;
+            case XsdSequence.TYPE -> XsdSequence.class;
+            case XsdAny.TYPE -> XsdAny.class;
+            case XsdSimpleContent.TYPE -> XsdSimpleContent.class;
+            case XsdComplexContent.TYPE -> XsdComplexContent.class;
+            case XsdAttribute.TYPE -> XsdAttribute.class;
+            case XsdAttributeGroup.TYPE -> XsdAttributeGroup.class;
+            case XsdAnyAttribute.TYPE -> XsdAnyAttribute.class;
+            case XsdRestriction.TYPE -> XsdRestriction.class;
+            case XsdExtension.TYPE -> XsdExtension.class;
+            case XsdImport.TYPE -> XsdImport.class;
+            case XsdInclude.TYPE -> XsdInclude.class;
+            case XsdRedefine.TYPE -> XsdRedefine.class;
             default -> null;
         };
     }
@@ -156,7 +156,7 @@ public class XsdParser {
                     continue;
                 }
                 switch (type) {
-                case XsdImport.XML_NAME, XsdInclude.XML_NAME, XsdRedefine.XML_NAME -> resolve(element);
+                case XsdImport.TYPE, XsdInclude.TYPE, XsdRedefine.TYPE -> resolve(element);
                 }
             }
         }
@@ -255,12 +255,12 @@ public class XsdParser {
                 return;
             }
             switch (type) {
-            case XsdImport.XML_NAME -> {
+            case XsdImport.TYPE -> {
                 String schemaLocation = element.getAttribute("schemaLocation");
                 String namespace = element.getAttribute("namespace");
                 resolveFragment(new FragmentId(schemaLocation, namespace));
             }
-            case XsdInclude.XML_NAME, XsdRedefine.XML_NAME -> {
+            case XsdInclude.TYPE, XsdRedefine.TYPE -> {
                 String schemaLocation = element.getAttribute("schemaLocation");
                 String namespace = fragment.getTargetNamespace();
                 resolveFragment(new FragmentId(schemaLocation, namespace));
@@ -376,24 +376,24 @@ public class XsdParser {
         private XsdNode createNode(String uri, XmlElement element, XsdNode parentNode) {
             String type = element.getLocalName();
             return switch (type) {
-                case XsdElement.XML_NAME -> new XsdElement(xsd, uri, element, parentNode);
-                case XsdGroup.XML_NAME -> new XsdGroup(xsd, uri, element, parentNode);
-                case XsdComplexType.XML_NAME -> new XsdComplexType(xsd, uri, element, parentNode);
-                case XsdSimpleType.XML_NAME -> new XsdSimpleType(xsd, uri, element, parentNode);
-                case XsdChoice.XML_NAME -> new XsdChoice(xsd, uri, element, parentNode);
-                case XsdAll.XML_NAME -> new XsdAll(xsd, uri, element, parentNode);
-                case XsdSequence.XML_NAME -> new XsdSequence(xsd, uri, element, parentNode);
-                case XsdAny.XML_NAME -> new XsdAny(xsd, uri, element, parentNode);
-                case XsdSimpleContent.XML_NAME -> new XsdSimpleContent(xsd, uri, element, parentNode);
-                case XsdComplexContent.XML_NAME -> new XsdComplexContent(xsd, uri, element, parentNode);
-                case XsdAttribute.XML_NAME -> new XsdAttribute(xsd, uri, element, parentNode);
-                case XsdAttributeGroup.XML_NAME -> new XsdAttributeGroup(xsd, uri, element, parentNode);
-                case XsdAnyAttribute.XML_NAME -> new XsdAnyAttribute(xsd, uri, element, parentNode);
-                case XsdRestriction.XML_NAME -> new XsdRestriction(xsd, uri, element, parentNode);
-                case XsdExtension.XML_NAME -> new XsdExtension(xsd, uri, element, parentNode);
-                case XsdImport.XML_NAME -> new XsdImport(xsd, uri, element, parentNode);
-                case XsdInclude.XML_NAME -> new XsdInclude(xsd, uri, element, parentNode);
-                case XsdRedefine.XML_NAME -> new XsdRedefine(xsd, uri, element, parentNode);
+                case XsdElement.TYPE -> new XsdElement(xsd, uri, element, parentNode);
+                case XsdGroup.TYPE -> new XsdGroup(xsd, uri, element, parentNode);
+                case XsdComplexType.TYPE -> new XsdComplexType(xsd, uri, element, parentNode);
+                case XsdSimpleType.TYPE -> new XsdSimpleType(xsd, uri, element, parentNode);
+                case XsdChoice.TYPE -> new XsdChoice(xsd, uri, element, parentNode);
+                case XsdAll.TYPE -> new XsdAll(xsd, uri, element, parentNode);
+                case XsdSequence.TYPE -> new XsdSequence(xsd, uri, element, parentNode);
+                case XsdAny.TYPE -> new XsdAny(xsd, uri, element, parentNode);
+                case XsdSimpleContent.TYPE -> new XsdSimpleContent(xsd, uri, element, parentNode);
+                case XsdComplexContent.TYPE -> new XsdComplexContent(xsd, uri, element, parentNode);
+                case XsdAttribute.TYPE -> new XsdAttribute(xsd, uri, element, parentNode);
+                case XsdAttributeGroup.TYPE -> new XsdAttributeGroup(xsd, uri, element, parentNode);
+                case XsdAnyAttribute.TYPE -> new XsdAnyAttribute(xsd, uri, element, parentNode);
+                case XsdRestriction.TYPE -> new XsdRestriction(xsd, uri, element, parentNode);
+                case XsdExtension.TYPE -> new XsdExtension(xsd, uri, element, parentNode);
+                case XsdImport.TYPE -> new XsdImport(xsd, uri, element, parentNode);
+                case XsdInclude.TYPE -> new XsdInclude(xsd, uri, element, parentNode);
+                case XsdRedefine.TYPE -> new XsdRedefine(xsd, uri, element, parentNode);
                 default -> null;
             };
         }
