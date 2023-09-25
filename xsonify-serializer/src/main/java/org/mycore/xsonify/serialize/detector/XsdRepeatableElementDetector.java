@@ -6,7 +6,9 @@ import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
 import org.mycore.xsonify.xsd.XsdNodeType;
+import org.mycore.xsonify.xsd.node.XsdComplexType;
 import org.mycore.xsonify.xsd.node.XsdElement;
+import org.mycore.xsonify.xsd.node.XsdGroup;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -72,9 +74,9 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
     private XsdRoot createRoot(Xsd xsd) {
         XsdRoot root = new XsdRoot();
         xsd.getNamedNodes(
-                XsdNodeType.ELEMENT,
-                XsdNodeType.COMPLEXTYPE,
-                XsdNodeType.GROUP
+                XsdElement.class,
+                XsdComplexType.class,
+                XsdGroup.class
             ).stream()
             .map(xsdNode -> new Node(xsdNode.getName(), xsdNode.getNodeType(), true))
             .forEach(root::add);
@@ -84,7 +86,7 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
     private void create(Xsd xsd) {
         // elements
         this.root.getElementNodes().forEach(node -> {
-            XsdNode xsdNode = xsd.getNamedNode(XsdNodeType.ELEMENT, node.name);
+            XsdNode xsdNode = xsd.getNamedNode(XsdElement.class, node.name);
             XsdNode link = xsdNode.getLinkedNode();
             if (link != null) {
                 if (XsdNodeType.COMPLEXTYPE.equals(link.getNodeType())) {
@@ -97,12 +99,12 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
         });
         // complex types
         this.root.getComplexTypeNodes().forEach(node -> {
-            XsdNode xsdNode = xsd.getNamedNode(XsdNodeType.COMPLEXTYPE, node.name);
+            XsdNode xsdNode = xsd.getNamedNode(XsdComplexType.class, node.name);
             xsdNode.getChildren().forEach(xsdChildNode -> create(xsdChildNode, node, false));
         });
         // groups
         this.root.getGroupNodes().forEach(node -> {
-            XsdNode xsdNode = xsd.getNamedNode(XsdNodeType.GROUP, node.name);
+            XsdNode xsdNode = xsd.getNamedNode(XsdGroup.class, node.name);
             xsdNode.getChildren().forEach(xsdChildNode -> create(xsdChildNode, node, false));
         });
     }

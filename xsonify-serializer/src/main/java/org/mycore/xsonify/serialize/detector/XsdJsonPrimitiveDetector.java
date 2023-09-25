@@ -3,7 +3,7 @@ package org.mycore.xsonify.serialize.detector;
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
-import org.mycore.xsonify.xsd.XsdNodeType;
+import org.mycore.xsonify.xsd.node.XsdSimpleType;
 
 import java.util.List;
 
@@ -53,7 +53,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
         if (NUMBERS.contains(type)) {
             return JsonPrimitive.NUMBER;
         }
-        XsdNode simpleType = xsd.getNamedNode(XsdNodeType.SIMPLETYPE, type);
+        XsdNode simpleType = xsd.getNamedNode(XsdSimpleType.class, type);
         if (simpleType != null) {
             return detectSimpleTypeNode(simpleType);
         }

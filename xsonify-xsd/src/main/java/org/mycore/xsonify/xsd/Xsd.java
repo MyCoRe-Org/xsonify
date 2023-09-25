@@ -2,12 +2,16 @@ package org.mycore.xsonify.xsd;
 
 import org.mycore.xsonify.xml.XmlDocument;
 import org.mycore.xsonify.xml.XmlElement;
-import org.mycore.xsonify.xml.XmlException;
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlName;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xml.XmlPath;
+import org.mycore.xsonify.xsd.node.XsdAttribute;
+import org.mycore.xsonify.xsd.node.XsdAttributeGroup;
+import org.mycore.xsonify.xsd.node.XsdComplexType;
 import org.mycore.xsonify.xsd.node.XsdElement;
+import org.mycore.xsonify.xsd.node.XsdGroup;
+import org.mycore.xsonify.xsd.node.XsdSimpleType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,16 +31,16 @@ import java.util.stream.Collectors;
  */
 public class Xsd {
 
-    public static final List<XsdNodeType> NAMED_TYPES = List.of(
-        XsdNodeType.ELEMENT, XsdNodeType.GROUP, XsdNodeType.COMPLEXTYPE, XsdNodeType.SIMPLETYPE,
-        XsdNodeType.ATTRIBUTEGROUP, XsdNodeType.ATTRIBUTE
+    public static final List<Class<? extends XsdNode>> NAMED_TYPES = List.of(
+        XsdElement.class, XsdGroup.class, XsdComplexType.class, XsdSimpleType.class,
+        XsdAttributeGroup.class, XsdAttribute.class
     );
 
     private final String targetNamespace;
 
     private final LinkedHashMap<String, XmlDocument> documentMap;
 
-    private final LinkedHashMap<XsdNodeType, Map<XmlExpandedName, XsdNode>> namedMap;
+    private final LinkedHashMap<Class<? extends XsdNode>, Map<XmlExpandedName, XsdNode>> namedMap;
 
     /**
      * Constructor to initialize the XSD with the given target namespace and document map.
@@ -68,7 +72,7 @@ public class Xsd {
      * @param uri   namespace uri
      * @return the found node or null
      */
-    public XsdNode getNamedNode(XsdNodeType type, String local, String uri) {
+    public XsdNode getNamedNode(Class<? extends XsdNode> type, String local, String uri) {
         return getNamedNode(type, new XmlExpandedName(local, uri));
     }
 
@@ -80,7 +84,7 @@ public class Xsd {
      * @param reference named reference.
      * @return the found node or null
      */
-    public XsdNode getNamedNode(XsdNodeType type, XmlName reference) {
+    public XsdNode getNamedNode(Class<? extends XsdNode> type, XmlName reference) {
         return getNamedNode(type, reference.expandedName());
     }
 
@@ -91,7 +95,7 @@ public class Xsd {
      * @param reference named reference.
      * @return the found node or null
      */
-    public XsdNode getNamedNode(XsdNodeType type, XmlExpandedName reference) {
+    public XsdNode getNamedNode(Class<? extends XsdNode> type, XmlExpandedName reference) {
         if (!NAMED_TYPES.contains(type)) {
             return null;
         }
@@ -99,13 +103,13 @@ public class Xsd {
     }
 
     /**
-     * Same as {@link #getNamedNode(XsdNodeType, XmlExpandedName)}. Resolves the expanded name for you.
+     * Same as {@link #getNamedNode(Class, XmlExpandedName)}. Resolves the expanded name for you.
      *
      * @param type         node type
      * @param expandedName expanded name of the node
      * @return the found node or null
      */
-    public XsdNode getNamedNode(XsdNodeType type, String expandedName) {
+    public XsdNode getNamedNode(Class<? extends XsdNode> type, String expandedName) {
         return getNamedNode(type, XmlExpandedName.of(expandedName));
     }
 
@@ -118,7 +122,7 @@ public class Xsd {
      * @param localName local name of the node
      * @return list of nodes, list is empty if none of the nodes match the given localName
      */
-    public List<XsdNode> getNamedNodes(XsdNodeType type, String localName) {
+    public List<? extends XsdNode> getNamedNodes(Class<? extends XsdNode> type, String localName) {
         return namedMap.get(type).entrySet()
             .stream()
             .filter(entry -> entry.getKey().local().equals(localName))
@@ -132,17 +136,17 @@ public class Xsd {
      * @param node node itself
      */
     public void setNamedNode(XsdNode node) {
-        if (!NAMED_TYPES.contains(node.getNodeType())) {
+        if (!NAMED_TYPES.contains(node.getClass())) {
             return;
         }
-        this.namedMap.get(node.getNodeType()).put(node.getName(), node);
+        this.namedMap.get(node.getClass()).put(node.getName(), node);
     }
 
     public void addNamedNode(XsdNode node) {
-        if (!NAMED_TYPES.contains(node.getNodeType())) {
+        if (!NAMED_TYPES.contains(node.getClass())) {
             return;
         }
-        Map<XmlExpandedName, XsdNode> nodeMap = this.namedMap.get(node.getNodeType());
+        Map<XmlExpandedName, XsdNode> nodeMap = this.namedMap.get(node.getClass());
         if (nodeMap.containsKey(node.getName())) {
             XsdNode original = nodeMap.get(node.getName());
 /*
@@ -155,7 +159,7 @@ public class Xsd {
         nodeMap.put(node.getName(), node);
     }
 
-    public LinkedHashMap<XsdNodeType, Map<XmlExpandedName, XsdNode>> getNamedMap() {
+    public LinkedHashMap<Class<? extends XsdNode>, Map<XmlExpandedName, XsdNode>> getNamedMap() {
         return namedMap;
     }
 
@@ -171,10 +175,10 @@ public class Xsd {
      * @param types types to collect
      * @return collection of nodes
      */
-    public Collection<XsdNode> getNamedNodes(XsdNodeType... types) {
+    public Collection<XsdNode> getNamedNodes(Class<? extends XsdNode>... types) {
         Collection<XsdNode> collection = new ArrayList<>();
-        for (XsdNodeType type : types) {
-            Map<XmlExpandedName, XsdNode> nodes = namedMap.get(type);
+        for (Class<? extends XsdNode> type : types) {
+            Map<XmlExpandedName, ? extends XsdNode> nodes = namedMap.get(type);
             if (nodes != null) {
                 collection.addAll(nodes.values());
             }
@@ -291,7 +295,7 @@ public class Xsd {
         }
         List<XsdNode> nodes = new ArrayList<>();
         XmlName root = path.root().name();
-        XsdNode headNode = this.getNamedNode(XsdNodeType.ELEMENT, root);
+        XsdNode headNode = this.getNamedNode(XsdElement.class, root);
         if (headNode == null) {
             throw new NoSuchElementException(root + " could not be found!");
         }

@@ -406,7 +406,7 @@ public class XsdParser {
                 return;
             }
             if (ref != null) {
-                setLink(elementNode, XsdNodeType.ELEMENT, ref);
+                setLink(elementNode, XsdElement.class, ref);
                 return;
             }
             resolveChildren(elementNode);
@@ -430,7 +430,7 @@ public class XsdParser {
         private void resolveGroup(XsdNode groupNode) {
             String ref = groupNode.getAttribute("ref");
             if (ref != null) {
-                setLink(groupNode, XsdNodeType.GROUP, ref);
+                setLink(groupNode, XsdGroup.class, ref);
                 return;
             }
             resolveChildren(groupNode);
@@ -444,7 +444,7 @@ public class XsdParser {
                 return;
             }
             if (ref != null) {
-                setLink(attributeNode, XsdNodeType.ATTRIBUTE, ref);
+                setLink(attributeNode, XsdAttribute.class, ref);
                 return;
             }
             resolveChildren(attributeNode);
@@ -464,13 +464,13 @@ public class XsdParser {
             if (XsdBuiltInDatatypes.is(type)) {
                 return;
             }
-            attributeNode.setLink(new XsdLink(XsdNodeType.SIMPLETYPE, type));
+            attributeNode.setLink(new XsdLink(XsdSimpleType.class, type));
         }
 
         private void resolveAttributeGroup(XsdNode attributeGroupNode) {
             String ref = attributeGroupNode.getAttribute("ref");
             if (ref != null) {
-                setLink(attributeGroupNode, XsdNodeType.ATTRIBUTEGROUP, ref);
+                setLink(attributeGroupNode, XsdAttributeGroup.class, ref);
                 return;
             }
             resolveChildren(attributeGroupNode);
@@ -480,14 +480,14 @@ public class XsdParser {
             if (XsdBuiltInDatatypes.is(type)) {
                 return;
             }
-            XsdNode complexLinkedType = getLinkedNode(type, XsdNodeType.COMPLEXTYPE);
+            XsdNode complexLinkedType = getLinkedNode(type, XsdComplexType.class);
             if (complexLinkedType != null) {
-                node.setLink(new XsdLink(XsdNodeType.COMPLEXTYPE, type));
+                node.setLink(new XsdLink(XsdComplexType.class, type));
                 return;
             }
-            XsdNode simpleLinkedType = getLinkedNode(type, XsdNodeType.SIMPLETYPE);
+            XsdNode simpleLinkedType = getLinkedNode(type, XsdSimpleType.class);
             if (simpleLinkedType != null) {
-                node.setLink(new XsdLink(XsdNodeType.SIMPLETYPE, type));
+                node.setLink(new XsdLink(XsdSimpleType.class, type));
                 return;
             }
             throw new XsdParseException(
@@ -495,7 +495,7 @@ public class XsdParser {
                     + "SIMPLETYPE with the name '" + type + "'.");
         }
 
-        private void setLink(XsdNode node, XsdNodeType type, String name) {
+        private void setLink(XsdNode node, Class<? extends XsdNode> type, String name) {
             node.setLink(new XsdLink(type, XmlExpandedName.of(name)));
         }
 
@@ -539,7 +539,7 @@ public class XsdParser {
             }
         }
 
-        private XsdNode getLinkedNode(XmlExpandedName link, XsdNodeType type) {
+        private XsdNode getLinkedNode(XmlExpandedName link, Class<? extends XsdNode> type) {
             return xsd.getNamedNode(type, link);
         }
 
@@ -581,7 +581,7 @@ public class XsdParser {
                         unresolvedExtensionList.add(extensionNode);
                     } else {
                         XsdNode link = extensionNode.getLinkedNode();
-                        XsdNode baseNode = xsd.getNamedNode(link.getNodeType(), link.getName());
+                        XsdNode baseNode = xsd.getNamedNode(link.getClass(), link.getName());
                         linkExtensionNode(extensionNode, baseNode);
                         extensionNode.setLink(null);
                         return true;

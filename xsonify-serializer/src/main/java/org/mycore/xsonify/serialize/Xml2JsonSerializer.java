@@ -17,6 +17,7 @@ import org.mycore.xsonify.xsd.XsdAnyException;
 import org.mycore.xsonify.xsd.XsdBuiltInDatatypes;
 import org.mycore.xsonify.xsd.XsdNode;
 import org.mycore.xsonify.xsd.XsdNodeType;
+import org.mycore.xsonify.xsd.node.XsdElement;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -252,7 +253,7 @@ public class Xml2JsonSerializer extends SerializerBase {
         if (parent == null) {
             return false;
         }
-        XsdNode parentXsdNode = xsd().getNamedNode(XsdNodeType.ELEMENT, parent.getExpandedName());
+        XsdNode parentXsdNode = xsd().getNamedNode(XsdElement.class, parent.getExpandedName());
         return parentXsdNode != null && parentXsdNode.hasAny();
     }
 

@@ -20,7 +20,7 @@ import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xml.XmlQualifiedName;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
-import org.mycore.xsonify.xsd.XsdNodeType;
+import org.mycore.xsonify.xsd.node.XsdElement;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -419,7 +419,7 @@ public class Json2XmlSerializer extends SerializerBase {
 
     private XsdNode getRootXsdNode(JsonObject rootJson, JsonNode jsonNode) {
         if (getRootName() != null) {
-            XsdNode rootNode = xsd().getNamedNode(XsdNodeType.ELEMENT, getRootName());
+            XsdNode rootNode = xsd().getNamedNode(XsdElement.class, getRootName());
             if (rootNode != null) {
                 return rootNode;
             }
@@ -428,7 +428,7 @@ public class Json2XmlSerializer extends SerializerBase {
         }
         String jsonKey = getRootName(rootJson);
         String localName = XmlQualifiedName.of(jsonKey).localName();
-        List<XsdNode> candidates = xsd().getNamedNodes(XsdNodeType.ELEMENT, localName);
+        List<? extends XsdNode> candidates = xsd().getNamedNodes(XsdElement.class, localName);
         if (candidates.isEmpty()) {
             throw new SerializerException(
                 "Unable to find root node '" + localName + "' in xsd definition");
@@ -472,7 +472,7 @@ public class Json2XmlSerializer extends SerializerBase {
 
 
     private XsdNode getXsdNode(JsonNode jsonNode, SerializationContext parentContext,
-        List<XsdNode> candidates) {
+        List<? extends XsdNode> candidates) {
         if (candidates.size() == 1) {
             return candidates.get(0);
         }

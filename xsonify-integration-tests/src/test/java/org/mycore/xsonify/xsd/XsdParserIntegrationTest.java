@@ -1,6 +1,7 @@
 package org.mycore.xsonify.xsd;
 
 import org.junit.jupiter.api.Test;
+import org.mycore.xsonify.xsd.node.XsdComplexType;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -171,7 +172,7 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
         assertEquals(1, redefineCounter.get(XsdNodeType.EXTENSION).get());
         assertEquals(1, redefineCounter.get(XsdNodeType.RESTRICTION).get());
 
-        XsdNode includeAComplexType = xsd.getNamedNode(XsdNodeType.COMPLEXTYPE,
+        XsdNode includeAComplexType = xsd.getNamedNode(XsdComplexType.class,
             "{https://test.com/redefine}includeA");
         XsdNode elementNode = includeAComplexType.getChildren().get(0).getChildren().get(0).getChildren().get(0)
             .getChildren().get(1).getLinkedNode();
@@ -226,7 +227,7 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
             .filter(Objects::nonNull)
             .toList();
         for (XsdNode link : links) {
-            XsdNode namedNode = xsd.getNamedNode(link.getNodeType(), link.getName());
+            XsdNode namedNode = xsd.getNamedNode(link.getClass(), link.getName());
             assertSame(link, namedNode);
         }
     }
