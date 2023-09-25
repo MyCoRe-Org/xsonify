@@ -8,6 +8,7 @@ import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
 import org.mycore.xsonify.xsd.XsdNode;
 import org.mycore.xsonify.xsd.XsdNodeType;
+import org.mycore.xsonify.xsd.node.XsdElement;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -34,7 +35,7 @@ public class XsdPrefixConflictDetector implements XsdDetector<Boolean> {
         this.elementNameConflicts = new HashMap<>();
         this.attributeNameConflicts = new HashMap<>();
 
-        Collection<XsdNode> elementCollection = xsd.collect(XsdNodeType.ELEMENT);
+        Collection<XsdNode> elementCollection = xsd.collect(XsdElement.class);
 
         for (XsdNode node : elementCollection) {
             // elements

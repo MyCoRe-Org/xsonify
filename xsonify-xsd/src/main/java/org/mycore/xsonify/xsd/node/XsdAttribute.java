@@ -41,4 +41,9 @@ public class XsdAttribute extends XsdNode implements XsdReferencable<XsdAttribut
         return null;
     }
 
+    @Override
+    public String getXmlName() {
+        return XML_NAME;
+    }
+
 }

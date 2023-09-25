@@ -40,4 +40,9 @@ public class XsdElement extends XsdNode implements XsdReferencable<XsdElement> {
         return null;
     }
 
+    @Override
+    public String getXmlName() {
+        return XML_NAME;
+    }
+
 }

@@ -21,4 +21,9 @@ public class XsdRestriction extends XsdNode {
         super(xsd, uri, XsdNodeType.RESTRICTION, element, parent);
     }
 
+    @Override
+    public String getXmlName() {
+        return XML_NAME;
+    }
+
 }

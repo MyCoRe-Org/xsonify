@@ -21,4 +21,9 @@ public class XsdInclude extends XsdNode {
         super(xsd, uri, XsdNodeType.INCLUDE, element, parent);
     }
 
+    @Override
+    public String getXmlName() {
+        return XML_NAME;
+    }
+
 }

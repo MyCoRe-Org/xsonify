@@ -21,4 +21,9 @@ public class XsdComplexType extends XsdNode {
         super(xsd, uri, XsdNodeType.COMPLEXTYPE, element, parent);
     }
 
+    @Override
+    public String getXmlName() {
+        return XML_NAME;
+    }
+
 }

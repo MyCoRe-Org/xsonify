@@ -6,9 +6,16 @@ import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
 import org.mycore.xsonify.xsd.XsdNodeType;
+import org.mycore.xsonify.xsd.node.XsdAll;
+import org.mycore.xsonify.xsd.node.XsdAny;
+import org.mycore.xsonify.xsd.node.XsdChoice;
+import org.mycore.xsonify.xsd.node.XsdComplexContent;
 import org.mycore.xsonify.xsd.node.XsdComplexType;
 import org.mycore.xsonify.xsd.node.XsdElement;
+import org.mycore.xsonify.xsd.node.XsdExtension;
 import org.mycore.xsonify.xsd.node.XsdGroup;
+import org.mycore.xsonify.xsd.node.XsdRestriction;
+import org.mycore.xsonify.xsd.node.XsdSequence;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -168,17 +175,17 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
             return maxOccurs.equals("unbounded") ? Integer.MAX_VALUE : Integer.parseInt(maxOccurs);
         }
         // maxOccurs is not set -> return default values depending on type
-        switch (xsdNode.getNodeType()) {
-        case COMPLEXTYPE, COMPLEXCONTENT, RESTRICTION, EXTENSION -> {
+        switch (xsdNode.getXmlName()) {
+        case XsdComplexType.XML_NAME, XsdComplexContent.XML_NAME, XsdRestriction.XML_NAME, XsdExtension.XML_NAME -> {
             return null;
         }
-        case ELEMENT, GROUP -> {
+        case XsdElement.XML_NAME, XsdGroup.XML_NAME -> {
             return xsdNode.getParent() == null ? null : 1;
         }
-        case CHOICE, ALL, SEQUENCE -> {
+        case XsdChoice.XML_NAME, XsdAll.XML_NAME, XsdSequence.XML_NAME -> {
             return xsdNode.getParent().getNodeType().equals(XsdNodeType.GROUP) ? null : 1;
         }
-        case ANY -> {
+        case XsdAny.XML_NAME -> {
             // relevant case?
             return 1;
         }

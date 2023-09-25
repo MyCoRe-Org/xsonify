@@ -21,4 +21,9 @@ public class XsdSimpleContent extends XsdNode {
         super(xsd, uri, XsdNodeType.SIMPLECONTENT, element, parent);
     }
 
+    @Override
+    public String getXmlName() {
+        return XML_NAME;
+    }
+
 }

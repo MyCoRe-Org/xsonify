@@ -21,5 +21,10 @@ public class XsdSequence extends XsdNode {
         super(xsd, uri, XsdNodeType.SEQUENCE, element, parent);
     }
 
+    @Override
+    public String getXmlName() {
+        return XML_NAME;
+    }
+
 }
 

@@ -21,4 +21,9 @@ public class XsdAnyAttribute extends XsdNode {
         super(xsd, uri, XsdNodeType.ANYATTRIBUTE, element, parent);
     }
 
+    @Override
+    public String getXmlName() {
+        return XML_NAME;
+    }
+
 }

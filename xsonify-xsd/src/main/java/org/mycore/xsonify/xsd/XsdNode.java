@@ -2,6 +2,8 @@ package org.mycore.xsonify.xsd;
 
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xml.XmlExpandedName;
+import org.mycore.xsonify.xsd.node.XsdAny;
+import org.mycore.xsonify.xsd.node.XsdAnyAttribute;
 import org.mycore.xsonify.xsd.node.XsdAttribute;
 import org.mycore.xsonify.xsd.node.XsdElement;
 
@@ -119,6 +121,8 @@ public abstract class XsdNode {
         return ((XsdDocument) this.getElement().getDocument());
     }
 
+    public abstract String getXmlName();
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -220,7 +224,7 @@ public abstract class XsdNode {
      */
     public boolean hasAny() {
         if (this.hasAny == null) {
-            this.hasAny = this.hasAnyCheck(this, new ArrayList<>(), XsdNodeType.ANY);
+            this.hasAny = this.hasAnyCheck(this, new ArrayList<>(), XsdAny.class);
         }
         return this.hasAny;
     }
@@ -233,7 +237,7 @@ public abstract class XsdNode {
      */
     public boolean hasAnyAttribute() {
         if (this.hasAnyAttribute == null) {
-            this.hasAnyAttribute = this.hasAnyCheck(this, new ArrayList<>(), XsdNodeType.ANYATTRIBUTE);
+            this.hasAnyAttribute = this.hasAnyCheck(this, new ArrayList<>(), XsdAnyAttribute.class);
         }
         return this.hasAnyAttribute;
     }
@@ -260,7 +264,7 @@ public abstract class XsdNode {
         }
     }
 
-    private boolean hasAnyCheck(XsdNode node, List<XsdNode> visited, XsdNodeType nodeTypeToCheck) {
+    private boolean hasAnyCheck(XsdNode node, List<XsdNode> visited, Class<? extends XsdNode> nodeTypeToCheck) {
         if (visited.contains(node)) {
             return false;
         }
@@ -269,10 +273,10 @@ public abstract class XsdNode {
             return hasAnyCheck(node.getLinkedNode(), visited, nodeTypeToCheck);
         }
         for (XsdNode childNode : node.getChildren()) {
-            if (nodeTypeToCheck.equals(childNode.getNodeType())) {
+            if (nodeTypeToCheck.equals(childNode.getClass())) {
                 return true;
             }
-            if (XsdNodeType.ELEMENT.equals(childNode.getNodeType())) {
+            if (XsdElement.class.equals(childNode.getClass())) {
                 continue;
             }
             boolean hasChildAny = hasAnyCheck(childNode, visited, nodeTypeToCheck);

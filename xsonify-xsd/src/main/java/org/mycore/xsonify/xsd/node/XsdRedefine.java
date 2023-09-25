@@ -21,4 +21,9 @@ public class XsdRedefine extends XsdNode {
         super(xsd, uri, XsdNodeType.REDEFINE, element, parent);
     }
 
+    @Override
+    public String getXmlName() {
+        return XML_NAME;
+    }
+
 }

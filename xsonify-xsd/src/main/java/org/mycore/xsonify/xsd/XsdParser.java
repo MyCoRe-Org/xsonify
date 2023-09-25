@@ -563,14 +563,14 @@ public class XsdParser {
 
         private void resolveRedefineExtensions(XsdNode redefineNode) {
             List<XsdNode> extensionNodes = new ArrayList<>();
-            this.xsd.collect(redefineNode, List.of(XsdNodeType.EXTENSION), extensionNodes);
+            this.xsd.collect(redefineNode, List.of(XsdExtension.class), extensionNodes);
             resolveExtensions(extensionNodes);
             replaceWithRedefineNode(extensionNodes);
         }
 
         private void resolveRedefineRestrictions(XsdNode redefineNode) {
             List<XsdNode> restrictionNodes = new ArrayList<>();
-            this.xsd.collect(redefineNode, List.of(XsdNodeType.RESTRICTION), restrictionNodes);
+            this.xsd.collect(redefineNode, List.of(XsdRestriction.class), restrictionNodes);
             replaceWithRedefineNode(restrictionNodes);
         }
 

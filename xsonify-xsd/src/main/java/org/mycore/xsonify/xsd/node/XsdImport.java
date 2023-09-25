@@ -21,4 +21,9 @@ public class XsdImport extends XsdNode {
         super(xsd, uri, XsdNodeType.IMPORT, element, parent);
     }
 
+    @Override
+    public String getXmlName() {
+        return XML_NAME;
+    }
+
 }

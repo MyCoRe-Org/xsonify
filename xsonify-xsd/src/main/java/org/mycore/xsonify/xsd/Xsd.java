@@ -175,7 +175,8 @@ public class Xsd {
      * @param types types to collect
      * @return collection of nodes
      */
-    public Collection<XsdNode> getNamedNodes(Class<? extends XsdNode>... types) {
+    @SafeVarargs
+    public final Collection<XsdNode> getNamedNodes(Class<? extends XsdNode>... types) {
         Collection<XsdNode> collection = new ArrayList<>();
         for (Class<? extends XsdNode> type : types) {
             Map<XmlExpandedName, ? extends XsdNode> nodes = namedMap.get(type);
@@ -193,17 +194,18 @@ public class Xsd {
      * @param types types to collect
      * @return collection of nodes
      */
-    public Collection<XsdNode> collect(XsdNodeType... types) {
+    @SafeVarargs
+    public final Collection<XsdNode> collect(Class<? extends XsdNode>... types) {
         List<XsdNode> nodes = new ArrayList<>();
-        List<XsdNodeType> nodeTypes = Arrays.asList(types);
+        List<Class<? extends XsdNode>> nodeTypes = Arrays.asList(types);
         for (XsdNode node : getNamedNodes()) {
             collect(node, nodeTypes, nodes);
         }
         return nodes;
     }
 
-    public void collect(XsdNode node, List<XsdNodeType> types, Collection<XsdNode> collection) {
-        if (types.contains(node.getNodeType())) {
+    public void collect(XsdNode node, List<Class<? extends XsdNode>> types, Collection<XsdNode> collection) {
+        if (types.contains(node.getClass())) {
             collection.add(node);
         }
         for (XsdNode childNode : node.getChildren()) {

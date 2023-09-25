@@ -21,4 +21,9 @@ public class XsdChoice extends XsdNode {
         super(xsd, uri, XsdNodeType.CHOICE, element, parent);
     }
 
+    @Override
+    public String getXmlName() {
+        return XML_NAME;
+    }
+
 }

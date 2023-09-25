@@ -26,4 +26,9 @@ public class XsdAttributeGroup extends XsdNode implements XsdReferencable<XsdAtt
         return null;
     }
 
+    @Override
+    public String getXmlName() {
+        return XML_NAME;
+    }
+
 }

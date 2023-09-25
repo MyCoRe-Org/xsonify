@@ -21,4 +21,9 @@ public class XsdExtension extends XsdNode {
         super(xsd, uri, XsdNodeType.EXTENSION, element, parent);
     }
 
+    @Override
+    public String getXmlName() {
+        return XML_NAME;
+    }
+
 }

@@ -5,6 +5,9 @@ import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
 import org.mycore.xsonify.xsd.XsdNodeType;
+import org.mycore.xsonify.xsd.node.XsdComplexContent;
+import org.mycore.xsonify.xsd.node.XsdComplexType;
+import org.mycore.xsonify.xsd.node.XsdElement;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,7 +22,7 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
     public XsdMixedContentDetector(Xsd xsd) {
         this.mixedContentElements = new HashSet<>();
         // mixed content can only appear in complexType or complexContent
-        Collection<XsdNode> complexNodes = xsd.collect(XsdNodeType.COMPLEXTYPE, XsdNodeType.COMPLEXCONTENT);
+        Collection<XsdNode> complexNodes = xsd.collect(XsdComplexType.class, XsdComplexContent.class);
         Collection<XsdNode> mixedComplexTypes = getMixedComplexTypes(complexNodes);
         buildMixedContentElements(xsd, mixedComplexTypes);
     }
@@ -40,7 +43,7 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
     }
 
     private void buildMixedContentElements(Xsd xsd, Collection<XsdNode> mixedComplexTypes) {
-        Collection<XsdNode> elementNodes = xsd.collect(XsdNodeType.ELEMENT);
+        Collection<XsdNode> elementNodes = xsd.collect(XsdElement.class);
         for (XsdNode mixedComplexTypeNode : mixedComplexTypes) {
             if (mixedComplexTypeNode.getParent() == null) {
                 // root node
