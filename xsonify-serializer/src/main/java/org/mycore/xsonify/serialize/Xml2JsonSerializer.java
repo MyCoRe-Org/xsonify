@@ -92,7 +92,7 @@ public class Xml2JsonSerializer extends SerializerBase {
                 json.add(name, jsonContent.get(0));
             } else {
                 throw new SerializerException(
-                    "Expected exactly one occurrence of " + name + " but found an additional one.");
+                    "Expected exactly one occurrence of " + name + ". But found an additional.");
             }
         }
     }

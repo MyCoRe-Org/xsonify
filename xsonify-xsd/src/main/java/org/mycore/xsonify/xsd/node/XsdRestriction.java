@@ -7,6 +7,8 @@ import org.mycore.xsonify.xsd.XsdNodeType;
 
 public class XsdRestriction extends XsdNode {
 
+    public static final String XML_NAME = "restriction";
+
     /**
      * Constructs a new XsdNode.
      *

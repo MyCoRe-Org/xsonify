@@ -7,6 +7,8 @@ import org.mycore.xsonify.xsd.XsdNodeType;
 
 public class XsdInclude extends XsdNode {
 
+    public static final String XML_NAME = "include";
+
     /**
      * Constructs a new XsdNode.
      *

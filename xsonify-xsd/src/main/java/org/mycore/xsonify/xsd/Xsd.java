@@ -7,6 +7,7 @@ import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlName;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xml.XmlPath;
+import org.mycore.xsonify.xsd.node.XsdElement;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -324,7 +325,7 @@ public class Xsd {
 
     private XsdNode resolvePathForElement(XsdNode parent, XmlName elementToFind) throws XsdAnyException,
         NoSuchElementException {
-        List<XsdNode> children = parent.collectElements();
+        List<XsdElement> children = parent.collectElements();
         for (XsdNode childNode : children) {
             XsdNode namedNode = childNode.getReferenceOrSelf();
             if (namedNode.getName().equals(elementToFind.expandedName())) {

@@ -5,7 +5,24 @@ import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
 import org.mycore.xsonify.xsd.XsdNodeType;
 
+import java.util.List;
+
 public class XsdAttribute extends XsdNode implements XsdReferencable<XsdAttribute> {
+
+    public static final String XML_NAME = "attribute";
+
+    /**
+     * List of nodes which can contain attributes. Either as a child or somewhere down their hierarchy.
+     */
+    public static final List<Class<? extends XsdNode>> CONTAINER_NODES = List.of(
+        XsdInclude.class, XsdRedefine.class,
+        XsdElement.class, XsdGroup.class,
+        XsdComplexType.class, XsdSimpleType.class,
+        XsdChoice.class, XsdAll.class, XsdSequence.class,
+        XsdSimpleContent.class, XsdComplexContent.class,
+        XsdAttributeGroup.class,
+        XsdRestriction.class, XsdExtension.class
+    );
 
     /**
      * Constructs a new XsdNode.

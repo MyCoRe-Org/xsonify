@@ -7,6 +7,8 @@ import org.mycore.xsonify.xsd.XsdNodeType;
 
 public class XsdChoice extends XsdNode {
 
+    public static final String XML_NAME = "choice";
+
     /**
      * Constructs a new XsdNode.
      *

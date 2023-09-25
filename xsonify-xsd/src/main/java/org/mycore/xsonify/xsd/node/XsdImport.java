@@ -7,6 +7,8 @@ import org.mycore.xsonify.xsd.XsdNodeType;
 
 public class XsdImport extends XsdNode {
 
+    public static final String XML_NAME = "import";
+
     /**
      * Constructs a new XsdNode.
      *

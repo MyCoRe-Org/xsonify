@@ -1,6 +1,7 @@
 package org.mycore.xsonify.xsd;
 
 import org.junit.jupiter.api.Test;
+import org.mycore.xsonify.xsd.node.XsdElement;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public class XsdNodeTest extends XsdBaseTest {
         assertEquals(17, root.collectElements().size());
 
         XsdNode parent = xsd.getNamedNode(XsdNodeType.ELEMENT, "parent", "https://test.com/element");
-        List<XsdNode> childrenOfParent = parent.collectElements();
+        List<XsdElement> childrenOfParent = parent.collectElements();
         assertEquals(1, childrenOfParent.size());
 
         XsdNode child = childrenOfParent.get(0);

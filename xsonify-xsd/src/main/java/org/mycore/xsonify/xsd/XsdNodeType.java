@@ -1,10 +1,21 @@
 package org.mycore.xsonify.xsd;
 
-import org.mycore.xsonify.xml.XmlElement;
+import org.mycore.xsonify.xsd.node.XsdAll;
+import org.mycore.xsonify.xsd.node.XsdAttributeGroup;
+import org.mycore.xsonify.xsd.node.XsdChoice;
+import org.mycore.xsonify.xsd.node.XsdComplexContent;
+import org.mycore.xsonify.xsd.node.XsdComplexType;
+import org.mycore.xsonify.xsd.node.XsdElement;
+import org.mycore.xsonify.xsd.node.XsdExtension;
+import org.mycore.xsonify.xsd.node.XsdGroup;
+import org.mycore.xsonify.xsd.node.XsdInclude;
+import org.mycore.xsonify.xsd.node.XsdRedefine;
+import org.mycore.xsonify.xsd.node.XsdRestriction;
+import org.mycore.xsonify.xsd.node.XsdSequence;
+import org.mycore.xsonify.xsd.node.XsdSimpleContent;
+import org.mycore.xsonify.xsd.node.XsdSimpleType;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * <p>Enumeration of different types of XSD elements.</p>
@@ -23,45 +34,5 @@ public enum XsdNodeType {
     SIMPLECONTENT, COMPLEXCONTENT,
     ATTRIBUTE, ATTRIBUTEGROUP, ANYATTRIBUTE,
     RESTRICTION, EXTENSION;
-
-    /**
-     * List of nodes which can contain elements. Either as a child or somewhere down their hierarchy.
-     */
-    public static final List<XsdNodeType> ELEMENT_CONTAINER_NODES = List.of(
-        INCLUDE, REDEFINE,
-        ELEMENT, GROUP,
-        COMPLEXTYPE,
-        CHOICE, ALL, SEQUENCE,
-        COMPLEXCONTENT,
-        RESTRICTION, EXTENSION
-    );
-
-    /**
-     * List of nodes which can contain attributes. Either as a child or somewhere down their hierarchy.
-     */
-    public static final List<XsdNodeType> ATTRIBUTE_CONTAINER_NODES = List.of(
-        INCLUDE, REDEFINE,
-        ELEMENT, GROUP,
-        COMPLEXTYPE, SIMPLETYPE,
-        CHOICE, ALL, SEQUENCE,
-        SIMPLECONTENT, COMPLEXCONTENT,
-        ATTRIBUTEGROUP,
-        RESTRICTION, EXTENSION
-    );
-
-    public boolean is(XsdNodeType... types) {
-        return Arrays.stream(types).anyMatch(type -> type == this);
-    }
-
-    public static XsdNodeType of(XmlElement element) {
-        XsdNodeType type;
-        try {
-            String name = element.getLocalName().toUpperCase(Locale.ROOT);
-            type = XsdNodeType.valueOf(name);
-        } catch (IllegalArgumentException ignored) {
-            return null;
-        }
-        return type;
-    }
 
 }

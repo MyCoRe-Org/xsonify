@@ -7,6 +7,8 @@ import org.mycore.xsonify.xsd.XsdNodeType;
 
 public class XsdAll extends XsdNode {
 
+    public static final String XML_NAME = "all";
+
     /**
      * Constructs a new XsdAll node.
      *

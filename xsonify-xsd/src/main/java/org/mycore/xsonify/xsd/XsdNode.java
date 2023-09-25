@@ -2,6 +2,8 @@ package org.mycore.xsonify.xsd;
 
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xml.XmlExpandedName;
+import org.mycore.xsonify.xsd.node.XsdAttribute;
+import org.mycore.xsonify.xsd.node.XsdElement;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,9 +30,9 @@ public abstract class XsdNode {
 
     private XsdLink link;
 
-    private List<XsdNode> elementCache;
+    private List<XsdElement> elementCache;
 
-    private List<XsdNode> attributeCache;
+    private List<XsdAttribute> attributeCache;
 
     /**
      * Indicates that this node has a xs:any element. It's not necessary a child, but somewhere down the hierarchy
@@ -172,10 +174,10 @@ public abstract class XsdNode {
      *
      * @return list of elements
      */
-    public List<XsdNode> collectElements() {
+    public List<XsdElement> collectElements() {
         if (this.elementCache == null) {
             this.elementCache = new ArrayList<>();
-            collect(XsdNodeType.ELEMENT, XsdNodeType.ELEMENT_CONTAINER_NODES, this, this.elementCache,
+            collect(XsdElement.class, XsdElement.CONTAINER_NODES, this, this.elementCache,
                 new ArrayList<>());
         }
         return Collections.unmodifiableList(this.elementCache);
@@ -191,9 +193,9 @@ public abstract class XsdNode {
     public List<XsdNode> collectAttributes() {
         if (this.attributeCache == null) {
             this.attributeCache = new ArrayList<>();
-            List<XsdNodeType> searchNodes = new ArrayList<>(XsdNodeType.ATTRIBUTE_CONTAINER_NODES);
-            searchNodes.remove(XsdNodeType.ELEMENT);
-            collect(XsdNodeType.ATTRIBUTE, searchNodes, this, this.attributeCache, new ArrayList<>());
+            List<Class<? extends XsdNode>> searchNodes = new ArrayList<>(XsdAttribute.CONTAINER_NODES);
+            searchNodes.remove(XsdElement.class);
+            collect(XsdAttribute.class, searchNodes, this, this.attributeCache, new ArrayList<>());
         }
         return Collections.unmodifiableList(this.attributeCache);
     }
@@ -236,8 +238,9 @@ public abstract class XsdNode {
         return this.hasAnyAttribute;
     }
 
-    private void collect(XsdNodeType type, List<XsdNodeType> searchNodes, XsdNode node, List<XsdNode> found,
-        List<XsdNode> visited) {
+    @SuppressWarnings("unchecked")
+    private <T> void collect(Class<T> type, List<Class<? extends XsdNode>> searchNodes, XsdNode node,
+        List<T> found, List<XsdNode> visited) {
         if (visited.contains(node)) {
             return;
         }
@@ -247,11 +250,11 @@ public abstract class XsdNode {
             return;
         }
         for (XsdNode childNode : node.getChildren()) {
-            if (childNode.getNodeType().equals(type)) {
-                found.add(childNode);
+            if (childNode.getClass().equals(type)) {
+                found.add((T) childNode);
                 continue;
             }
-            if (searchNodes.contains(childNode.getNodeType())) {
+            if (searchNodes.contains(childNode.getClass())) {
                 collect(type, searchNodes, childNode, found, visited);
             }
         }
@@ -287,13 +290,13 @@ public abstract class XsdNode {
      * @return the reference or this node
      */
     public XsdNode getReferenceOrSelf() {
-        if (this.getLinkedNode() != null && this.getLinkedNode().getNodeType().is(this.nodeType)) {
+        if (this.getLinkedNode() != null && this.getLinkedNode().getClass().equals(this.getClass())) {
             return this.getLinkedNode();
         }
         return this;
     }
 
-    public static List<XsdNode> resolveReferences(List<XsdNode> nodes) {
+    public static List<XsdNode> resolveReferences(List<? extends XsdNode> nodes) {
         return nodes.stream().map(XsdNode::getReferenceOrSelf).toList();
     }
 

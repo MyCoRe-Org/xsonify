@@ -7,6 +7,8 @@ import org.mycore.xsonify.xsd.XsdNodeType;
 
 public class XsdRedefine extends XsdNode {
 
+    public static final String XML_NAME = "redefine";
+
     /**
      * Constructs a new XsdNode.
      *

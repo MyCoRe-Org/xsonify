@@ -7,6 +7,8 @@ import org.mycore.xsonify.xsd.XsdNodeType;
 
 public class XsdAttributeGroup extends XsdNode implements XsdReferencable<XsdAttributeGroup> {
 
+    public static final String XML_NAME = "attributeGroup";
+
     /**
      * Constructs a new XsdNode.
      *

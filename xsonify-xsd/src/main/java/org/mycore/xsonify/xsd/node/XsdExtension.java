@@ -7,6 +7,8 @@ import org.mycore.xsonify.xsd.XsdNodeType;
 
 public class XsdExtension extends XsdNode {
 
+    public static final String XML_NAME = "extension";
+
     /**
      * Constructs a new XsdNode.
      *

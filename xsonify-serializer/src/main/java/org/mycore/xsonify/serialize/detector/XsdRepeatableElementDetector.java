@@ -6,6 +6,7 @@ import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
 import org.mycore.xsonify.xsd.XsdNodeType;
+import org.mycore.xsonify.xsd.node.XsdElement;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -107,7 +108,7 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
     }
 
     private void create(XsdNode xsdNode, Node elementNode, boolean isRepeatable) {
-        if (!XsdNodeType.ELEMENT_CONTAINER_NODES.contains(xsdNode.getNodeType())) {
+        if (!XsdElement.CONTAINER_NODES.contains(xsdNode.getClass())) {
             return;
         }
         Integer maxOccurs = getMaxOccurs(xsdNode);

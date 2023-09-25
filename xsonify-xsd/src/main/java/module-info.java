@@ -21,4 +21,5 @@ module org.mycore.xsonify.xsd {
     requires org.mycore.xsonify.xml;
 
     exports org.mycore.xsonify.xsd;
+    exports org.mycore.xsonify.xsd.node;
 }

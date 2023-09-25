@@ -7,6 +7,8 @@ import org.mycore.xsonify.xsd.XsdNodeType;
 
 public class XsdSimpleType extends XsdNode {
 
+    public static final String XML_NAME = "simpleType";
+
     /**
      * Constructs a new XsdNode.
      *

@@ -74,6 +74,31 @@ public class XsdParser {
         return xsd;
     }
 
+    public static Class<? extends XsdNode> of(XmlElement element) {
+        String type = element.getLocalName();
+        return switch (type) {
+            case XsdElement.XML_NAME -> XsdElement.class;
+            case XsdGroup.XML_NAME -> XsdGroup.class;
+            case XsdComplexType.XML_NAME -> XsdComplexType.class;
+            case XsdSimpleType.XML_NAME -> XsdSimpleType.class;
+            case XsdChoice.XML_NAME -> XsdChoice.class;
+            case XsdAll.XML_NAME -> XsdAll.class;
+            case XsdSequence.XML_NAME -> XsdSequence.class;
+            case XsdAny.XML_NAME -> XsdAny.class;
+            case XsdSimpleContent.XML_NAME -> XsdSimpleContent.class;
+            case XsdComplexContent.XML_NAME -> XsdComplexContent.class;
+            case XsdAttribute.XML_NAME -> XsdAttribute.class;
+            case XsdAttributeGroup.XML_NAME -> XsdAttributeGroup.class;
+            case XsdAnyAttribute.XML_NAME -> XsdAnyAttribute.class;
+            case XsdRestriction.XML_NAME -> XsdRestriction.class;
+            case XsdExtension.XML_NAME -> XsdExtension.class;
+            case XsdImport.XML_NAME -> XsdImport.class;
+            case XsdInclude.XML_NAME -> XsdInclude.class;
+            case XsdRedefine.XML_NAME -> XsdRedefine.class;
+            default -> null;
+        };
+    }
+
     /**
      * Helper class to resolve and load XSD schema documents.
      *
@@ -126,12 +151,12 @@ public class XsdParser {
 
         private void resolve(XmlDocument document) throws XsdParseException {
             for (XmlElement element : document.getRoot().getElements()) {
-                XsdNodeType type = XsdNodeType.of(element);
+                String type = element.getLocalName();
                 if (type == null) {
                     continue;
                 }
                 switch (type) {
-                case IMPORT, INCLUDE, REDEFINE -> resolve(element);
+                case XsdImport.XML_NAME, XsdInclude.XML_NAME, XsdRedefine.XML_NAME -> resolve(element);
                 }
             }
         }
@@ -225,17 +250,17 @@ public class XsdParser {
         }
 
         private void resolve(Fragment fragment, XmlElement element) throws XsdParseException {
-            XsdNodeType type = XsdNodeType.of(element);
+            String type = element.getLocalName();
             if (type == null) {
                 return;
             }
             switch (type) {
-            case IMPORT -> {
+            case XsdImport.XML_NAME -> {
                 String schemaLocation = element.getAttribute("schemaLocation");
                 String namespace = element.getAttribute("namespace");
                 resolveFragment(new FragmentId(schemaLocation, namespace));
             }
-            case INCLUDE, REDEFINE -> {
+            case XsdInclude.XML_NAME, XsdRedefine.XML_NAME -> {
                 String schemaLocation = element.getAttribute("schemaLocation");
                 String namespace = fragment.getTargetNamespace();
                 resolveFragment(new FragmentId(schemaLocation, namespace));
@@ -339,39 +364,37 @@ public class XsdParser {
             }
         }
 
-        private XsdNode createNode(String uri, XmlElement element, XsdNode parentNode) {
-            XsdNodeType type = XsdNodeType.of(element);
-            if (type == null) {
+        private XsdNode createAndAddNode(String uri, XmlElement element, XsdNode parentNode) {
+            XsdNode node = createNode(uri, element, parentNode);
+            if (node == null) {
                 return null;
             }
-            XsdNode node = createNode(uri, element, parentNode, type);
-            if (parentNode != null) {
-                parentNode.getChildren().add(node);
-            }
+            parentNode.getChildren().add(node);
             return node;
         }
 
-        private XsdNode createNode(String uri, XmlElement element, XsdNode parentNode, XsdNodeType type) {
+        private XsdNode createNode(String uri, XmlElement element, XsdNode parentNode) {
+            String type = element.getLocalName();
             return switch (type) {
-                case ELEMENT -> new XsdElement(xsd, uri, element, parentNode);
-                case GROUP -> new XsdGroup(xsd, uri, element, parentNode);
-                case COMPLEXTYPE -> new XsdComplexType(xsd, uri, element, parentNode);
-                case SIMPLETYPE -> new XsdSimpleType(xsd, uri, element, parentNode);
-                case CHOICE -> new XsdChoice(xsd, uri, element, parentNode);
-                case ALL -> new XsdAll(xsd, uri, element, parentNode);
-                case SEQUENCE -> new XsdSequence(xsd, uri, element, parentNode);
-                case ANY -> new XsdAny(xsd, uri, element, parentNode);
-                case SIMPLECONTENT -> new XsdSimpleContent(xsd, uri, element, parentNode);
-                case COMPLEXCONTENT -> new XsdComplexContent(xsd, uri, element, parentNode);
-                case ATTRIBUTE -> new XsdAttribute(xsd, uri, element, parentNode);
-                case ATTRIBUTEGROUP -> new XsdAttributeGroup(xsd, uri, element, parentNode);
-                case ANYATTRIBUTE -> new XsdAnyAttribute(xsd, uri, element, parentNode);
-                case RESTRICTION -> new XsdRestriction(xsd, uri, element, parentNode);
-                case EXTENSION -> new XsdExtension(xsd, uri, element, parentNode);
-                case IMPORT -> new XsdImport(xsd, uri, element, parentNode);
-                case INCLUDE -> new XsdInclude(xsd, uri, element, parentNode);
-                case REDEFINE -> new XsdRedefine(xsd, uri, element, parentNode);
-                default -> throw new RuntimeException("Invalid type " + type);
+                case XsdElement.XML_NAME -> new XsdElement(xsd, uri, element, parentNode);
+                case XsdGroup.XML_NAME -> new XsdGroup(xsd, uri, element, parentNode);
+                case XsdComplexType.XML_NAME -> new XsdComplexType(xsd, uri, element, parentNode);
+                case XsdSimpleType.XML_NAME -> new XsdSimpleType(xsd, uri, element, parentNode);
+                case XsdChoice.XML_NAME -> new XsdChoice(xsd, uri, element, parentNode);
+                case XsdAll.XML_NAME -> new XsdAll(xsd, uri, element, parentNode);
+                case XsdSequence.XML_NAME -> new XsdSequence(xsd, uri, element, parentNode);
+                case XsdAny.XML_NAME -> new XsdAny(xsd, uri, element, parentNode);
+                case XsdSimpleContent.XML_NAME -> new XsdSimpleContent(xsd, uri, element, parentNode);
+                case XsdComplexContent.XML_NAME -> new XsdComplexContent(xsd, uri, element, parentNode);
+                case XsdAttribute.XML_NAME -> new XsdAttribute(xsd, uri, element, parentNode);
+                case XsdAttributeGroup.XML_NAME -> new XsdAttributeGroup(xsd, uri, element, parentNode);
+                case XsdAnyAttribute.XML_NAME -> new XsdAnyAttribute(xsd, uri, element, parentNode);
+                case XsdRestriction.XML_NAME -> new XsdRestriction(xsd, uri, element, parentNode);
+                case XsdExtension.XML_NAME -> new XsdExtension(xsd, uri, element, parentNode);
+                case XsdImport.XML_NAME -> new XsdImport(xsd, uri, element, parentNode);
+                case XsdInclude.XML_NAME -> new XsdInclude(xsd, uri, element, parentNode);
+                case XsdRedefine.XML_NAME -> new XsdRedefine(xsd, uri, element, parentNode);
+                default -> null;
             };
         }
 
@@ -507,7 +530,7 @@ public class XsdParser {
         private void resolveChildren(XsdNode parentNode) {
             for (XmlElement childElement : parentNode.getElement().getElements()) {
                 try {
-                    XsdNode childNode = createNode(parentNode.getUri(), childElement, parentNode);
+                    XsdNode childNode = createAndAddNode(parentNode.getUri(), childElement, parentNode);
                     if (childNode != null) {
                         resolveNode(childNode);
                     }
@@ -619,7 +642,10 @@ public class XsdParser {
          * @return the cloned node
          */
         private XsdNode cloneTo(XsdNode baseNode, XsdNode newParent) {
-            XsdNode clone = createNode(baseNode.getUri(), baseNode.getElement(), newParent, baseNode.getNodeType());
+            XsdNode clone = createNode(baseNode.getUri(), baseNode.getElement(), newParent);
+            if (clone == null) {
+                return null;
+            }
             clone.setLink(baseNode.getLink());
             baseNode.getChildren().stream()
                 .map(thisChild -> cloneTo(thisChild, clone))
