@@ -3,7 +3,6 @@ package org.mycore.xsonify.xsd.node;
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
-import org.mycore.xsonify.xsd.XsdNodeType;
 
 public class XsdGroup extends XsdNode implements XsdReferencable<XsdGroup> {
 
@@ -18,7 +17,7 @@ public class XsdGroup extends XsdNode implements XsdReferencable<XsdGroup> {
      * @param parent  The parent node of this node in the XSD hierarchy.
      */
     public XsdGroup(Xsd xsd, String uri, XmlElement element, XsdNode parent) {
-        super(xsd, uri, XsdNodeType.GROUP, element, parent);
+        super(xsd, uri, element, parent);
     }
 
     @Override

@@ -2,8 +2,8 @@ package org.mycore.xsonify.xsd;
 
 import org.mycore.xsonify.xml.XmlDocument;
 import org.mycore.xsonify.xml.XmlDocumentLoader;
-import org.mycore.xsonify.xml.XmlEntityResolverDocumentLoader;
 import org.mycore.xsonify.xml.XmlElement;
+import org.mycore.xsonify.xml.XmlEntityResolverDocumentLoader;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xml.XmlResourceDocumentLoader;
 import org.mycore.xsonify.xml.XmlSaxParser;
@@ -98,7 +98,7 @@ public abstract class XsdUtil {
      * Parses an XSD from a given schema location.
      *
      * @param schemaLocation The location of the XSD schema.
-     * @return An Xsd object representing the parsed XSD.
+     * @return A Xsd object representing the parsed XSD.
      * @throws IOException                  If an I/O error occurs while reading the 'catalog.xml'.
      * @throws XsdParseException            If an xsd parse error occur.
      * @throws ParserConfigurationException If the xml sax parser couldn't be created.
@@ -115,7 +115,7 @@ public abstract class XsdUtil {
      *
      * @param schemaLocation  The location of the XSD schema.
      * @param catalogResolver The CatalogResolver to use for resolving catalogs.
-     * @return An Xsd object representing the parsed XSD.
+     * @return A Xsd object representing the parsed XSD.
      * @throws XsdParseException            If an xsd parse error occur.
      * @throws ParserConfigurationException If the xml sax parser couldn't be created.
      * @throws SAXException                 for SAX errors.

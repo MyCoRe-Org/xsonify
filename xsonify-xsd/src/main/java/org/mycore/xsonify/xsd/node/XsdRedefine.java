@@ -3,7 +3,6 @@ package org.mycore.xsonify.xsd.node;
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
-import org.mycore.xsonify.xsd.XsdNodeType;
 
 public class XsdRedefine extends XsdNode {
 
@@ -18,7 +17,7 @@ public class XsdRedefine extends XsdNode {
      * @param parent  The parent node of this node in the XSD hierarchy.
      */
     public XsdRedefine(Xsd xsd, String uri, XmlElement element, XsdNode parent) {
-        super(xsd, uri, XsdNodeType.REDEFINE, element, parent);
+        super(xsd, uri, element, parent);
     }
 
     @Override

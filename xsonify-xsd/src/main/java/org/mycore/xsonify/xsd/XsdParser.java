@@ -322,7 +322,7 @@ public class XsdParser {
             resolveRedefines();
 
             List<XsdNode> extensionNodes = xsd.collectAll().stream()
-                .filter(node -> XsdNodeType.EXTENSION.equals(node.getNodeType()))
+                .filter(node -> XsdExtension.TYPE.equals(node.getType()))
                 .filter(node -> node.getLinkedNode() != null)
                 .collect(Collectors.toList());
 
@@ -336,11 +336,11 @@ public class XsdParser {
                 if (rootNode == null) {
                     continue;
                 }
-                switch (rootNode.getNodeType()) {
-                case ELEMENT, GROUP,
-                    COMPLEXTYPE, SIMPLETYPE,
-                    ATTRIBUTE, ATTRIBUTEGROUP -> xsd.addNamedNode(rootNode);
-                case REDEFINE -> addRedefineNode(rootNode);
+                switch (rootNode.getType()) {
+                case XsdElement.TYPE, XsdGroup.TYPE,
+                    XsdComplexType.TYPE, XsdSimpleType.TYPE,
+                    XsdAttribute.TYPE, XsdAttributeGroup.TYPE -> xsd.addNamedNode(rootNode);
+                case XsdRedefine.TYPE -> addRedefineNode(rootNode);
                 }
             }
         }
@@ -351,16 +351,17 @@ public class XsdParser {
         }
 
         private void resolveNode(XsdNode node) {
-            switch (node.getNodeType()) {
-            case ELEMENT -> resolveElement(node);
-            case GROUP -> resolveGroup(node);
-            case COMPLEXTYPE, SIMPLETYPE,
-                CHOICE, ALL, SEQUENCE, COMPLEXCONTENT, SIMPLECONTENT -> resolveChildren(node);
-            case ATTRIBUTE -> resolveAttribute(node);
-            case ATTRIBUTEGROUP -> resolveAttributeGroup(node);
-            case RESTRICTION -> resolveRestriction(node);
-            case EXTENSION -> resolveExtension(node);
-            case INCLUDE, REDEFINE -> resolveIncludeRedefine(node);
+            switch (node.getType()) {
+            case XsdElement.TYPE -> resolveElement(node);
+            case XsdGroup.TYPE -> resolveGroup(node);
+            case XsdComplexType.TYPE, XsdSimpleType.TYPE,
+                XsdChoice.TYPE, XsdAll.TYPE, XsdSequence.TYPE,
+                XsdComplexContent.TYPE, XsdSimpleContent.TYPE -> resolveChildren(node);
+            case XsdAttribute.TYPE -> resolveAttribute(node);
+            case XsdAttributeGroup.TYPE -> resolveAttributeGroup(node);
+            case XsdRestriction.TYPE -> resolveRestriction(node);
+            case XsdExtension.TYPE -> resolveExtension(node);
+            case XsdInclude.TYPE, XsdRedefine.TYPE -> resolveIncludeRedefine(node);
             }
         }
 
@@ -613,7 +614,7 @@ public class XsdParser {
 
         private boolean hasUnresolvedSubExtension(XsdNode node) {
             for (XsdNode childNode : node.getChildren()) {
-                if ((XsdNodeType.EXTENSION.equals(childNode.getNodeType()) && childNode.getLinkedNode() != null) ||
+                if ((XsdExtension.TYPE.equals(childNode.getType()) && childNode.getLinkedNode() != null) ||
                     hasUnresolvedSubExtension(childNode)) {
                     return true;
                 }

@@ -5,7 +5,6 @@ import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
-import org.mycore.xsonify.xsd.XsdNodeType;
 import org.mycore.xsonify.xsd.node.XsdAll;
 import org.mycore.xsonify.xsd.node.XsdAny;
 import org.mycore.xsonify.xsd.node.XsdChoice;
@@ -96,7 +95,7 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
             XsdNode xsdNode = xsd.getNamedNode(XsdElement.class, node.name);
             XsdNode link = xsdNode.getLinkedNode();
             if (link != null) {
-                if (XsdNodeType.COMPLEXTYPE.equals(link.getNodeType())) {
+                if (XsdComplexType.TYPE.equals(link.getType())) {
                     Node complexTypeNode = this.root.getComplexTypeNode(link.getName());
                     node.put(complexTypeNode.name, new RepeatableInfo(complexTypeNode, false));
                 }
@@ -123,13 +122,13 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
         Integer maxOccurs = getMaxOccurs(xsdNode);
         boolean forceRepeatable = isRepeatable || (maxOccurs != null && maxOccurs > 1);
         // element
-        if (XsdNodeType.ELEMENT.equals(xsdNode.getNodeType())) {
+        if (XsdElement.TYPE.equals(xsdNode.getType())) {
             createElement(xsdNode, elementNode, forceRepeatable);
             return;
         }
         // group reference
         if (xsdNode.getLinkedNode() != null) {
-            if (XsdNodeType.GROUP.equals(xsdNode.getNodeType())) {
+            if (XsdGroup.TYPE.equals(xsdNode.getType())) {
                 Node groupNode = this.root.getGroupNode(xsdNode.getLinkedNode().getName());
                 elementNode.put(xsdNode.getLinkedNode().getName(), new RepeatableInfo(groupNode, forceRepeatable));
             } else {
@@ -145,14 +144,14 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
 
     private void createElement(XsdNode xsdNode, Node elementNode, boolean forceRepeatable) {
         if (xsdNode.getLinkedNode() != null) {
-            switch (xsdNode.getLinkedNode().getNodeType()) {
-            case ELEMENT -> {
+            switch (xsdNode.getLinkedNode().getType()) {
+            case XsdElement.TYPE -> {
                 Node globalElementNode = this.root.getElementNode(xsdNode.getLinkedNode().getName());
                 boolean hasSameNodeAlready = elementNode.has(globalElementNode.name);
                 elementNode.put(globalElementNode.name,
                     new RepeatableInfo(globalElementNode, hasSameNodeAlready || forceRepeatable));
             }
-            case COMPLEXTYPE -> {
+            case XsdComplexType.TYPE -> {
                 Node globalComplexTypeNode = this.root.getComplexTypeNode(xsdNode.getLinkedNode().getName());
                 Node childElementNode = new Node(xsdNode.getName(), XsdElement.TYPE, false);
                 elementNode.put(childElementNode.name, new RepeatableInfo(childElementNode, forceRepeatable));
@@ -183,14 +182,14 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
             return xsdNode.getParent() == null ? null : 1;
         }
         case XsdChoice.TYPE, XsdAll.TYPE, XsdSequence.TYPE -> {
-            return xsdNode.getParent().getNodeType().equals(XsdNodeType.GROUP) ? null : 1;
+            return xsdNode.getParent().getType().equals(XsdGroup.TYPE) ? null : 1;
         }
         case XsdAny.TYPE -> {
             // relevant case?
             return 1;
         }
         }
-        throw new SerializerException("Unexpected Type " + xsdNode.getNodeType());
+        throw new SerializerException("Unexpected Type " + xsdNode.getType());
     }
 
     public String toTreeString() {

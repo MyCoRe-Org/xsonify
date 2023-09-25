@@ -22,8 +22,6 @@ public abstract class XsdNode {
 
     private final String uri;
 
-    private final XsdNodeType nodeType;
-
     private final XmlElement element;
 
     private final XsdNode parent;
@@ -53,14 +51,12 @@ public abstract class XsdNode {
      *
      * @param xsd      The XSD object to which this node belongs.
      * @param uri      The URI that identifies the XML namespace of this node.
-     * @param nodeType The type of this node.
      * @param element  The XmlElement representing this node in the XML document.
      * @param parent   The parent node of this node in the XSD hierarchy.
      */
-    public XsdNode(Xsd xsd, String uri, XsdNodeType nodeType, XmlElement element, XsdNode parent) {
+    public XsdNode(Xsd xsd, String uri, XmlElement element, XsdNode parent) {
         this.xsd = xsd;
         this.uri = uri;
-        this.nodeType = nodeType;
         this.element = element;
         this.parent = parent;
         this.children = new ArrayList<>();
@@ -76,10 +72,6 @@ public abstract class XsdNode {
 
     public XmlExpandedName getName() {
         return new XmlExpandedName(getLocalName(), uri);
-    }
-
-    public XsdNodeType getNodeType() {
-        return nodeType;
     }
 
     public XmlElement getElement() {
@@ -129,7 +121,7 @@ public abstract class XsdNode {
         if (getLocalName() != null) {
             sb.append(getName()).append(" ");
         }
-        sb.append("(").append(nodeType).append(")");
+        sb.append("(").append(getType()).append(")");
         if (link != null) {
             sb.append(" -> ").append(link);
         }
@@ -294,7 +286,7 @@ public abstract class XsdNode {
      * @return the reference or this node
      */
     public XsdNode getReferenceOrSelf() {
-        if (this.getLinkedNode() != null && this.getLinkedNode().getClass().equals(this.getClass())) {
+        if (this.getLinkedNode() != null && this.getLinkedNode().getType().equals(this.getType())) {
             return this.getLinkedNode();
         }
         return this;

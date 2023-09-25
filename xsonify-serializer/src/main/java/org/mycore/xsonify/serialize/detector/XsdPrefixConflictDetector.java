@@ -7,7 +7,6 @@ import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
 import org.mycore.xsonify.xsd.XsdNode;
-import org.mycore.xsonify.xsd.XsdNodeType;
 import org.mycore.xsonify.xsd.node.XsdElement;
 
 import java.util.Collection;

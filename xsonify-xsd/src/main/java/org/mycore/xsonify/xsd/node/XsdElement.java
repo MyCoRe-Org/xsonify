@@ -3,7 +3,6 @@ package org.mycore.xsonify.xsd.node;
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
-import org.mycore.xsonify.xsd.XsdNodeType;
 
 import java.util.List;
 
@@ -32,7 +31,7 @@ public class XsdElement extends XsdNode implements XsdReferencable<XsdElement> {
      * @param parent  The parent node of this node in the XSD hierarchy.
      */
     public XsdElement(Xsd xsd, String uri, XmlElement element, XsdNode parent) {
-        super(xsd, uri, XsdNodeType.ELEMENT, element, parent);
+        super(xsd, uri, element, parent);
     }
 
     @Override

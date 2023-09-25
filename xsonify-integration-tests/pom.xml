@@ -28,18 +28,21 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.mycore</groupId>
+      <groupId>org.mycore.xsonify</groupId>
       <artifactId>xsonify-serializer</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.mycore</groupId>
+      <groupId>org.mycore.xsonify</groupId>
       <artifactId>xsonify-xml</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.mycore</groupId>
+      <groupId>org.mycore.xsonify</groupId>
       <artifactId>xsonify-xsd</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
