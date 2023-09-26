@@ -92,26 +92,26 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
     private void create(Xsd xsd) {
         // elements
         this.root.getElementNodes().forEach(node -> {
-            XsdNode xsdNode = xsd.getNamedNode(XsdElement.class, node.name);
-            XsdNode link = xsdNode.getLinkedNode();
+            XsdElement xsdElement = xsd.getNamedNode(XsdElement.class, node.name);
+            XsdNode link = xsdElement.getLinkedNode();
             if (link != null) {
                 if (XsdComplexType.TYPE.equals(link.getType())) {
                     Node complexTypeNode = this.root.getComplexTypeNode(link.getName());
                     node.put(complexTypeNode.name, new RepeatableInfo(complexTypeNode, false));
                 }
             } else {
-                xsdNode.getChildren().forEach(xsdChildNode -> create(xsdChildNode, node, false));
+                xsdElement.getChildren().forEach(xsdChildNode -> create(xsdChildNode, node, false));
             }
         });
         // complex types
         this.root.getComplexTypeNodes().forEach(node -> {
-            XsdNode xsdNode = xsd.getNamedNode(XsdComplexType.class, node.name);
-            xsdNode.getChildren().forEach(xsdChildNode -> create(xsdChildNode, node, false));
+            XsdComplexType xsdComplexType = xsd.getNamedNode(XsdComplexType.class, node.name);
+            xsdComplexType.getChildren().forEach(xsdChildNode -> create(xsdChildNode, node, false));
         });
         // groups
         this.root.getGroupNodes().forEach(node -> {
-            XsdNode xsdNode = xsd.getNamedNode(XsdGroup.class, node.name);
-            xsdNode.getChildren().forEach(xsdChildNode -> create(xsdChildNode, node, false));
+            XsdGroup xsdGroup = xsd.getNamedNode(XsdGroup.class, node.name);
+            xsdGroup.getChildren().forEach(xsdChildNode -> create(xsdChildNode, node, false));
         });
     }
 

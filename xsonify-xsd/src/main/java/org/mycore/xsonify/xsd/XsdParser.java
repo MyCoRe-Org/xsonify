@@ -25,16 +25,20 @@ import org.mycore.xsonify.xsd.node.XsdSimpleType;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
  * The XsdParser class is responsible for parsing an XSD (XML Schema Definition)
- * schema file to generate an Xsd object.
+ * schema file to generate a Xsd object.
  * <br />
  * The parser performs the following steps:
  * <ul>
@@ -45,6 +49,30 @@ import java.util.stream.Collectors;
  * </ul>
  */
 public class XsdParser {
+
+    public static final Map<String, Class<? extends XsdNode>> NODE_TYPE_CLASS_MAP;
+
+    static {
+        NODE_TYPE_CLASS_MAP = new HashMap<>();
+        NODE_TYPE_CLASS_MAP.put(XsdAll.TYPE, XsdAll.class);
+        NODE_TYPE_CLASS_MAP.put(XsdAny.TYPE, XsdAny.class);
+        NODE_TYPE_CLASS_MAP.put(XsdAnyAttribute.TYPE, XsdAnyAttribute.class);
+        NODE_TYPE_CLASS_MAP.put(XsdAttribute.TYPE, XsdAttribute.class);
+        NODE_TYPE_CLASS_MAP.put(XsdAttributeGroup.TYPE, XsdAttributeGroup.class);
+        NODE_TYPE_CLASS_MAP.put(XsdChoice.TYPE, XsdChoice.class);
+        NODE_TYPE_CLASS_MAP.put(XsdComplexContent.TYPE, XsdComplexContent.class);
+        NODE_TYPE_CLASS_MAP.put(XsdComplexType.TYPE, XsdComplexType.class);
+        NODE_TYPE_CLASS_MAP.put(XsdElement.TYPE, XsdElement.class);
+        NODE_TYPE_CLASS_MAP.put(XsdExtension.TYPE, XsdExtension.class);
+        NODE_TYPE_CLASS_MAP.put(XsdGroup.TYPE, XsdGroup.class);
+        NODE_TYPE_CLASS_MAP.put(XsdImport.TYPE, XsdImport.class);
+        NODE_TYPE_CLASS_MAP.put(XsdInclude.TYPE, XsdInclude.class);
+        NODE_TYPE_CLASS_MAP.put(XsdRedefine.TYPE, XsdRedefine.class);
+        NODE_TYPE_CLASS_MAP.put(XsdRestriction.TYPE, XsdRestriction.class);
+        NODE_TYPE_CLASS_MAP.put(XsdSequence.TYPE, XsdSequence.class);
+        NODE_TYPE_CLASS_MAP.put(XsdSimpleContent.TYPE, XsdSimpleContent.class);
+        NODE_TYPE_CLASS_MAP.put(XsdSimpleType.TYPE, XsdSimpleType.class);
+    }
 
     private final XmlDocumentLoader documentLoader;
 
@@ -72,31 +100,6 @@ public class XsdParser {
         nodeResolver.resolve();
 
         return xsd;
-    }
-
-    public static Class<? extends XsdNode> of(XmlElement element) {
-        String type = element.getLocalName();
-        return switch (type) {
-            case XsdElement.TYPE -> XsdElement.class;
-            case XsdGroup.TYPE -> XsdGroup.class;
-            case XsdComplexType.TYPE -> XsdComplexType.class;
-            case XsdSimpleType.TYPE -> XsdSimpleType.class;
-            case XsdChoice.TYPE -> XsdChoice.class;
-            case XsdAll.TYPE -> XsdAll.class;
-            case XsdSequence.TYPE -> XsdSequence.class;
-            case XsdAny.TYPE -> XsdAny.class;
-            case XsdSimpleContent.TYPE -> XsdSimpleContent.class;
-            case XsdComplexContent.TYPE -> XsdComplexContent.class;
-            case XsdAttribute.TYPE -> XsdAttribute.class;
-            case XsdAttributeGroup.TYPE -> XsdAttributeGroup.class;
-            case XsdAnyAttribute.TYPE -> XsdAnyAttribute.class;
-            case XsdRestriction.TYPE -> XsdRestriction.class;
-            case XsdExtension.TYPE -> XsdExtension.class;
-            case XsdImport.TYPE -> XsdImport.class;
-            case XsdInclude.TYPE -> XsdInclude.class;
-            case XsdRedefine.TYPE -> XsdRedefine.class;
-            default -> null;
-        };
     }
 
     /**
@@ -297,7 +300,7 @@ public class XsdParser {
 
         private final LinkedHashMap<FragmentId, Fragment> fragmentMap;
 
-        private final LinkedHashMap<RedefineId, XsdNode> redefineMap;
+        private final LinkedHashMap<RedefineId, XsdRedefine> redefineMap;
 
         /**
          * Creates a new NodeResolver.
@@ -321,8 +324,7 @@ public class XsdParser {
             resolveHierarchy();
             resolveRedefines();
 
-            List<XsdNode> extensionNodes = xsd.collectAll().stream()
-                .filter(node -> XsdExtension.TYPE.equals(node.getType()))
+            List<XsdExtension> extensionNodes = xsd.collect(XsdExtension.class).stream()
                 .filter(node -> node.getLinkedNode() != null)
                 .collect(Collectors.toList());
 
@@ -332,15 +334,22 @@ public class XsdParser {
 
         private void resolveRootNodes(XsdDocument document) {
             for (XmlElement element : document.getRoot().getElements()) {
-                XsdNode rootNode = createNode(document.getTargetNamespace(), element, null);
-                if (rootNode == null) {
+                Class<? extends XsdNode> nodeClass = getNodeClass(element);
+                if (nodeClass == null) {
                     continue;
                 }
-                switch (rootNode.getType()) {
-                case XsdElement.TYPE, XsdGroup.TYPE,
-                    XsdComplexType.TYPE, XsdSimpleType.TYPE,
-                    XsdAttribute.TYPE, XsdAttributeGroup.TYPE -> xsd.addNamedNode(rootNode);
-                case XsdRedefine.TYPE -> addRedefineNode(rootNode);
+                String uri = document.getTargetNamespace();
+                if (nodeClass.isAssignableFrom(XsdElement.class) ||
+                    nodeClass.isAssignableFrom(XsdGroup.class) ||
+                    nodeClass.isAssignableFrom(XsdComplexType.class) ||
+                    nodeClass.isAssignableFrom(XsdSimpleType.class) ||
+                    nodeClass.isAssignableFrom(XsdAttribute.class) ||
+                    nodeClass.isAssignableFrom(XsdAttributeGroup.class)) {
+                    XsdNode rootNode = instantiateNode(nodeClass, uri, element, null);
+                    xsd.addNamedNode(rootNode);
+                } else if (nodeClass.isAssignableFrom(XsdRedefine.class)) {
+                    XsdRedefine xsdRedefine = instantiateNode(XsdRedefine.class, uri, element, null);
+                    addRedefineNode(xsdRedefine);
                 }
             }
         }
@@ -352,17 +361,43 @@ public class XsdParser {
 
         private void resolveNode(XsdNode node) {
             switch (node.getType()) {
-            case XsdElement.TYPE -> resolveElement(node);
-            case XsdGroup.TYPE -> resolveGroup(node);
+            case XsdElement.TYPE -> resolveElement((XsdElement) node);
+            case XsdGroup.TYPE -> resolveGroup((XsdGroup) node);
             case XsdComplexType.TYPE, XsdSimpleType.TYPE,
                 XsdChoice.TYPE, XsdAll.TYPE, XsdSequence.TYPE,
                 XsdComplexContent.TYPE, XsdSimpleContent.TYPE -> resolveChildren(node);
-            case XsdAttribute.TYPE -> resolveAttribute(node);
-            case XsdAttributeGroup.TYPE -> resolveAttributeGroup(node);
-            case XsdRestriction.TYPE -> resolveRestriction(node);
-            case XsdExtension.TYPE -> resolveExtension(node);
-            case XsdInclude.TYPE, XsdRedefine.TYPE -> resolveIncludeRedefine(node);
+            case XsdAttribute.TYPE -> resolveAttribute((XsdAttribute) node);
+            case XsdAttributeGroup.TYPE -> resolveAttributeGroup((XsdAttributeGroup) node);
+            case XsdRestriction.TYPE -> resolveRestriction((XsdRestriction) node);
+            case XsdExtension.TYPE -> resolveExtension((XsdExtension) node);
+            case XsdInclude.TYPE, XsdRedefine.TYPE -> resolveIncludeRedefine((XsdRedefine) node);
             }
+        }
+
+        private Class<? extends XsdNode> getNodeClass(XmlElement element) {
+            String type = element.getLocalName();
+            return NODE_TYPE_CLASS_MAP.get(type);
+        }
+
+        private <T extends XsdNode> T instantiateNode(Class<T> nodeClass, String uri, XmlElement element,
+            XsdNode parentNode) {
+            try {
+                Constructor<T> nodeConstructor = nodeClass.getConstructor(
+                    Xsd.class, String.class, XmlElement.class, XsdNode.class
+                );
+                return nodeConstructor.newInstance(xsd, uri, element, parentNode);
+            } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
+                IllegalAccessException e) {
+                throw new XsdParseException("Unable to instantiate '" + nodeClass + "'", e);
+            }
+        }
+
+        private XsdNode createNode(String uri, XmlElement element, XsdNode parentNode) {
+            Class<? extends XsdNode> nodeClass = getNodeClass(element);
+            if (nodeClass == null) {
+                return null;
+            }
+            return instantiateNode(nodeClass, uri, element, parentNode);
         }
 
         private XsdNode createAndAddNode(String uri, XmlElement element, XsdNode parentNode) {
@@ -374,32 +409,7 @@ public class XsdParser {
             return node;
         }
 
-        private XsdNode createNode(String uri, XmlElement element, XsdNode parentNode) {
-            String type = element.getLocalName();
-            return switch (type) {
-                case XsdElement.TYPE -> new XsdElement(xsd, uri, element, parentNode);
-                case XsdGroup.TYPE -> new XsdGroup(xsd, uri, element, parentNode);
-                case XsdComplexType.TYPE -> new XsdComplexType(xsd, uri, element, parentNode);
-                case XsdSimpleType.TYPE -> new XsdSimpleType(xsd, uri, element, parentNode);
-                case XsdChoice.TYPE -> new XsdChoice(xsd, uri, element, parentNode);
-                case XsdAll.TYPE -> new XsdAll(xsd, uri, element, parentNode);
-                case XsdSequence.TYPE -> new XsdSequence(xsd, uri, element, parentNode);
-                case XsdAny.TYPE -> new XsdAny(xsd, uri, element, parentNode);
-                case XsdSimpleContent.TYPE -> new XsdSimpleContent(xsd, uri, element, parentNode);
-                case XsdComplexContent.TYPE -> new XsdComplexContent(xsd, uri, element, parentNode);
-                case XsdAttribute.TYPE -> new XsdAttribute(xsd, uri, element, parentNode);
-                case XsdAttributeGroup.TYPE -> new XsdAttributeGroup(xsd, uri, element, parentNode);
-                case XsdAnyAttribute.TYPE -> new XsdAnyAttribute(xsd, uri, element, parentNode);
-                case XsdRestriction.TYPE -> new XsdRestriction(xsd, uri, element, parentNode);
-                case XsdExtension.TYPE -> new XsdExtension(xsd, uri, element, parentNode);
-                case XsdImport.TYPE -> new XsdImport(xsd, uri, element, parentNode);
-                case XsdInclude.TYPE -> new XsdInclude(xsd, uri, element, parentNode);
-                case XsdRedefine.TYPE -> new XsdRedefine(xsd, uri, element, parentNode);
-                default -> null;
-            };
-        }
-
-        private void resolveElement(XsdNode elementNode) {
+        private void resolveElement(XsdElement elementNode) {
             String type = elementNode.getAttribute("type");
             String ref = elementNode.getAttribute("ref");
             if (type != null) {
@@ -422,13 +432,16 @@ public class XsdParser {
          * </ul>
          *
          * @param elementNode element node to resolve
-         * @param type        the type attribute
+         * @param type        the type attribute as expanded name
          */
-        private void resolveElementType(XsdNode elementNode, XmlExpandedName type) {
-            setTypeLink(elementNode, type);
+        private void resolveElementType(XsdElement elementNode, XmlExpandedName type) {
+            setLink(elementNode, type, (nodeClass -> {
+                XsdLink link = new XsdLink(nodeClass, type);
+                elementNode.setLink(link);
+            }));
         }
 
-        private void resolveGroup(XsdNode groupNode) {
+        private void resolveGroup(XsdGroup groupNode) {
             String ref = groupNode.getAttribute("ref");
             if (ref != null) {
                 setLink(groupNode, XsdGroup.class, ref);
@@ -437,7 +450,7 @@ public class XsdParser {
             resolveChildren(groupNode);
         }
 
-        private void resolveAttribute(XsdNode attributeNode) {
+        private void resolveAttribute(XsdAttribute attributeNode) {
             String type = attributeNode.getAttribute("type");
             String ref = attributeNode.getAttribute("ref");
             if (type != null) {
@@ -461,14 +474,14 @@ public class XsdParser {
          * @param attributeNode attribute node to resolve
          * @param type          the type attribute
          */
-        private void resolveAttributeType(XsdNode attributeNode, XmlExpandedName type) {
+        private void resolveAttributeType(XsdAttribute attributeNode, XmlExpandedName type) {
             if (XsdBuiltInDatatypes.is(type)) {
                 return;
             }
             attributeNode.setLink(new XsdLink(XsdSimpleType.class, type));
         }
 
-        private void resolveAttributeGroup(XsdNode attributeGroupNode) {
+        private void resolveAttributeGroup(XsdAttributeGroup attributeGroupNode) {
             String ref = attributeGroupNode.getAttribute("ref");
             if (ref != null) {
                 setLink(attributeGroupNode, XsdAttributeGroup.class, ref);
@@ -477,30 +490,30 @@ public class XsdParser {
             resolveChildren(attributeGroupNode);
         }
 
-        private void setTypeLink(XsdNode node, XmlExpandedName type) {
-            if (XsdBuiltInDatatypes.is(type)) {
+        private void setLink(XsdNode node, XmlExpandedName linkName, Consumer<Class<? extends XsdNode>> consumer) {
+            if (XsdBuiltInDatatypes.is(linkName)) {
                 return;
             }
-            XsdNode complexLinkedType = getLinkedNode(type, XsdComplexType.class);
+            XsdComplexType complexLinkedType = xsd.getNamedNode(XsdComplexType.class, linkName);
             if (complexLinkedType != null) {
-                node.setLink(new XsdLink(XsdComplexType.class, type));
+                consumer.accept(XsdComplexType.class);
                 return;
             }
-            XsdNode simpleLinkedType = getLinkedNode(type, XsdSimpleType.class);
+            XsdSimpleType simpleLinkedType = xsd.getNamedNode(XsdSimpleType.class, linkName);
             if (simpleLinkedType != null) {
-                node.setLink(new XsdLink(XsdSimpleType.class, type));
+                consumer.accept(XsdSimpleType.class);
                 return;
             }
             throw new XsdParseException(
                 "Unable to set link for node '" + node.getName() + "'. Couldn't find either COMPLEX-/"
-                    + "SIMPLETYPE with the name '" + type + "'.");
+                    + "SIMPLETYPE with the name '" + linkName + "'.");
         }
 
         private void setLink(XsdNode node, Class<? extends XsdNode> type, String name) {
             node.setLink(new XsdLink(type, XmlExpandedName.of(name)));
         }
 
-        private void resolveIncludeRedefine(XsdNode includeRedefineNode) {
+        private void resolveIncludeRedefine(XsdRedefine includeRedefineNode) {
             resolveChildren(includeRedefineNode);
         }
 
@@ -511,7 +524,7 @@ public class XsdParser {
          *
          * @param restrictionNode the restricted node
          */
-        private void resolveRestriction(XsdNode restrictionNode) {
+        private void resolveRestriction(XsdRestriction restrictionNode) {
             // (xs:group | xs:all | xs:choice | xs:sequence)
             resolveChildren(restrictionNode);
         }
@@ -522,10 +535,13 @@ public class XsdParser {
          *
          * @param extensionNode the extension node
          */
-        private void resolveExtension(XsdNode extensionNode) {
+        private void resolveExtension(XsdExtension extensionNode) {
             resolveChildren(extensionNode);
             XmlExpandedName base = XmlExpandedName.of(extensionNode.getAttribute("base"));
-            setTypeLink(extensionNode, base);
+            setLink(extensionNode, base, (nodeClass -> {
+                XsdLink link = new XsdLink(nodeClass, base);
+                extensionNode.setLink(link);
+            }));
         }
 
         private void resolveChildren(XsdNode parentNode) {
@@ -540,14 +556,10 @@ public class XsdParser {
             }
         }
 
-        private XsdNode getLinkedNode(XmlExpandedName link, Class<? extends XsdNode> type) {
-            return xsd.getNamedNode(type, link);
-        }
-
-        public void addRedefineNode(XsdNode node) {
-            String sourceLocation = node.getDocument().getSchemaLocation();
-            String targetLocation = node.getAttribute("schemaLocation");
-            this.redefineMap.put(new RedefineId(sourceLocation, targetLocation), node);
+        public void addRedefineNode(XsdRedefine redefineNode) {
+            String sourceLocation = redefineNode.getDocument().getSchemaLocation();
+            String targetLocation = redefineNode.getAttribute("schemaLocation");
+            this.redefineMap.put(new RedefineId(sourceLocation, targetLocation), redefineNode);
         }
 
         private void resolveRedefines() {
@@ -556,26 +568,24 @@ public class XsdParser {
                 xml -> new XsdDependencySorter.Link(xml.sourceLocation(), xml.targetLocation()));
 
             for (RedefineId redefineId : sortedRedefineList) {
-                XsdNode redefineNode = redefineMap.get(redefineId);
+                XsdRedefine redefineNode = redefineMap.get(redefineId);
                 resolveRedefineExtensions(redefineNode);
                 resolveRedefineRestrictions(redefineNode);
             }
         }
 
-        private void resolveRedefineExtensions(XsdNode redefineNode) {
-            List<XsdNode> extensionNodes = new ArrayList<>();
-            this.xsd.collect(redefineNode, List.of(XsdExtension.class), extensionNodes);
+        private void resolveRedefineExtensions(XsdRedefine redefineNode) {
+            List<XsdExtension> extensionNodes = this.xsd.collect(redefineNode, XsdExtension.class);
             resolveExtensions(extensionNodes);
             replaceWithRedefineNode(extensionNodes);
         }
 
-        private void resolveRedefineRestrictions(XsdNode redefineNode) {
-            List<XsdNode> restrictionNodes = new ArrayList<>();
-            this.xsd.collect(redefineNode, List.of(XsdRestriction.class), restrictionNodes);
+        private void resolveRedefineRestrictions(XsdRedefine redefineNode) {
+            List<XsdRestriction> restrictionNodes = this.xsd.collect(redefineNode, XsdRestriction.class);
             replaceWithRedefineNode(restrictionNodes);
         }
 
-        private void resolveExtensions(List<XsdNode> extensionNodes) {
+        private void resolveExtensions(List<XsdExtension> extensionNodes) {
             resolveNodesWithPredicate(new ArrayList<>(extensionNodes),
                 (changed, unresolvedExtensionList, extensionNode) -> {
                     if (hasUnresolvedSubExtension(extensionNode.getLinkedNode())) {
@@ -591,10 +601,10 @@ public class XsdParser {
                 });
         }
 
-        private void replaceWithRedefineNode(List<XsdNode> nodes) {
+        private void replaceWithRedefineNode(List<? extends XsdNode> nodes) {
             for (XsdNode node : nodes) {
                 XsdNode newNode = node.getParent().getParent();
-                xsd.setNamedNode(newNode);
+                xsd.addNamedNode(newNode);
             }
         }
 
@@ -613,16 +623,12 @@ public class XsdParser {
         }
 
         private boolean hasUnresolvedSubExtension(XsdNode node) {
-            for (XsdNode childNode : node.getChildren()) {
-                if ((XsdExtension.TYPE.equals(childNode.getType()) && childNode.getLinkedNode() != null) ||
-                    hasUnresolvedSubExtension(childNode)) {
-                    return true;
-                }
-            }
-            return false;
+            List<XsdExtension> extensions = xsd.collect(node, XsdExtension.class);
+            return extensions.stream()
+                .anyMatch(extension -> extension.getLinkedNode() != null);
         }
 
-        private void linkExtensionNode(XsdNode extensionNode, XsdNode baseNode) {
+        private void linkExtensionNode(XsdExtension extensionNode, XsdNode baseNode) {
             List<XsdNode> children = baseNode.getChildren();
             if (children.isEmpty()) {
                 // TODO handle simple type stuff -> no test case found yet -> can this be removed?

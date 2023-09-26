@@ -84,22 +84,8 @@ public class Xsd {
      * @param reference named reference.
      * @return the found node or null
      */
-    public XsdNode getNamedNode(Class<? extends XsdNode> type, XmlName reference) {
+    public <T extends XsdNode> T getNamedNode(Class<T> type, XmlName reference) {
         return getNamedNode(type, reference.expandedName());
-    }
-
-    /**
-     * Returns the named node of the given type with the given name.
-     *
-     * @param type      node type
-     * @param reference named reference.
-     * @return the found node or null
-     */
-    public XsdNode getNamedNode(Class<? extends XsdNode> type, XmlExpandedName reference) {
-        if (!NAMED_TYPES.contains(type)) {
-            return null;
-        }
-        return this.namedMap.get(type).get(reference);
     }
 
     /**
@@ -109,8 +95,27 @@ public class Xsd {
      * @param expandedName expanded name of the node
      * @return the found node or null
      */
-    public XsdNode getNamedNode(Class<? extends XsdNode> type, String expandedName) {
+    public <T extends XsdNode> T getNamedNode(Class<T> type, String expandedName) {
         return getNamedNode(type, XmlExpandedName.of(expandedName));
+    }
+
+    /**
+     * Returns the named node of the given type with the given name.
+     *
+     * @param type      node type
+     * @param reference named reference.
+     * @return the found node or null
+     */
+    public <T extends XsdNode> T getNamedNode(Class<T> type, XmlExpandedName reference) {
+        if (!NAMED_TYPES.contains(type)) {
+            return null;
+        }
+        @SuppressWarnings("unchecked")
+        Map<XmlExpandedName, T> nodeMap = (Map<XmlExpandedName, T>) this.namedMap.get(type);
+        if (nodeMap == null) {
+            return null;
+        }
+        return nodeMap.get(reference);
     }
 
     /**
@@ -122,24 +127,37 @@ public class Xsd {
      * @param localName local name of the node
      * @return list of nodes, list is empty if none of the nodes match the given localName
      */
-    public List<? extends XsdNode> getNamedNodes(Class<? extends XsdNode> type, String localName) {
-        return namedMap.get(type).entrySet()
+    @SuppressWarnings("unchecked")
+    public <T extends XsdNode> List<T> getNamedNodes(Class<T> type, String localName) {
+        return (List<T>) namedMap.get(type).entrySet()
             .stream()
             .filter(entry -> entry.getKey().local().equals(localName))
             .map(Map.Entry::getValue)
             .toList();
     }
 
+    public List<? extends XsdNode> getNamedNodes() {
+        return this.namedMap.values().stream()
+            .flatMap(nodeMap -> nodeMap.values().stream())
+            .collect(Collectors.toList());
+    }
+
     /**
-     * Sets the named node.
+     * Returns all local named nodes of the given types.
      *
-     * @param node node itself
+     * @param types types to collect
+     * @return collection of nodes
      */
-    public void setNamedNode(XsdNode node) {
-        if (!NAMED_TYPES.contains(node.getClass())) {
-            return;
+    @SafeVarargs
+    public final Collection<XsdNode> getNamedNodes(Class<? extends XsdNode>... types) {
+        Collection<XsdNode> collection = new ArrayList<>();
+        for (Class<? extends XsdNode> type : types) {
+            Map<XmlExpandedName, ? extends XsdNode> nodes = namedMap.get(type);
+            if (nodes != null) {
+                collection.addAll(nodes.values());
+            }
         }
-        this.namedMap.get(node.getClass()).put(node.getName(), node);
+        return collection;
     }
 
     public void addNamedNode(XsdNode node) {
@@ -163,28 +181,28 @@ public class Xsd {
         return namedMap;
     }
 
-    public List<XsdNode> getNamedNodes() {
-        return this.namedMap.values().stream()
-            .flatMap(nodeMap -> nodeMap.values().stream())
-            .collect(Collectors.toList());
+    public final <T extends XsdNode> Collection<T> collect(Class<T> type) {
+        List<T> nodes = new ArrayList<>();
+        for (XsdNode node : getNamedNodes()) {
+            collect(node, type, nodes);
+        }
+        return nodes;
     }
 
-    /**
-     * Returns all local named nodes of the given types.
-     *
-     * @param types types to collect
-     * @return collection of nodes
-     */
-    @SafeVarargs
-    public final Collection<XsdNode> getNamedNodes(Class<? extends XsdNode>... types) {
-        Collection<XsdNode> collection = new ArrayList<>();
-        for (Class<? extends XsdNode> type : types) {
-            Map<XmlExpandedName, ? extends XsdNode> nodes = namedMap.get(type);
-            if (nodes != null) {
-                collection.addAll(nodes.values());
-            }
+    public <T extends XsdNode> List<T> collect(XsdNode node, Class<T> type) {
+        List<T> nodes = new ArrayList<>();
+        collect(node, type, nodes);
+        return nodes;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends XsdNode> void collect(XsdNode node, Class<T> type, Collection<T> collection) {
+        if (type.isAssignableFrom(node.getClass())) {
+            collection.add((T) node);
         }
-        return collection;
+        for (XsdNode childNode : node.getChildren()) {
+            collect(childNode, type, collection);
+        }
     }
 
     /**
@@ -371,8 +389,8 @@ public class Xsd {
 
     public String toTreeString() {
         StringBuilder sb = new StringBuilder();
-        this.getNamedMap().forEach((type, map) -> {
-            sb.append("\n").append(type).append(":\n");
+        this.getNamedMap().forEach((nodeClass, map) -> {
+            sb.append("\n").append(nodeClass.getSimpleName().substring(3)).append(":\n");
             map.forEach(toTreeString(sb));
         });
         return sb.toString();

@@ -34,7 +34,7 @@ public class XsdPrefixConflictDetector implements XsdDetector<Boolean> {
         this.elementNameConflicts = new HashMap<>();
         this.attributeNameConflicts = new HashMap<>();
 
-        Collection<XsdNode> elementCollection = xsd.collect(XsdElement.class);
+        Collection<XsdElement> elementCollection = xsd.collect(XsdElement.class);
 
         for (XsdNode node : elementCollection) {
             // elements
@@ -120,7 +120,7 @@ public class XsdPrefixConflictDetector implements XsdDetector<Boolean> {
     private boolean check(XmlPath path, Map<XsdNode, Map<String, Set<XmlExpandedName>>> nameConflicts) {
         List<XsdNode> nodes = xsd.resolvePath(path);
         XsdNode nodeToCheck = nodes.get(nodes.size() - 1);
-        if(nodes.size() == 1) {
+        if (nodes.size() == 1) {
             return false;
         }
         XsdNode parent = nodes.get(nodes.size() - 2);

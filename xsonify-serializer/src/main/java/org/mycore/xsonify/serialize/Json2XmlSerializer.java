@@ -428,7 +428,7 @@ public class Json2XmlSerializer extends SerializerBase {
         }
         String jsonKey = getRootName(rootJson);
         String localName = XmlQualifiedName.of(jsonKey).localName();
-        List<? extends XsdNode> candidates = xsd().getNamedNodes(XsdElement.class, localName);
+        List<XsdElement> candidates = xsd().getNamedNodes(XsdElement.class, localName);
         if (candidates.isEmpty()) {
             throw new SerializerException(
                 "Unable to find root node '" + localName + "' in xsd definition");

@@ -49,10 +49,10 @@ public abstract class XsdNode {
     /**
      * Constructs a new XsdNode.
      *
-     * @param xsd      The XSD object to which this node belongs.
-     * @param uri      The URI that identifies the XML namespace of this node.
-     * @param element  The XmlElement representing this node in the XML document.
-     * @param parent   The parent node of this node in the XSD hierarchy.
+     * @param xsd     The XSD object to which this node belongs.
+     * @param uri     The URI that identifies the XML namespace of this node.
+     * @param element The XmlElement representing this node in the XML document.
+     * @param parent  The parent node of this node in the XSD hierarchy.
      */
     public XsdNode(Xsd xsd, String uri, XmlElement element, XsdNode parent) {
         this.xsd = xsd;
@@ -90,7 +90,7 @@ public abstract class XsdNode {
         if (this.link == null) {
             return null;
         }
-        return this.xsd.getNamedNode(this.link.type(), this.link.name());
+        return this.xsd.getNamedNode(this.link.nodeClass(), this.link.name());
     }
 
     public XsdNode getParent() {
@@ -118,10 +118,15 @@ public abstract class XsdNode {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        // local name
         if (getLocalName() != null) {
             sb.append(getName()).append(" ");
         }
-        sb.append("(").append(getType()).append(")");
+        // type - make first character upper case
+        char[] typeCharArray = getType().toCharArray();
+        typeCharArray[0] = Character.toUpperCase(typeCharArray[0]);
+        sb.append("(").append(new String(typeCharArray)).append(")");
+        // link
         if (link != null) {
             sb.append(" -> ").append(link);
         }

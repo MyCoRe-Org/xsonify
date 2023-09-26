@@ -49,6 +49,7 @@ public abstract class XsdUtil {
      * }
      * </pre>
      * <p>The method will return {@code "example.xsd"}.</p>
+     *
      * @param document The XML document whose associated XSD schema location needs to be determined.
      * @return The XSD schema location as a URI string if found; otherwise returns {@code null}.
      */

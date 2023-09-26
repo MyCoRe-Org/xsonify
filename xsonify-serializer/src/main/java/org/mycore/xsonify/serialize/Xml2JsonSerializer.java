@@ -253,7 +253,7 @@ public class Xml2JsonSerializer extends SerializerBase {
         if (parent == null) {
             return false;
         }
-        XsdNode parentXsdNode = xsd().getNamedNode(XsdElement.class, parent.getExpandedName());
+        XsdElement parentXsdNode = xsd().getNamedNode(XsdElement.class, parent.getExpandedName());
         return parentXsdNode != null && parentXsdNode.hasAny();
     }
 

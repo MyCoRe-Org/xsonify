@@ -2,11 +2,14 @@ package org.mycore.xsonify.xsd.node;
 
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xsd.Xsd;
+import org.mycore.xsonify.xsd.XsdLink;
 import org.mycore.xsonify.xsd.XsdNode;
 
 public class XsdExtension extends XsdNode {
 
     public static final String TYPE = "extension";
+
+    public XsdLink base;
 
     /**
      * Constructs a new XsdNode.
@@ -24,5 +27,23 @@ public class XsdExtension extends XsdNode {
     public String getType() {
         return TYPE;
     }
+
+    /*
+    TODO use base instead of "link"
+    public void setBase(XsdLink base) {
+        this.base = base;
+    }
+
+    public XsdLink getBase() {
+        return base;
+    }
+
+    public XsdNode getBaseNode() {
+        if (this.base == null) {
+            return null;
+        }
+        return this.getXsd().getNamedNode(this.base.type(), this.base.name());
+    }
+    */
 
 }

@@ -42,7 +42,7 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
     }
 
     private void buildMixedContentElements(Xsd xsd, Collection<XsdNode> mixedComplexTypes) {
-        Collection<XsdNode> elementNodes = xsd.collect(XsdElement.class);
+        Collection<XsdElement> elementNodes = xsd.collect(XsdElement.class);
         for (XsdNode mixedComplexTypeNode : mixedComplexTypes) {
             if (mixedComplexTypeNode.getParent() == null) {
                 // root node
