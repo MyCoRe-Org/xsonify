@@ -39,8 +39,8 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
         // 30
         // - 20 in mods
         // - 6 due to extensions -> temporalDefinition & dateOtherDefinition
-        // - 4 from xml namespace & xlink namespace
-        assertEquals(20 + 6 + 4, modsCounter.get(XsdSimpleType.TYPE).get());
+        // - 5 from xml namespace & xlink namespace
+        assertEquals(20 + 6 + 5, modsCounter.get(XsdSimpleType.TYPE).get());
         assertEquals(3, modsCounter.get(XsdGroup.TYPE).get());
         assertEquals(0, modsCounter.get(XsdAll.TYPE).get());
         assertEquals(16, modsCounter.get(XsdChoice.TYPE).get());

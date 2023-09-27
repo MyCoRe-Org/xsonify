@@ -9,3 +9,5 @@
   In this case we should throw an error in the Json2XmlSerializer creation process. See the
   SerializerIntegrationTest#testXml() case (includeB re:includeB) to recreate the error.
 * Order of xs:sequence is not preserved.
+* element @substitutionGroup not supported
+

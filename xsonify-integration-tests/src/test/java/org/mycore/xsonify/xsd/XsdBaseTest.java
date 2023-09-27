@@ -4,40 +4,17 @@ import org.mycore.xsonify.xml.XmlDocument;
 import org.mycore.xsonify.xml.XmlEntityResolverDocumentLoader;
 import org.mycore.xsonify.xml.XmlParser;
 import org.mycore.xsonify.xml.XmlSaxParser;
-import org.mycore.xsonify.xsd.node.XsdAll;
-import org.mycore.xsonify.xsd.node.XsdAny;
-import org.mycore.xsonify.xsd.node.XsdAnyAttribute;
-import org.mycore.xsonify.xsd.node.XsdAttribute;
-import org.mycore.xsonify.xsd.node.XsdAttributeGroup;
-import org.mycore.xsonify.xsd.node.XsdChoice;
-import org.mycore.xsonify.xsd.node.XsdComplexContent;
-import org.mycore.xsonify.xsd.node.XsdComplexType;
-import org.mycore.xsonify.xsd.node.XsdElement;
-import org.mycore.xsonify.xsd.node.XsdExtension;
-import org.mycore.xsonify.xsd.node.XsdGroup;
-import org.mycore.xsonify.xsd.node.XsdImport;
-import org.mycore.xsonify.xsd.node.XsdInclude;
-import org.mycore.xsonify.xsd.node.XsdRedefine;
-import org.mycore.xsonify.xsd.node.XsdRestriction;
-import org.mycore.xsonify.xsd.node.XsdSequence;
-import org.mycore.xsonify.xsd.node.XsdSimpleContent;
-import org.mycore.xsonify.xsd.node.XsdSimpleType;
 import org.xml.sax.SAXException;
 
 import javax.xml.catalog.CatalogResolver;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
+import java.util.Collection;
 
 public abstract class XsdBaseTest {
 
-    public static List<String> NODE_TYPES = List.of(
-        XsdAll.TYPE, XsdAny.TYPE, XsdAnyAttribute.TYPE, XsdAttribute.TYPE, XsdAttributeGroup.TYPE,
-        XsdChoice.TYPE, XsdComplexContent.TYPE, XsdComplexType.TYPE, XsdElement.TYPE,
-        XsdExtension.TYPE, XsdGroup.TYPE, XsdImport.TYPE, XsdInclude.TYPE, XsdRedefine.TYPE,
-        XsdRestriction.TYPE, XsdSequence.TYPE, XsdSimpleContent.TYPE, XsdSimpleType.TYPE
-    );
+    public static Collection<String> NODE_TYPES = XsdParser.NODE_TYPE_CLASS_MAP.keySet();
 
     public XmlDocument getXml(String resourceName) throws ParserConfigurationException, SAXException, IOException {
         URL resource = XsdBaseTest.class.getResource(resourceName);

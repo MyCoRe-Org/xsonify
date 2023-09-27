@@ -9,6 +9,7 @@ import org.mycore.xsonify.xml.XmlQualifiedName;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Represents an XSD (XML Schema Definition) document, extending the functionality of {@link XmlDocument}.
@@ -22,7 +23,8 @@ public class XsdDocument extends XmlDocument {
     /**
      * List of attribute names that should be expanded.
      */
-    public static final List<String> EXPANDED_ATTRIBUTES = Arrays.asList("base", "ref", "type");
+    public static final List<String> EXPANDED_ATTRIBUTES = Arrays.asList("base", "ref", "type", "memberTypes", "itemType");
+    // TODO substitutionGroup (element), refer (keyref)
 
     private final String schemaLocation;
 
@@ -73,9 +75,23 @@ public class XsdDocument extends XmlDocument {
         element.getElements().forEach(this::expandAttributes);
     }
 
-    private void expandAttribute(XmlElement element, String name, String value) throws XsdParseException {
+    private void expandAttribute(XmlElement element, String attributeName, String attributeValue)
+        throws XsdParseException {
+        String expandedAttributeValue;
+        if (attributeValue.contains(" ")) {
+            expandedAttributeValue = Arrays.stream(attributeValue.split(" "))
+                .map(attributeValuePart -> toExpandedName(element, attributeName, attributeValuePart))
+                .map(XmlExpandedName::toString)
+                .collect(Collectors.joining(" "));
+        } else {
+            expandedAttributeValue = toExpandedName(element, attributeName, attributeValue).toString();
+        }
+        element.setAttribute(attributeName, expandedAttributeValue);
+    }
+
+    private XmlExpandedName toExpandedName(XmlElement element, String name, String value) {
         XmlQualifiedName qualifiedName = XmlQualifiedName.of(value);
-        XmlExpandedName expandedName = XmlExpandedName.of(qualifiedName, (prefix) -> {
+        return XmlExpandedName.of(qualifiedName, (prefix) -> {
             Map<String, XmlNamespace> nsMap = getAttributeNamespaceMap(element);
             XmlNamespace namespace = nsMap.get(prefix);
             if (namespace != null) {
@@ -83,7 +99,6 @@ public class XsdDocument extends XmlDocument {
             }
             throw new XsdParseException("Missing namespace definition for " + name + "=" + value);
         });
-        element.setAttribute(name, expandedName.toString());
     }
 
     /**

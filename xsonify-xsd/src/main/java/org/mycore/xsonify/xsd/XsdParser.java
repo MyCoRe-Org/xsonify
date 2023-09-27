@@ -17,11 +17,13 @@ import org.mycore.xsonify.xsd.node.XsdExtension;
 import org.mycore.xsonify.xsd.node.XsdGroup;
 import org.mycore.xsonify.xsd.node.XsdImport;
 import org.mycore.xsonify.xsd.node.XsdInclude;
+import org.mycore.xsonify.xsd.node.XsdList;
 import org.mycore.xsonify.xsd.node.XsdRedefine;
 import org.mycore.xsonify.xsd.node.XsdRestriction;
 import org.mycore.xsonify.xsd.node.XsdSequence;
 import org.mycore.xsonify.xsd.node.XsdSimpleContent;
 import org.mycore.xsonify.xsd.node.XsdSimpleType;
+import org.mycore.xsonify.xsd.node.XsdUnion;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -67,11 +69,13 @@ public class XsdParser {
         NODE_TYPE_CLASS_MAP.put(XsdGroup.TYPE, XsdGroup.class);
         NODE_TYPE_CLASS_MAP.put(XsdImport.TYPE, XsdImport.class);
         NODE_TYPE_CLASS_MAP.put(XsdInclude.TYPE, XsdInclude.class);
+        NODE_TYPE_CLASS_MAP.put(XsdList.TYPE, XsdList.class);
         NODE_TYPE_CLASS_MAP.put(XsdRedefine.TYPE, XsdRedefine.class);
         NODE_TYPE_CLASS_MAP.put(XsdRestriction.TYPE, XsdRestriction.class);
         NODE_TYPE_CLASS_MAP.put(XsdSequence.TYPE, XsdSequence.class);
         NODE_TYPE_CLASS_MAP.put(XsdSimpleContent.TYPE, XsdSimpleContent.class);
         NODE_TYPE_CLASS_MAP.put(XsdSimpleType.TYPE, XsdSimpleType.class);
+        NODE_TYPE_CLASS_MAP.put(XsdUnion.TYPE, XsdUnion.class);
     }
 
     private final XmlDocumentLoader documentLoader;
@@ -371,42 +375,21 @@ public class XsdParser {
             case XsdRestriction.TYPE -> resolveRestriction((XsdRestriction) node);
             case XsdExtension.TYPE -> resolveExtension((XsdExtension) node);
             case XsdInclude.TYPE, XsdRedefine.TYPE -> resolveIncludeRedefine((XsdRedefine) node);
+            case XsdUnion.TYPE -> resolveUnion((XsdUnion) node);
+            case XsdList.TYPE -> resolveList((XsdList) node);
             }
         }
 
-        private Class<? extends XsdNode> getNodeClass(XmlElement element) {
-            String type = element.getLocalName();
-            return NODE_TYPE_CLASS_MAP.get(type);
-        }
-
-        private <T extends XsdNode> T instantiateNode(Class<T> nodeClass, String uri, XmlElement element,
-            XsdNode parentNode) {
-            try {
-                Constructor<T> nodeConstructor = nodeClass.getConstructor(
-                    Xsd.class, String.class, XmlElement.class, XsdNode.class
-                );
-                return nodeConstructor.newInstance(xsd, uri, element, parentNode);
-            } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-                IllegalAccessException e) {
-                throw new XsdParseException("Unable to instantiate '" + nodeClass + "'", e);
+        private void resolveChildren(XsdNode parentNode) {
+            for (XmlElement childElement : parentNode.getElement().getElements()) {
+                try {
+                    XsdNode childNode = createAndAddNode(parentNode.getUri(), childElement, parentNode);
+                    if (childNode != null) {
+                        resolveNode(childNode);
+                    }
+                } catch (IllegalArgumentException ignored) {
+                }
             }
-        }
-
-        private XsdNode createNode(String uri, XmlElement element, XsdNode parentNode) {
-            Class<? extends XsdNode> nodeClass = getNodeClass(element);
-            if (nodeClass == null) {
-                return null;
-            }
-            return instantiateNode(nodeClass, uri, element, parentNode);
-        }
-
-        private XsdNode createAndAddNode(String uri, XmlElement element, XsdNode parentNode) {
-            XsdNode node = createNode(uri, element, parentNode);
-            if (node == null) {
-                return null;
-            }
-            parentNode.getChildren().add(node);
-            return node;
         }
 
         private void resolveElement(XsdElement elementNode) {
@@ -490,29 +473,6 @@ public class XsdParser {
             resolveChildren(attributeGroupNode);
         }
 
-        private void setLink(XsdNode node, XmlExpandedName linkName, Consumer<Class<? extends XsdNode>> consumer) {
-            if (XsdBuiltInDatatypes.is(linkName)) {
-                return;
-            }
-            XsdComplexType complexLinkedType = xsd.getNamedNode(XsdComplexType.class, linkName);
-            if (complexLinkedType != null) {
-                consumer.accept(XsdComplexType.class);
-                return;
-            }
-            XsdSimpleType simpleLinkedType = xsd.getNamedNode(XsdSimpleType.class, linkName);
-            if (simpleLinkedType != null) {
-                consumer.accept(XsdSimpleType.class);
-                return;
-            }
-            throw new XsdParseException(
-                "Unable to set link for node '" + node.getName() + "'. Couldn't find either COMPLEX-/"
-                    + "SIMPLETYPE with the name '" + linkName + "'.");
-        }
-
-        private void setLink(XsdNode node, Class<? extends XsdNode> type, String name) {
-            node.setLink(new XsdLink(type, XmlExpandedName.of(name)));
-        }
-
         private void resolveIncludeRedefine(XsdRedefine includeRedefineNode) {
             resolveChildren(includeRedefineNode);
         }
@@ -542,18 +502,6 @@ public class XsdParser {
                 XsdLink link = new XsdLink(nodeClass, base);
                 extensionNode.setLink(link);
             }));
-        }
-
-        private void resolveChildren(XsdNode parentNode) {
-            for (XmlElement childElement : parentNode.getElement().getElements()) {
-                try {
-                    XsdNode childNode = createAndAddNode(parentNode.getUri(), childElement, parentNode);
-                    if (childNode != null) {
-                        resolveNode(childNode);
-                    }
-                } catch (IllegalArgumentException ignored) {
-                }
-            }
         }
 
         public void addRedefineNode(XsdRedefine redefineNode) {
@@ -601,6 +549,26 @@ public class XsdParser {
                 });
         }
 
+        private void resolveUnion(XsdUnion union) {
+            resolveChildren(union);
+            String memberTypessString = union.getAttribute("memberTypes");
+            if (memberTypessString == null) {
+                return;
+            }
+            for (String memberType : memberTypessString.split(" ")) {
+                union.addMemberType(XmlExpandedName.of(memberType));
+            }
+        }
+
+        private void resolveList(XsdList list) {
+            resolveChildren(list);
+            String itemType = list.getAttribute("itemType");
+            if (itemType == null) {
+                return;
+            }
+            list.setItemType(XmlExpandedName.of(itemType));
+        }
+
         private void replaceWithRedefineNode(List<? extends XsdNode> nodes) {
             for (XsdNode node : nodes) {
                 XsdNode newNode = node.getParent().getParent();
@@ -639,6 +607,64 @@ public class XsdParser {
                 XsdNode clonedBaseChildNode = cloneTo(baseChildNode, extensionNode);
                 extensionNode.getChildren().add(0, clonedBaseChildNode);
             }
+        }
+
+        private Class<? extends XsdNode> getNodeClass(XmlElement element) {
+            String type = element.getLocalName();
+            return NODE_TYPE_CLASS_MAP.get(type);
+        }
+
+        private <T extends XsdNode> T instantiateNode(Class<T> nodeClass, String uri, XmlElement element,
+            XsdNode parentNode) {
+            try {
+                Constructor<T> nodeConstructor = nodeClass.getConstructor(
+                    Xsd.class, String.class, XmlElement.class, XsdNode.class
+                );
+                return nodeConstructor.newInstance(xsd, uri, element, parentNode);
+            } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
+                IllegalAccessException e) {
+                throw new XsdParseException("Unable to instantiate '" + nodeClass + "'", e);
+            }
+        }
+
+        private XsdNode createNode(String uri, XmlElement element, XsdNode parentNode) {
+            Class<? extends XsdNode> nodeClass = getNodeClass(element);
+            if (nodeClass == null) {
+                return null;
+            }
+            return instantiateNode(nodeClass, uri, element, parentNode);
+        }
+
+        private XsdNode createAndAddNode(String uri, XmlElement element, XsdNode parentNode) {
+            XsdNode node = createNode(uri, element, parentNode);
+            if (node == null) {
+                return null;
+            }
+            parentNode.getChildren().add(node);
+            return node;
+        }
+
+        private void setLink(XsdNode node, Class<? extends XsdNode> type, String name) {
+            node.setLink(new XsdLink(type, XmlExpandedName.of(name)));
+        }
+
+        private void setLink(XsdNode node, XmlExpandedName linkName, Consumer<Class<? extends XsdNode>> consumer) {
+            if (XsdBuiltInDatatypes.is(linkName)) {
+                return;
+            }
+            XsdComplexType complexLinkedType = xsd.getNamedNode(XsdComplexType.class, linkName);
+            if (complexLinkedType != null) {
+                consumer.accept(XsdComplexType.class);
+                return;
+            }
+            XsdSimpleType simpleLinkedType = xsd.getNamedNode(XsdSimpleType.class, linkName);
+            if (simpleLinkedType != null) {
+                consumer.accept(XsdSimpleType.class);
+                return;
+            }
+            throw new XsdParseException(
+                "Unable to set link for node '" + node.getName() + "'. Couldn't find either COMPLEX-/"
+                    + "SIMPLETYPE with the name '" + linkName + "'.");
         }
 
         /**
