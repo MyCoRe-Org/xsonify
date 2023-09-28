@@ -187,9 +187,10 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
 
         XsdNode includeAComplexType = xsd.getNamedNode(XsdComplexType.class,
             "{https://test.com/redefine}includeA");
-        XsdNode elementNode = includeAComplexType.getChildren().get(0).getChildren().get(0).getChildren().get(0)
-            .getChildren().get(1).getLinkedNode();
-        assertEquals("{https://test.com/redefine}includeB", elementNode.getLinkedNode().getName().toString());
+        XsdElement elementNode = ((XsdElement) (includeAComplexType.getChildren().get(0).getChildren().get(0)
+            .getChildren().get(0)
+            .getChildren().get(1))).getReference();
+        assertEquals("{https://test.com/redefine}includeB", elementNode.getDatatype().getName().toString());
 
         // check if links are correctly mapped
         checkLinks(xsd);

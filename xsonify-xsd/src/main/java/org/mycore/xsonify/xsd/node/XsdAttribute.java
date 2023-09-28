@@ -1,12 +1,14 @@
 package org.mycore.xsonify.xsd.node;
 
 import org.mycore.xsonify.xml.XmlElement;
+import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xsd.Xsd;
+import org.mycore.xsonify.xsd.XsdBuiltInDatatypes;
 import org.mycore.xsonify.xsd.XsdNode;
 
 import java.util.List;
 
-public class XsdAttribute extends XsdNode implements XsdReferencable<XsdAttribute> {
+public class XsdAttribute extends XsdNode implements XsdReferenceable<XsdAttribute> {
 
     public static final String TYPE = "attribute";
 
@@ -23,6 +25,10 @@ public class XsdAttribute extends XsdNode implements XsdReferencable<XsdAttribut
         XsdRestriction.class, XsdExtension.class
     );
 
+    private XmlExpandedName referenceName;
+
+    private XmlExpandedName datatypeName;
+
     /**
      * Constructs a new XsdNode.
      *
@@ -35,14 +41,55 @@ public class XsdAttribute extends XsdNode implements XsdReferencable<XsdAttribut
         super(xsd, uri, element, parent);
     }
 
+    public void setReferenceName(XmlExpandedName referenceName) {
+        this.referenceName = referenceName;
+    }
+
+    public void setDatatypeName(XmlExpandedName typeName) {
+        this.datatypeName = typeName;
+    }
+
     @Override
     public XsdAttribute getReference() {
-        return null;
+        if (this.referenceName == null) {
+            return null;
+        }
+        return this.getXsd().getNamedNode(XsdAttribute.class, this.referenceName);
+    }
+
+    @Override
+    public XsdAttribute getReferenceOrSelf() {
+        XsdAttribute reference = getReference();
+        return reference != null ? reference : this;
+    }
+
+    public XmlExpandedName getDatatypeName() {
+        return datatypeName;
+    }
+
+    public XsdSimpleType getDatatype() {
+        if (datatypeName == null) {
+            return null;
+        }
+        if (XsdBuiltInDatatypes.is(this.datatypeName)) {
+            return null;
+        }
+        return this.getXsd().getNamedNode(XsdSimpleType.class, datatypeName);
     }
 
     @Override
     public String getType() {
         return TYPE;
+    }
+
+    @Override
+    public XsdAttribute clone() {
+        XsdAttribute attribute = new XsdAttribute(getXsd(), getUri(), getElement(), getParent());
+        attribute.setReferenceName(this.referenceName);
+        attribute.setDatatypeName(this.datatypeName);
+        attribute.setLink(this.getLink()); // TODO remove
+        cloneChildren(attribute);
+        return attribute;
     }
 
 }

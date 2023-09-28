@@ -18,7 +18,7 @@ import java.util.List;
 public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDetector.JsonPrimitive> {
 
     public enum JsonPrimitive {
-        STRING, NUMBER, BOOLEAN;
+        STRING, NUMBER, BOOLEAN
     }
 
     private static final List<String> NUMBERS = List.of(
@@ -29,7 +29,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
 
     private static final String BOOLEAN = "{http://www.w3.org/2001/XMLSchema}boolean";
 
-    private Xsd xsd;
+    private final Xsd xsd;
 
     public XsdJsonPrimitiveDetector(Xsd xsd) {
         this.xsd = xsd;
@@ -53,14 +53,14 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
         if (NUMBERS.contains(type)) {
             return JsonPrimitive.NUMBER;
         }
-        XsdNode simpleType = xsd.getNamedNode(XsdSimpleType.class, type);
+        XsdSimpleType simpleType = xsd.getNamedNode(XsdSimpleType.class, type);
         if (simpleType != null) {
             return detectSimpleTypeNode(simpleType);
         }
         return JsonPrimitive.STRING;
     }
 
-    public JsonPrimitive detectSimpleTypeNode(XsdNode simpleType) {
+    public JsonPrimitive detectSimpleTypeNode(XsdSimpleType simpleType) {
         return null;
     }
 

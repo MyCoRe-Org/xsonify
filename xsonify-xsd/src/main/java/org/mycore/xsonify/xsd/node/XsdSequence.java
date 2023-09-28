@@ -25,5 +25,12 @@ public class XsdSequence extends XsdNode {
         return TYPE;
     }
 
+    @Override
+    public XsdSequence clone() {
+        XsdSequence sequence = new XsdSequence(getXsd(), getUri(), getElement(), getParent());
+        cloneChildren(sequence);
+        return sequence;
+    }
+
 }
 

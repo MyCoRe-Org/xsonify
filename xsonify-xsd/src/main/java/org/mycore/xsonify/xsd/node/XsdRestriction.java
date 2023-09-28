@@ -25,4 +25,12 @@ public class XsdRestriction extends XsdNode {
         return TYPE;
     }
 
+    @Override
+    public XsdRestriction clone() {
+        XsdRestriction restriction = new XsdRestriction(getXsd(), getUri(), getElement(), getParent());
+        restriction.setLink(getLink());
+        cloneChildren(restriction);
+        return restriction;
+    }
+
 }

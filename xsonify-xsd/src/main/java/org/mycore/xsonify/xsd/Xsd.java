@@ -72,7 +72,7 @@ public class Xsd {
      * @param uri   namespace uri
      * @return the found node or null
      */
-    public XsdNode getNamedNode(Class<? extends XsdNode> type, String local, String uri) {
+    public <T extends XsdNode> T getNamedNode(Class<T> type, String local, String uri) {
         return getNamedNode(type, new XmlExpandedName(local, uri));
     }
 
@@ -341,17 +341,17 @@ public class Xsd {
      * @throws NoSuchElementException thrown if a node with the requested name couldn't be found
      * @throws XsdAnyException        thrown if the path reaches a xs:any, and it's unclear how to process further
      */
-    public XsdNode resolveXmlElement(XmlElement element) throws NoSuchElementException, XsdAnyException {
+    public XsdElement resolveXmlElement(XmlElement element) throws NoSuchElementException, XsdAnyException {
         XmlPath path = XmlPath.of(element);
         List<XsdNode> nodes = resolvePath(path);
-        return !nodes.isEmpty() ? nodes.get(nodes.size() - 1) : null;
+        return !nodes.isEmpty() ? (XsdElement) nodes.get(nodes.size() - 1) : null;
     }
 
-    private XsdNode resolvePathForElement(XsdNode parent, XmlName elementToFind) throws XsdAnyException,
+    private XsdElement resolvePathForElement(XsdNode parent, XmlName elementToFind) throws XsdAnyException,
         NoSuchElementException {
         List<XsdElement> children = parent.collectElements();
-        for (XsdNode childNode : children) {
-            XsdNode namedNode = childNode.getReferenceOrSelf();
+        for (XsdElement childNode : children) {
+            XsdElement namedNode = childNode.getReferenceOrSelf();
             if (namedNode.getName().equals(elementToFind.expandedName())) {
                 return namedNode;
             }
@@ -372,8 +372,8 @@ public class Xsd {
             resolvedAttributeName = new XmlExpandedName(attributeName.local(), parent.getName().uri());
         }
         // find corresponding attribute
-        List<XsdNode> attributes = parent.collectAttributes();
-        for (XsdNode attributeNode : attributes) {
+        List<XsdAttribute> attributes = parent.collectAttributes();
+        for (XsdAttribute attributeNode : attributes) {
             XsdNode namedNode = attributeNode.getReferenceOrSelf();
             if (namedNode.getName().equals(resolvedAttributeName)) {
                 return namedNode;

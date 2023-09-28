@@ -37,4 +37,12 @@ public class XsdList extends XsdNode {
         return itemType;
     }
 
+    @Override
+    public XsdList clone() {
+        XsdList include = new XsdList(getXsd(), getUri(), getElement(), getParent());
+        include.setItemType(getItemType());
+        cloneChildren(include);
+        return include;
+    }
+
 }

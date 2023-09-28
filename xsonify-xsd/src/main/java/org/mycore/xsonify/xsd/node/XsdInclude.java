@@ -25,4 +25,12 @@ public class XsdInclude extends XsdNode {
         return TYPE;
     }
 
+    @Override
+    public XsdInclude clone() {
+        XsdInclude include = new XsdInclude(getXsd(), getUri(), getElement(), getParent());
+        include.setLink(getLink());
+        cloneChildren(include);
+        return include;
+    }
+
 }

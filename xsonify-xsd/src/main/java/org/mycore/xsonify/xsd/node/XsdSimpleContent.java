@@ -25,4 +25,11 @@ public class XsdSimpleContent extends XsdNode {
         return TYPE;
     }
 
+    @Override
+    public XsdSimpleContent clone() {
+        XsdSimpleContent simpleContent = new XsdSimpleContent(getXsd(), getUri(), getElement(), getParent());
+        cloneChildren(simpleContent);
+        return simpleContent;
+    }
+
 }

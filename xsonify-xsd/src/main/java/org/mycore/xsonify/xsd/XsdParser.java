@@ -12,6 +12,7 @@ import org.mycore.xsonify.xsd.node.XsdAttributeGroup;
 import org.mycore.xsonify.xsd.node.XsdChoice;
 import org.mycore.xsonify.xsd.node.XsdComplexContent;
 import org.mycore.xsonify.xsd.node.XsdComplexType;
+import org.mycore.xsonify.xsd.node.XsdDatatype;
 import org.mycore.xsonify.xsd.node.XsdElement;
 import org.mycore.xsonify.xsd.node.XsdExtension;
 import org.mycore.xsonify.xsd.node.XsdGroup;
@@ -393,41 +394,30 @@ public class XsdParser {
         }
 
         private void resolveElement(XsdElement elementNode) {
-            String type = elementNode.getAttribute("type");
-            String ref = elementNode.getAttribute("ref");
-            if (type != null) {
-                resolveElementType(elementNode, XmlExpandedName.of(type));
+            String typeAttributeValue = elementNode.getAttribute("type");
+            String refAttributeValue = elementNode.getAttribute("ref");
+            if (typeAttributeValue != null) {
+                XmlExpandedName type = XmlExpandedName.of(typeAttributeValue);
+                elementNode.setDatatypeName(type);
+                // TODO remove setLink
+                setLink(elementNode, type, (nodeClass -> {
+                    XsdLink link = new XsdLink(nodeClass, type);
+                    elementNode.setLink(link);
+                }));
                 return;
             }
-            if (ref != null) {
-                setLink(elementNode, XsdElement.class, ref);
+            if (refAttributeValue != null) {
+                elementNode.setReferenceName(XmlExpandedName.of(refAttributeValue));
+                setLink(elementNode, XsdElement.class, refAttributeValue); // TODO remove
                 return;
             }
             resolveChildren(elementNode);
         }
 
-        /**
-         * Resolves the @type attribute of a xs:element. There are 3 possible type options.
-         * <ul>
-         *     <li>predefined schema type (primitive or derived)</li>
-         *     <li>complexType</li>
-         *     <li>simpleType</li>
-         * </ul>
-         *
-         * @param elementNode element node to resolve
-         * @param type        the type attribute as expanded name
-         */
-        private void resolveElementType(XsdElement elementNode, XmlExpandedName type) {
-            setLink(elementNode, type, (nodeClass -> {
-                XsdLink link = new XsdLink(nodeClass, type);
-                elementNode.setLink(link);
-            }));
-        }
-
         private void resolveGroup(XsdGroup groupNode) {
             String ref = groupNode.getAttribute("ref");
             if (ref != null) {
-                setLink(groupNode, XsdGroup.class, ref);
+                groupNode.setReferenceName(XmlExpandedName.of(ref));
                 return;
             }
             resolveChildren(groupNode);
@@ -441,7 +431,8 @@ public class XsdParser {
                 return;
             }
             if (ref != null) {
-                setLink(attributeNode, XsdAttribute.class, ref);
+                attributeNode.setReferenceName(XmlExpandedName.of(ref));
+                setLink(attributeNode, XsdAttribute.class, ref); // TODO remove
                 return;
             }
             resolveChildren(attributeNode);
@@ -467,7 +458,8 @@ public class XsdParser {
         private void resolveAttributeGroup(XsdAttributeGroup attributeGroupNode) {
             String ref = attributeGroupNode.getAttribute("ref");
             if (ref != null) {
-                setLink(attributeGroupNode, XsdAttributeGroup.class, ref);
+                attributeGroupNode.setReferenceName(XmlExpandedName.of(ref));
+                setLink(attributeGroupNode, XsdAttributeGroup.class, ref); // TODO remove
                 return;
             }
             resolveChildren(attributeGroupNode);
@@ -497,9 +489,11 @@ public class XsdParser {
          */
         private void resolveExtension(XsdExtension extensionNode) {
             resolveChildren(extensionNode);
-            XmlExpandedName base = XmlExpandedName.of(extensionNode.getAttribute("base"));
-            setLink(extensionNode, base, (nodeClass -> {
-                XsdLink link = new XsdLink(nodeClass, base);
+            XmlExpandedName baseName = XmlExpandedName.of(extensionNode.getAttribute("base"));
+            extensionNode.setBaseName(baseName);
+            // TODO remove
+            setLink(extensionNode, baseName, (nodeClass -> {
+                XsdLink link = new XsdLink(nodeClass, baseName);
                 extensionNode.setLink(link);
             }));
         }
@@ -536,13 +530,12 @@ public class XsdParser {
         private void resolveExtensions(List<XsdExtension> extensionNodes) {
             resolveNodesWithPredicate(new ArrayList<>(extensionNodes),
                 (changed, unresolvedExtensionList, extensionNode) -> {
-                    if (hasUnresolvedSubExtension(extensionNode.getLinkedNode())) {
+                    if (hasUnresolvedSubExtension(extensionNode.getBase())) {
                         unresolvedExtensionList.add(extensionNode);
                     } else {
-                        XsdNode link = extensionNode.getLinkedNode();
-                        XsdNode baseNode = xsd.getNamedNode(link.getClass(), link.getName());
-                        linkExtensionNode(extensionNode, baseNode);
-                        extensionNode.setLink(null);
+                        XsdDatatype baseDatatype = extensionNode.getBase();
+                        linkExtensionNode(extensionNode, baseDatatype);
+                        extensionNode.setLink(null); // TODO check how to remove link here (base)
                         return true;
                     }
                     return changed;
@@ -675,14 +668,8 @@ public class XsdParser {
          * @return the cloned node
          */
         private XsdNode cloneTo(XsdNode baseNode, XsdNode newParent) {
-            XsdNode clone = createNode(baseNode.getUri(), baseNode.getElement(), newParent);
-            if (clone == null) {
-                return null;
-            }
-            clone.setLink(baseNode.getLink());
-            baseNode.getChildren().stream()
-                .map(thisChild -> cloneTo(thisChild, clone))
-                .forEach(clonedChild -> clone.getChildren().add(clonedChild));
+            XsdNode clone = baseNode.clone();
+            clone.setParent(newParent);
             return clone;
         }
 

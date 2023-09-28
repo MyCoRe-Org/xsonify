@@ -7,7 +7,7 @@ import org.mycore.xsonify.xsd.XsdNode;
 import java.util.ArrayList;
 import java.util.List;
 
-public class XsdSimpleType extends XsdNode {
+public class XsdSimpleType extends XsdDatatype {
 
     public static final String TYPE = "simpleType";
 
@@ -26,6 +26,13 @@ public class XsdSimpleType extends XsdNode {
     @Override
     public String getType() {
         return TYPE;
+    }
+
+    @Override
+    public XsdSimpleType clone() {
+        XsdSimpleType simpleType = new XsdSimpleType(getXsd(), getUri(), getElement(), getParent());
+        cloneChildren(simpleType);
+        return simpleType;
     }
 
 }

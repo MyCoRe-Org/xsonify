@@ -25,4 +25,11 @@ public class XsdAll extends XsdNode {
         return TYPE;
     }
 
+    @Override
+    public XsdAll clone() {
+        XsdAll all = new XsdAll(getXsd(), getUri(), getElement(), getParent());
+        cloneChildren(all);
+        return all;
+    }
+
 }

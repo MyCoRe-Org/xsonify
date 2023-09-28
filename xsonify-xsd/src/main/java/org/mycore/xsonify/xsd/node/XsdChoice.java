@@ -25,4 +25,11 @@ public class XsdChoice extends XsdNode {
         return TYPE;
     }
 
+    @Override
+    public XsdChoice clone() {
+        XsdChoice choice = new XsdChoice(getXsd(), getUri(), getElement(), getParent());
+        cloneChildren(choice);
+        return choice;
+    }
+
 }

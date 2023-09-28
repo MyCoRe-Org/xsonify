@@ -40,4 +40,12 @@ public class XsdUnion extends XsdNode {
         this.memberTypes.add(memberType);
     }
 
+    @Override
+    public XsdUnion clone() {
+        XsdUnion union = new XsdUnion(getXsd(), getUri(), getElement(), getParent());
+        union.getMemberTypes().addAll(getMemberTypes());
+        cloneChildren(union);
+        return union;
+    }
+
 }

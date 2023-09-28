@@ -25,4 +25,11 @@ public class XsdAnyAttribute extends XsdNode {
         return TYPE;
     }
 
+    @Override
+    public XsdAnyAttribute clone() {
+        XsdAnyAttribute anyAttribute = new XsdAnyAttribute(getXsd(), getUri(), getElement(), getParent());
+        cloneChildren(anyAttribute);
+        return anyAttribute;
+    }
+
 }

@@ -6,6 +6,7 @@ import org.mycore.xsonify.xsd.node.XsdAny;
 import org.mycore.xsonify.xsd.node.XsdAnyAttribute;
 import org.mycore.xsonify.xsd.node.XsdAttribute;
 import org.mycore.xsonify.xsd.node.XsdElement;
+import org.mycore.xsonify.xsd.node.XsdReferenceable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,9 +25,9 @@ public abstract class XsdNode {
 
     private final XmlElement element;
 
-    private final XsdNode parent;
-
     private final List<XsdNode> children;
+
+    private XsdNode parent;
 
     private XsdLink link;
 
@@ -99,6 +100,10 @@ public abstract class XsdNode {
 
     public List<XsdNode> getChildren() {
         return children;
+    }
+
+    public void setParent(XsdNode parent) {
+        this.parent = parent;
     }
 
     public void setLink(XsdLink link) {
@@ -191,7 +196,7 @@ public abstract class XsdNode {
      *
      * @return list of attributes
      */
-    public List<XsdNode> collectAttributes() {
+    public List<XsdAttribute> collectAttributes() {
         if (this.attributeCache == null) {
             this.attributeCache = new ArrayList<>();
             List<Class<? extends XsdNode>> searchNodes = new ArrayList<>(XsdAttribute.CONTAINER_NODES);
@@ -207,7 +212,7 @@ public abstract class XsdNode {
      * @param attributeLocalName name of the attribute
      * @return list of nodes which match the given local attribute name
      */
-    public List<XsdNode> collectAttributes(String attributeLocalName) {
+    public List<XsdAttribute> collectAttributes(String attributeLocalName) {
         return collectAttributes().stream()
             .filter(attributeNode -> attributeNode.getReferenceOrSelf().getLocalName().equals(attributeLocalName))
             .toList();
@@ -250,6 +255,14 @@ public abstract class XsdNode {
             collect(type, searchNodes, node.getLinkedNode(), found, visited);
             return;
         }
+        if (node instanceof XsdReferenceable<?>) {
+            XsdNode reference = ((XsdReferenceable<?>) node).getReference();
+            if (reference != null) {
+                collect(type, searchNodes, reference, found, visited);
+                return;
+            }
+        }
+
         for (XsdNode childNode : node.getChildren()) {
             if (childNode.getClass().equals(type)) {
                 found.add((T) childNode);
@@ -299,6 +312,17 @@ public abstract class XsdNode {
 
     public static List<XsdNode> resolveReferences(List<? extends XsdNode> nodes) {
         return nodes.stream().map(XsdNode::getReferenceOrSelf).toList();
+    }
+
+    public abstract XsdNode clone();
+
+    protected void cloneChildren(XsdNode newParent) {
+        this.getChildren().stream()
+            .map(XsdNode::clone)
+            .forEach(clonedChild -> {
+                clonedChild.setParent(newParent);
+                newParent.getChildren().add(clonedChild);
+            });
     }
 
 }

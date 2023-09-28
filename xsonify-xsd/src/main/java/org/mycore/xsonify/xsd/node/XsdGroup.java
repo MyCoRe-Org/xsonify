@@ -1,12 +1,15 @@
 package org.mycore.xsonify.xsd.node;
 
 import org.mycore.xsonify.xml.XmlElement;
+import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
 
-public class XsdGroup extends XsdNode implements XsdReferencable<XsdGroup> {
+public class XsdGroup extends XsdNode implements XsdReferenceable<XsdGroup> {
 
     public static final String TYPE = "group";
+
+    private XmlExpandedName referenceName;
 
     /**
      * Constructs a new XsdNode.
@@ -20,14 +23,45 @@ public class XsdGroup extends XsdNode implements XsdReferencable<XsdGroup> {
         super(xsd, uri, element, parent);
     }
 
+    public void setReferenceName(XmlExpandedName referenceName) {
+        this.referenceName = referenceName;
+    }
+
+    public XmlExpandedName getReferenceName() {
+        return referenceName;
+    }
+
     @Override
     public XsdGroup getReference() {
-        return null;
+        if (this.referenceName == null) {
+            return null;
+        }
+        return this.getXsd().getNamedNode(XsdGroup.class, this.referenceName);
+    }
+
+    @Override
+    public XsdGroup getReferenceOrSelf() {
+        XsdGroup reference = getReference();
+        return reference != null ? reference : this;
+    }
+
+    @Override
+    public XsdNode getLinkedNode() {
+        return getReference();
     }
 
     @Override
     public String getType() {
         return TYPE;
+    }
+
+    @Override
+    public XsdGroup clone() {
+        XsdGroup group = new XsdGroup(getXsd(), getUri(), getElement(), getParent());
+        group.setReferenceName(getReferenceName());
+        group.setLink(getLink());
+        cloneChildren(group);
+        return group;
     }
 
 }

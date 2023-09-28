@@ -10,6 +10,7 @@ import org.mycore.xsonify.xsd.node.XsdAny;
 import org.mycore.xsonify.xsd.node.XsdChoice;
 import org.mycore.xsonify.xsd.node.XsdComplexContent;
 import org.mycore.xsonify.xsd.node.XsdComplexType;
+import org.mycore.xsonify.xsd.node.XsdDatatype;
 import org.mycore.xsonify.xsd.node.XsdElement;
 import org.mycore.xsonify.xsd.node.XsdExtension;
 import org.mycore.xsonify.xsd.node.XsdGroup;
@@ -93,12 +94,13 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
         // elements
         this.root.getElementNodes().forEach(node -> {
             XsdElement xsdElement = xsd.getNamedNode(XsdElement.class, node.name);
-            XsdNode link = xsdElement.getLinkedNode();
-            if (link != null) {
-                if (XsdComplexType.TYPE.equals(link.getType())) {
-                    Node complexTypeNode = this.root.getComplexTypeNode(link.getName());
+            XsdDatatype datatype = xsdElement.getDatatype();
+            if (datatype != null) {
+                if (datatype instanceof XsdComplexType) {
+                    Node complexTypeNode = this.root.getComplexTypeNode(datatype.getName());
                     node.put(complexTypeNode.name, new RepeatableInfo(complexTypeNode, false));
                 }
+                // we don't care for simple types
             } else {
                 xsdElement.getChildren().forEach(xsdChildNode -> create(xsdChildNode, node, false));
             }
@@ -123,16 +125,15 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
         boolean forceRepeatable = isRepeatable || (maxOccurs != null && maxOccurs > 1);
         // element
         if (XsdElement.TYPE.equals(xsdNode.getType())) {
-            createElement(xsdNode, elementNode, forceRepeatable);
+            createElement((XsdElement) xsdNode, elementNode, forceRepeatable);
             return;
         }
-        // group reference
-        if (xsdNode.getLinkedNode() != null) {
-            if (XsdGroup.TYPE.equals(xsdNode.getType())) {
-                Node groupNode = this.root.getGroupNode(xsdNode.getLinkedNode().getName());
-                elementNode.put(xsdNode.getLinkedNode().getName(), new RepeatableInfo(groupNode, forceRepeatable));
-            } else {
-                throw new SerializerException("unexpected reference " + xsdNode.getLinkedNode());
+        // group
+        if (XsdGroup.TYPE.equals(xsdNode.getType())) {
+            XsdGroup groupReference = ((XsdGroup) xsdNode).getReference();
+            if (groupReference != null) {
+                Node groupNode = this.root.getGroupNode(groupReference.getName());
+                elementNode.put(groupReference.getName(), new RepeatableInfo(groupNode, forceRepeatable));
             }
             return;
         }
@@ -142,26 +143,25 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
         }
     }
 
-    private void createElement(XsdNode xsdNode, Node elementNode, boolean forceRepeatable) {
-        if (xsdNode.getLinkedNode() != null) {
-            switch (xsdNode.getLinkedNode().getType()) {
-            case XsdElement.TYPE -> {
-                Node globalElementNode = this.root.getElementNode(xsdNode.getLinkedNode().getName());
-                boolean hasSameNodeAlready = elementNode.has(globalElementNode.name);
-                elementNode.put(globalElementNode.name,
-                    new RepeatableInfo(globalElementNode, hasSameNodeAlready || forceRepeatable));
-            }
-            case XsdComplexType.TYPE -> {
-                Node globalComplexTypeNode = this.root.getComplexTypeNode(xsdNode.getLinkedNode().getName());
-                Node childElementNode = new Node(xsdNode.getName(), XsdElement.TYPE, false);
+    private void createElement(XsdElement xsdElement, Node elementNode, boolean forceRepeatable) {
+        XsdElement reference = xsdElement.getReference();
+        XsdDatatype datatype = xsdElement.getDatatype();
+        if (reference != null) {
+            Node globalElementNode = this.root.getElementNode(xsdElement.getLinkedNode().getName());
+            boolean hasSameNodeAlready = elementNode.has(globalElementNode.name);
+            elementNode.put(globalElementNode.name,
+                new RepeatableInfo(globalElementNode, hasSameNodeAlready || forceRepeatable));
+        } else if (datatype != null) {
+            if (datatype instanceof XsdComplexType) {
+                Node globalComplexTypeNode = this.root.getComplexTypeNode(xsdElement.getLinkedNode().getName());
+                Node childElementNode = new Node(xsdElement.getName(), XsdElement.TYPE, false);
                 elementNode.put(childElementNode.name, new RepeatableInfo(childElementNode, forceRepeatable));
                 childElementNode.put(globalComplexTypeNode.name, new RepeatableInfo(globalComplexTypeNode, false));
             }
-            }
         } else {
-            Node childElementNode = new Node(xsdNode.getName(), XsdElement.TYPE, false);
-            elementNode.put(xsdNode.getName(), new RepeatableInfo(childElementNode, forceRepeatable));
-            for (XsdNode xsdChildNode : xsdNode.getChildren()) {
+            Node childElementNode = new Node(xsdElement.getName(), XsdElement.TYPE, false);
+            elementNode.put(xsdElement.getName(), new RepeatableInfo(childElementNode, forceRepeatable));
+            for (XsdNode xsdChildNode : xsdElement.getChildren()) {
                 create(xsdChildNode, childElementNode, false);
             }
         }

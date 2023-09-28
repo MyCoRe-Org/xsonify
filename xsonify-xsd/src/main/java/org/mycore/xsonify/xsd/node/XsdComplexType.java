@@ -4,7 +4,7 @@ import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
 
-public class XsdComplexType extends XsdNode {
+public class XsdComplexType extends XsdDatatype {
 
     public static final String TYPE = "complexType";
 
@@ -23,6 +23,13 @@ public class XsdComplexType extends XsdNode {
     @Override
     public String getType() {
         return TYPE;
+    }
+
+    @Override
+    public XsdComplexType clone() {
+        XsdComplexType complexType = new XsdComplexType(getXsd(), getUri(), getElement(), getParent());
+        cloneChildren(complexType);
+        return complexType;
     }
 
 }

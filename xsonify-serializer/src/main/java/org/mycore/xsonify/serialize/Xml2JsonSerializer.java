@@ -197,8 +197,8 @@ public class Xml2JsonSerializer extends SerializerBase {
 
     private Boolean isSimpleType(XmlElement element) {
         try {
-            XsdNode xsdNode = xsd().resolveXmlElement(element);
-            return isSimpleType(xsdNode);
+            XsdElement xsdElement = xsd().resolveXmlElement(element);
+            return isSimpleType(xsdElement);
         } catch (XsdAnyException xsdAnyException) {
             return false;
         }

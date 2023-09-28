@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -104,9 +105,10 @@ public class Json2XmlSerializer extends SerializerBase {
             return;
         }
         // choose between MOVE_TO_ROOT and MOVE_TO_ANCESTOR
-        XmlNamespaceDeclarationStrategy strategy = AdditionalNamespaceDeclarationStrategy.MOVE_TO_ROOT.equals(strategySetting) ?
-                                                   new XmlNamespaceDeclarationRootStrategy() :
-                                                   new XmlNamespaceDeclarationAncestorStrategy();
+        XmlNamespaceDeclarationStrategy strategy =
+            AdditionalNamespaceDeclarationStrategy.MOVE_TO_ROOT.equals(strategySetting) ?
+            new XmlNamespaceDeclarationRootStrategy() :
+            new XmlNamespaceDeclarationAncestorStrategy();
         strategy.apply(xmlDocument);
     }
 
@@ -470,7 +472,6 @@ public class Json2XmlSerializer extends SerializerBase {
         return xsdNode;
     }
 
-
     private XsdNode getXsdNode(JsonNode jsonNode, SerializationContext parentContext,
         List<? extends XsdNode> candidates) {
         if (candidates.size() == 1) {
@@ -539,13 +540,12 @@ public class Json2XmlSerializer extends SerializerBase {
             return namespace;
         }
         // check xsd
-        XmlPath path = XmlPath.of(element);
-        List<XsdNode> nodes = xsd().resolvePath(path);
-        XsdNode lastNode = !nodes.isEmpty() ? nodes.get(nodes.size() - 1) : null;
-        if (lastNode == null) {
-            throw new SerializerException("Unable to determine xsd node path for " + element);
+        try {
+            XsdElement node = xsd().resolveXmlElement(element);
+            return node.getElement().getNamespacesInScope().get(prefix);
+        } catch (NoSuchElementException noSuchElementException) {
+            throw new SerializerException("Unable to determine xsd node path for " + element, noSuchElementException);
         }
-        return lastNode.getElement().getNamespacesInScope().get(prefix);
     }
 
     private static final class SerializationContext {

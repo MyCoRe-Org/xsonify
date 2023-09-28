@@ -22,12 +22,12 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
         this.mixedContentElements = new HashSet<>();
         // mixed content can only appear in complexType or complexContent
         Collection<XsdNode> complexNodes = xsd.collect(XsdComplexType.class, XsdComplexContent.class);
-        Collection<XsdNode> mixedComplexTypes = getMixedComplexTypes(complexNodes);
+        Collection<XsdComplexType> mixedComplexTypes = getMixedComplexTypes(complexNodes);
         buildMixedContentElements(xsd, mixedComplexTypes);
     }
 
-    private List<XsdNode> getMixedComplexTypes(Collection<XsdNode> nodes) {
-        List<XsdNode> mixedComplexTypes = new ArrayList<>();
+    private List<XsdComplexType> getMixedComplexTypes(Collection<XsdNode> nodes) {
+        List<XsdComplexType> mixedComplexTypes = new ArrayList<>();
         for (XsdNode node : nodes) {
             if (!isMixedContent(node)) {
                 continue;
@@ -35,19 +35,19 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
             if (XsdComplexContent.TYPE.equals(node.getType())) {
                 node = node.getParent();
             }
-            expectNodeType(node, XsdComplexType.TYPE);
-            mixedComplexTypes.add(node);
+            XsdComplexType complexType = expectNodeType(XsdComplexType.class, node);
+            mixedComplexTypes.add(complexType);
         }
         return mixedComplexTypes;
     }
 
-    private void buildMixedContentElements(Xsd xsd, Collection<XsdNode> mixedComplexTypes) {
+    private void buildMixedContentElements(Xsd xsd, Collection<XsdComplexType> mixedComplexTypes) {
         Collection<XsdElement> elementNodes = xsd.collect(XsdElement.class);
-        for (XsdNode mixedComplexTypeNode : mixedComplexTypes) {
+        for (XsdComplexType mixedComplexTypeNode : mixedComplexTypes) {
             if (mixedComplexTypeNode.getParent() == null) {
                 // root node
                 elementNodes.stream()
-                    .filter(node -> node.getLinkedNode() == mixedComplexTypeNode)
+                    .filter(node -> node.getDatatype() == mixedComplexTypeNode)
                     .forEach(this::addMixedContentElement);
                 continue;
             }
@@ -57,19 +57,21 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
     }
 
     private void addMixedContentElement(XsdNode node) {
-        expectNodeType(node, XsdElement.TYPE);
-        if (node.getLinkedNode() != null && XsdElement.TYPE.equals(node.getLinkedNode().getType())) {
-            node = node.getLinkedNode();
+        XsdElement xsdElement = expectNodeType(XsdElement.class, node);
+        if (xsdElement.getReference() != null) {
+            xsdElement = xsdElement.getReference();
         }
-        mixedContentElements.add(node.getName());
+        mixedContentElements.add(xsdElement.getName());
     }
 
-    private void expectNodeType(XsdNode node, String xmlName) {
-        if (!xmlName.equals(node.getType())) {
+    @SuppressWarnings("unchecked")
+    private <T extends XsdNode> T expectNodeType(Class<T> nodeClass, XsdNode node) {
+        if (!nodeClass.equals(node.getClass())) {
             throw new XsdDetectorException(
-                "Couldn't build XsdMixedContentDetector. Expected node '" + xmlName + "' but found "
+                "Couldn't build XsdMixedContentDetector. Expected node '" + nodeClass + "' but found "
                     + node.getType());
         }
+        return (T) node;
     }
 
     private boolean isMixedContent(XsdNode node) {

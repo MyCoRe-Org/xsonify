@@ -30,7 +30,7 @@ public class XsdJsonPrimitiveDetectorTest {
         Assertions.assertEquals(JsonPrimitive.BOOLEAN, detector.detect("/person/male", NS_MAP));
 
         // number
-        // Assertions.assertEquals(JsonPrimitive.NUMBER, detector.detect("/number", NS_MAP));
+        Assertions.assertEquals(JsonPrimitive.NUMBER, detector.detect("/number", NS_MAP));
     }
 
 }

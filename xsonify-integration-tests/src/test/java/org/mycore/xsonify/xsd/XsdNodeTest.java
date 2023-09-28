@@ -16,10 +16,10 @@ public class XsdNodeTest extends XsdBaseTest {
     public void collectElements() throws Exception {
         Xsd xsd = getXsd("test.xsd");
 
-        XsdNode root = xsd.getNamedNode(XsdElement.class, "root", "https://test.com/v1");
+        XsdElement root = xsd.getNamedNode(XsdElement.class, "root", "https://test.com/v1");
         assertEquals(17, root.collectElements().size());
 
-        XsdNode parent = xsd.getNamedNode(XsdElement.class, "parent", "https://test.com/element");
+        XsdElement parent = xsd.getNamedNode(XsdElement.class, "parent", "https://test.com/element");
         List<XsdElement> childrenOfParent = parent.collectElements();
         assertEquals(1, childrenOfParent.size());
 
@@ -30,28 +30,28 @@ public class XsdNodeTest extends XsdBaseTest {
     @Test
     public void collectAttributes() throws Exception {
         Xsd modsXsd = getXsd("mods-3-8.xsd");
-        XsdNode dateDefinition = modsXsd.getNamedNode(XsdComplexType.class, "dateDefinition",
+        XsdComplexType dateDefinition = modsXsd.getNamedNode(XsdComplexType.class, "dateDefinition",
             "http://www.loc.gov/mods/v3");
         assertEquals(9, dateDefinition.collectAttributes().size());
 
         Xsd circularXsd = getXsd("circularTest.xsd");
-        XsdNode refCircleTest = circularXsd.getNamedNode(XsdElement.class, "refCircleTest",
+        XsdElement refCircleTest = circularXsd.getNamedNode(XsdElement.class, "refCircleTest",
             "https://test.com/circular");
         assertEquals(0, refCircleTest.collectAttributes().size());
 
         Xsd journalXsd = getXsd("datamodel-jpjournal.xsd");
-        XsdNode mycoreobject = journalXsd.getNamedNode(XsdElement.class, "mycoreobject");
+        XsdElement mycoreobject = journalXsd.getNamedNode(XsdElement.class, "mycoreobject");
         assertEquals(3, mycoreobject.collectAttributes().size());
     }
 
     @Test
     public void hasAny() throws Exception {
         Xsd modsXsd = getXsd("mods-3-8.xsd");
-        XsdNode dateDefinition = modsXsd.getNamedNode(XsdComplexType.class, "dateDefinition",
+        XsdComplexType dateDefinition = modsXsd.getNamedNode(XsdComplexType.class, "dateDefinition",
             "http://www.loc.gov/mods/v3");
         assertFalse(dateDefinition.hasAny());
 
-        XsdNode accessCondition = modsXsd.getNamedNode(XsdElement.class, "accessCondition",
+        XsdElement accessCondition = modsXsd.getNamedNode(XsdElement.class, "accessCondition",
             "http://www.loc.gov/mods/v3");
         assertTrue(accessCondition.hasAny());
     }
@@ -59,11 +59,11 @@ public class XsdNodeTest extends XsdBaseTest {
     @Test
     public void hasAnyAttribute() throws Exception {
         Xsd modsXsd = getXsd("attributeTest.xsd");
-        XsdNode attributeRoot = modsXsd.getNamedNode(XsdElement.class, "attributeTest",
+        XsdElement attributeRoot = modsXsd.getNamedNode(XsdElement.class, "attributeTest",
             "https://test.com/attribute");
         assertFalse(attributeRoot.hasAnyAttribute());
 
-        XsdNode anyAttribute = modsXsd.getNamedNode(XsdElement.class, "anyAttributeElement",
+        XsdElement anyAttribute = modsXsd.getNamedNode(XsdElement.class, "anyAttributeElement",
             "https://test.com/attribute");
         assertTrue(anyAttribute.hasAnyAttribute());
     }

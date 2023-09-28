@@ -25,4 +25,12 @@ public class XsdImport extends XsdNode {
         return TYPE;
     }
 
+    @Override
+    public XsdImport clone() {
+        XsdImport importClone = new XsdImport(getXsd(), getUri(), getElement(), getParent());
+        importClone.setLink(getLink());
+        cloneChildren(importClone);
+        return importClone;
+    }
+
 }
