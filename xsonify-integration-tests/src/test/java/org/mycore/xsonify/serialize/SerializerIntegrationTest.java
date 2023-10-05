@@ -193,19 +193,21 @@ public class SerializerIntegrationTest {
             XmlEqualityChecker equalityChecker = new XmlEqualityChecker();
             equalityChecker.equals(xmlDocument.getRoot(), serializedDocument.getRoot(), true);
         } catch (XmlException equalityException) {
-            print(xmlDocument, gson, serializedJson, serializedDocument);
+            print(xsd, xmlDocument, gson, serializedJson, serializedDocument);
             Assertions.fail("original element and serialized element are not equal", equalityException);
         } catch (Exception otherException) {
-            print(xmlDocument, gson, serializedJson, serializedDocument);
+            print(xsd, xmlDocument, gson, serializedJson, serializedDocument);
             Assertions.fail("error while serialization", otherException);
         }
         if (printDebug) {
-            print(xmlDocument, gson, serializedJson, serializedDocument);
+            print(xsd, xmlDocument, gson, serializedJson, serializedDocument);
         }
     }
 
-    private static void print(XmlDocument xmlDocument, Gson gson, JsonObject serializedJson,
+    private static void print(Xsd xsd, XmlDocument xmlDocument, Gson gson, JsonObject serializedJson,
         XmlDocument serializedDocument) {
+        System.out.println("\n===== XSD Tree =====");
+        System.out.println(xsd.toTreeString());
         System.out.println("\n===== Original XML =====");
         System.out.println(xmlDocument.toXml(true));
         System.out.println("\n===== Serialized JSON =====");

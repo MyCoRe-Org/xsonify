@@ -5,12 +5,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.mycore.xsonify.serialize.SerializerSettings.NamespaceHandling;
+import org.mycore.xsonify.serialize.detector.XsdJsonPrimitiveDetector;
 import org.mycore.xsonify.xml.XmlAttribute;
 import org.mycore.xsonify.xml.XmlContent;
 import org.mycore.xsonify.xml.XmlDocument;
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlNamespace;
+import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xml.XmlText;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
@@ -19,6 +21,7 @@ import org.mycore.xsonify.xsd.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdElement;
 import org.mycore.xsonify.xsd.node.XsdSimpleType;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -67,7 +70,7 @@ public class Xml2JsonSerializer extends SerializerBase {
 
         // TEXT
         if (element.hasText()) {
-            json.addProperty(style().textKey(), getText(element));
+            handleText(element, json);
         }
 
         // CHILDREN
@@ -100,7 +103,13 @@ public class Xml2JsonSerializer extends SerializerBase {
 
     private JsonElement serializeChildElement(XmlElement element, XmlNamespace parentNamespace) {
         if (hasPlainText(element)) {
-            return new JsonPrimitive(getText(element));
+            XsdJsonPrimitiveDetector.JsonPrimitive jsonPrimitive = jsonPrimitiveDetector().detect(XmlPath.of(element));
+            String text = element.getTextNormalized();
+            return switch (jsonPrimitive) {
+                case BOOLEAN -> new JsonPrimitive(Boolean.parseBoolean(text));
+                case NUMBER -> new JsonPrimitive(new BigDecimal(text));
+                case STRING -> new JsonPrimitive(getText(element));
+            };
         }
         JsonObject childObject = new JsonObject();
         serializeElement(element, childObject, parentNamespace);
@@ -248,6 +257,16 @@ public class Xml2JsonSerializer extends SerializerBase {
         element.getNamespacesIntroduced().values().forEach(ns -> json.addProperty(getXmlnsPrefix(ns), ns.uri()));
     }
 
+    private void handleText(XmlElement element, JsonObject json) {
+        XsdJsonPrimitiveDetector.JsonPrimitive jsonPrimitive = jsonPrimitiveDetector().detect(XmlPath.of(element));
+        String text = element.getTextNormalized();
+        switch (jsonPrimitive) {
+        case BOOLEAN -> json.addProperty(style().textKey(), Boolean.parseBoolean(text));
+        case NUMBER -> json.addProperty(style().textKey(), new BigDecimal(text));
+        case STRING -> json.addProperty(style().textKey(), getText(element));
+        }
+    }
+
     private boolean isChildOfXsAny(XmlElement element) {
         XmlElement parent = element.getParent();
         if (parent == null) {
@@ -258,8 +277,18 @@ public class Xml2JsonSerializer extends SerializerBase {
     }
 
     private void handleAttributes(XmlElement element, JsonObject json) {
-        element.getAttributes()
-            .forEach(attribute -> json.addProperty(getAttributeName(attribute), attribute.getValue()));
+        element.getAttributes().forEach(attribute -> handleAttribute(attribute, json));
+    }
+
+    private void handleAttribute(XmlAttribute attribute, JsonObject json) {
+        final String attributeName = getAttributeName(attribute);
+        final String attributeValue = attribute.getValue();
+        XsdJsonPrimitiveDetector.JsonPrimitive jsonPrimitive = jsonPrimitiveDetector().detect(XmlPath.of(attribute));
+        switch (jsonPrimitive) {
+        case BOOLEAN -> json.addProperty(attributeName, Boolean.parseBoolean(attributeValue));
+        case NUMBER -> json.addProperty(attributeName, new BigDecimal(attributeValue));
+        case STRING -> json.addProperty(attributeName, attributeValue);
+        }
     }
 
     private void handleMixedContent(XmlElement element, JsonObject json) {

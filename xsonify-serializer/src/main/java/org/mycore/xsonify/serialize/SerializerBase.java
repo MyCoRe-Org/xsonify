@@ -1,5 +1,6 @@
 package org.mycore.xsonify.serialize;
 
+import org.mycore.xsonify.serialize.detector.XsdJsonPrimitiveDetector;
 import org.mycore.xsonify.serialize.detector.XsdMixedContentDetector;
 import org.mycore.xsonify.serialize.detector.XsdPrefixConflictDetector;
 import org.mycore.xsonify.serialize.detector.XsdRepeatableElementDetector;
@@ -18,6 +19,8 @@ public abstract class SerializerBase {
 
     private XsdPrefixConflictDetector prefixConflictDetector;
 
+    private final XsdJsonPrimitiveDetector jsonPrimitiveDetector;
+
     public SerializerBase(Xsd xsd, SerializerSettings settings) {
         this(xsd, settings, new SerializerStyle());
     }
@@ -35,6 +38,7 @@ public abstract class SerializerBase {
             SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT.equals(settings.elementPrefixHandling())) {
             this.prefixConflictDetector = new XsdPrefixConflictDetector(xsd);
         }
+        this.jsonPrimitiveDetector = new XsdJsonPrimitiveDetector(xsd);
     }
 
     public Xsd xsd() {
@@ -59,6 +63,10 @@ public abstract class SerializerBase {
 
     XsdRepeatableElementDetector repeatableElementDetector() {
         return repeatableElementDetector;
+    }
+
+    XsdJsonPrimitiveDetector jsonPrimitiveDetector() {
+        return jsonPrimitiveDetector;
     }
 
 }

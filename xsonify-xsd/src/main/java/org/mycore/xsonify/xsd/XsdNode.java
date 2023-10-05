@@ -11,6 +11,7 @@ import org.mycore.xsonify.xsd.node.XsdReferenceable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Represents a node in the XSD (XML Schema Definition) hierarchy.
@@ -100,6 +101,21 @@ public abstract class XsdNode {
 
     public List<XsdNode> getChildren() {
         return children;
+    }
+
+    public <T extends XsdNode> List<T> getChildren(Class<T> nodeClass) {
+        return getChildren().stream()
+            .filter(nodeClass::isInstance)
+            .map(nodeClass::cast)
+            .toList();
+    }
+
+    public <T extends XsdNode> T getFirstChild(Class<T> nodeClass) {
+        return getChildren().stream()
+            .filter(nodeClass::isInstance)
+            .map(nodeClass::cast)
+            .findFirst()
+            .orElse(null);
     }
 
     public void setParent(XsdNode parent) {

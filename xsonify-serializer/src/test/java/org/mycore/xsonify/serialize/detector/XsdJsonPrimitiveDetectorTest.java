@@ -28,9 +28,23 @@ public class XsdJsonPrimitiveDetectorTest {
         Assertions.assertEquals(JsonPrimitive.STRING, detector.detect("/person/lastName", NS_MAP));
         Assertions.assertEquals(JsonPrimitive.NUMBER, detector.detect("/person/age", NS_MAP));
         Assertions.assertEquals(JsonPrimitive.BOOLEAN, detector.detect("/person/male", NS_MAP));
+        Assertions.assertEquals(JsonPrimitive.BOOLEAN, detector.detect("/person/employed", NS_MAP));
+
+        // car
+        Assertions.assertEquals(JsonPrimitive.STRING, detector.detect("/car/@color", NS_MAP));
+        Assertions.assertEquals(JsonPrimitive.NUMBER, detector.detect("/car/@wheels", NS_MAP));
+        Assertions.assertEquals(JsonPrimitive.BOOLEAN, detector.detect("/car/@turbo", NS_MAP));
+        Assertions.assertEquals(JsonPrimitive.STRING, detector.detect("/car/@any", NS_MAP));
+        Assertions.assertEquals(JsonPrimitive.BOOLEAN, detector.detect("/car/@custom", NS_MAP));
 
         // number
         Assertions.assertEquals(JsonPrimitive.NUMBER, detector.detect("/number", NS_MAP));
+
+        // integer
+        Assertions.assertEquals(JsonPrimitive.NUMBER, detector.detect("/integer", NS_MAP));
+
+        // maintitle - simpleContent
+        Assertions.assertEquals(JsonPrimitive.STRING, detector.detect("/maintitle", NS_MAP));
     }
 
 }

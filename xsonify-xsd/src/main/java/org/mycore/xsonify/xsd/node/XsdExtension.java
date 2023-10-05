@@ -10,7 +10,7 @@ public class XsdExtension extends XsdNode {
 
     public static final String TYPE = "extension";
 
-    public XmlExpandedName baseName;
+    private XmlExpandedName baseName;
 
     /**
      * Constructs a new XsdNode.
@@ -22,6 +22,7 @@ public class XsdExtension extends XsdNode {
      */
     public XsdExtension(Xsd xsd, String uri, XmlElement element, XsdNode parent) {
         super(xsd, uri, element, parent);
+        this.baseName = null;
     }
 
     @Override

@@ -185,6 +185,15 @@ public class XmlPath implements Iterable<XmlPath.Node> {
     }
 
     public record Node(XmlName name, Type type) {
+
+        public boolean isAttribute() {
+            return Type.ATTRIBUTE.equals(type);
+        }
+
+        public boolean isElement() {
+            return Type.ELEMENT.equals(type);
+        }
+
     }
 
 }

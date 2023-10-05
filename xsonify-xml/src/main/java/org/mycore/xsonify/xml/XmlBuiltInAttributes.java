@@ -30,4 +30,8 @@ public abstract class XmlBuiltInAttributes {
         new XmlExpandedName("noNamespaceSchemaLocation", XmlNamespace.XML_SCHEMA_INSTANCE_URI)
     );
 
+    public static boolean is(XmlExpandedName attributeName) {
+        return BUILT_IN_ATTRIBUTES.contains(attributeName);
+    }
+
 }

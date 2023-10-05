@@ -4,7 +4,7 @@ import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
 
-public class XsdSimpleContent extends XsdNode {
+public class XsdSimpleContent extends XsdContent {
 
     public static final String TYPE = "simpleContent";
 

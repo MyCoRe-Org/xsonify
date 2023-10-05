@@ -10,14 +10,60 @@
         <xs:element name="lastName" type="xs:string"/>
         <xs:element name="age" type="xs:decimal"/>
         <xs:element name="male" type="xs:boolean"/>
+        <xs:element ref="employed"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
+  <xs:element name="employed">
+    <xs:simpleType>
+      <xs:restriction base="xs:boolean"/>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="car">
+    <xs:complexType>
+      <xs:attributeGroup ref="carAttributes"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:attributeGroup name="carAttributes">
+    <xs:attribute name="color" type="xs:string"/>
+    <xs:attribute name="wheels" type="xs:short"/>
+    <xs:attribute name="turbo" type="xs:boolean"/>
+    <xs:attribute name="custom">
+      <xs:simpleType>
+        <xs:restriction base="xs:boolean"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:anyAttribute/>
+  </xs:attributeGroup>
 
   <xs:element name="number" type="number"/>
-
   <xs:simpleType name="number">
-    <xs:union memberTypes="xs:decimal xs:float xs:double"/>
+    <xs:union memberTypes="xs:decimal xs:float">
+      <xs:simpleType>
+        <xs:list itemType="xs:double"/>
+      </xs:simpleType>
+    </xs:union>
   </xs:simpleType>
+
+  <xs:element name="integer" type="myPositiveInteger"/>
+  <xs:simpleType name="myPositiveInteger">
+    <xs:restriction base="xs:positiveInteger">
+      <xs:minInclusive value="0"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:element name="maintitle">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attribute type="xs:string" name="type"/>
+          <xs:attribute type="xs:string" name="form"/>
+          <xs:attribute type="xs:integer" name="inherited"/>
+          <xs:attribute ref="xml:lang"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
 
 </xs:schema>

@@ -427,7 +427,12 @@ public class XsdParser {
             String type = attributeNode.getAttribute("type");
             String ref = attributeNode.getAttribute("ref");
             if (type != null) {
-                resolveAttributeType(attributeNode, XmlExpandedName.of(type));
+                XmlExpandedName dataType = XmlExpandedName.of(type);
+                attributeNode.setDatatypeName(dataType);
+                if (XsdBuiltInDatatypes.is(dataType)) { // TODO remove
+                    return;
+                }
+                attributeNode.setLink(new XsdLink(XsdSimpleType.class, dataType));
                 return;
             }
             if (ref != null) {
@@ -436,23 +441,6 @@ public class XsdParser {
                 return;
             }
             resolveChildren(attributeNode);
-        }
-
-        /**
-         * Resolves the @type attribute of a xs:attribute. There are 2 possible type options.
-         * <ul>
-         *     <li>build-in type</li>
-         *     <li>simpleType</li>
-         * </ul>
-         *
-         * @param attributeNode attribute node to resolve
-         * @param type          the type attribute
-         */
-        private void resolveAttributeType(XsdAttribute attributeNode, XmlExpandedName type) {
-            if (XsdBuiltInDatatypes.is(type)) {
-                return;
-            }
-            attributeNode.setLink(new XsdLink(XsdSimpleType.class, type));
         }
 
         private void resolveAttributeGroup(XsdAttributeGroup attributeGroupNode) {
@@ -470,13 +458,14 @@ public class XsdParser {
         }
 
         /**
-         * <p>Restrictions completely overwrite their @base type. So there is no need to actually look up the @base type.
-         * We just need to go through the children and take care of them.</p>
-         * <p>Note: Not sure if im missing something here, xs:restrictions seems rather useless.</p>
-         *
-         * @param restrictionNode the restricted node
+         * @param restrictionNode the restriction node
          */
         private void resolveRestriction(XsdRestriction restrictionNode) {
+            // set @base
+            String base = restrictionNode.getAttribute("base");
+            if (base != null) {
+                restrictionNode.setBaseName(XmlExpandedName.of(base));
+            }
             // (xs:group | xs:all | xs:choice | xs:sequence)
             resolveChildren(restrictionNode);
         }

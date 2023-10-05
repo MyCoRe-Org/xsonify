@@ -213,12 +213,18 @@ public class Xsd {
      * @return collection of nodes
      */
     @SafeVarargs
-    public final Collection<XsdNode> collect(Class<? extends XsdNode>... types) {
+    public final List<XsdNode> collect(Class<? extends XsdNode>... types) {
         List<XsdNode> nodes = new ArrayList<>();
         List<Class<? extends XsdNode>> nodeTypes = Arrays.asList(types);
         for (XsdNode node : getNamedNodes()) {
             collect(node, nodeTypes, nodes);
         }
+        return nodes;
+    }
+
+    public List<XsdNode> collect(XsdNode node, List<Class<? extends XsdNode>> types) {
+        List<XsdNode> nodes = new ArrayList<>();
+        collect(node, types, nodes);
         return nodes;
     }
 

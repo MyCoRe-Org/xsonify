@@ -108,7 +108,7 @@ public class XsdPrefixConflictDetector implements XsdDetector<Boolean> {
             return check(path, this.attributeNameConflicts);
         } catch (NoSuchElementException noSuchElementException) {
             XmlPath.Node attributeNode = path.last();
-            if (XmlBuiltInAttributes.BUILT_IN_ATTRIBUTES.contains(attributeNode.name().expandedName())) {
+            if (XmlBuiltInAttributes.is(attributeNode.name().expandedName())) {
                 return true;
             }
             throw new SerializerException("Unable to serialize path: " + path, noSuchElementException);
