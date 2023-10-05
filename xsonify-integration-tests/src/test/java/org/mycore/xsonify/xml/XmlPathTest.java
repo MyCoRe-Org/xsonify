@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class XmlPathTest extends XmlBaseTest {
 
     @Test
-    public void ofPath() {
+    public void ofPath() throws XmlException {
         Map<String, XmlNamespace> namespaceMap = new HashMap<>();
         namespaceMap.put("", MODS_NS);
         namespaceMap.put(XLINK_NS.prefix(), XLINK_NS);
@@ -33,7 +33,7 @@ public class XmlPathTest extends XmlBaseTest {
     }
 
     @Test
-    public void ofElement() throws ParserConfigurationException, IOException, SAXException {
+    public void ofElement() throws ParserConfigurationException, IOException, SAXException, XmlParseException {
         XmlDocument xml = getXml("/xml/mods-simple.xml");
         assertEquals(
             "/mods:mods",

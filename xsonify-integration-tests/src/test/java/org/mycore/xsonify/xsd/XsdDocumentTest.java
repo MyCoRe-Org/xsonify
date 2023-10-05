@@ -2,6 +2,7 @@ package org.mycore.xsonify.xsd;
 
 import org.junit.jupiter.api.Test;
 import org.mycore.xsonify.xml.XmlDocument;
+import org.mycore.xsonify.xml.XmlException;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xml.XmlPath;
 import org.xml.sax.SAXException;
@@ -17,7 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class XsdDocumentTest extends XsdBaseTest {
 
     @Test
-    public void expandAttributes() throws IOException, ParserConfigurationException, SAXException {
+    public void expandAttributes()
+        throws IOException, ParserConfigurationException, SAXException, XsdParseException, XmlException {
         XmlDocument redefineADocument = getXml("/xsd/test/redefineA.xsd");
 
         XsdDocument xsdDocument = new XsdDocument("redefineA.xsd", "https://test.com/redefineA");

@@ -4,6 +4,7 @@ import org.mycore.xsonify.xml.XmlDocument;
 import org.mycore.xsonify.xml.XmlDocumentLoader;
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xml.XmlExpandedName;
+import org.mycore.xsonify.xml.XmlParseException;
 import org.mycore.xsonify.xsd.node.XsdAll;
 import org.mycore.xsonify.xsd.node.XsdAny;
 import org.mycore.xsonify.xsd.node.XsdAnyAttribute;
@@ -152,7 +153,7 @@ public class XsdParser {
                 XmlDocument document = this.documentLoader.load(systemId);
                 this.documentMap.put(systemId, document);
                 resolve(document);
-            } catch (IOException | SAXException e) {
+            } catch (IOException | SAXException | XmlParseException e) {
                 throw new XsdParseException("Unable to resolve " + systemId, e);
             }
         }
@@ -325,7 +326,9 @@ public class XsdParser {
          * @throws XsdParseException if there is a problem parsing the XSD.
          */
         public void resolve() throws XsdParseException {
-            fragmentMap.values().stream().map(Fragment::document).forEach(this::resolveRootNodes);
+            for (Fragment fragment : fragmentMap.values()) {
+                resolveRootNodes(fragment.document());
+            }
             resolveHierarchy();
             resolveRedefines();
 
@@ -337,7 +340,7 @@ public class XsdParser {
             this.xsd.buildCache();
         }
 
-        private void resolveRootNodes(XsdDocument document) {
+        private void resolveRootNodes(XsdDocument document) throws XsdParseException {
             for (XmlElement element : document.getRoot().getElements()) {
                 Class<? extends XsdNode> nodeClass = getNodeClass(element);
                 if (nodeClass == null) {
@@ -359,12 +362,16 @@ public class XsdParser {
             }
         }
 
-        private void resolveHierarchy() {
-            this.xsd.getNamedNodes().forEach(this::resolveNode);
-            this.redefineMap.values().forEach(this::resolveNode);
+        private void resolveHierarchy() throws XsdParseException {
+            for (XsdNode xsdNode : this.xsd.getNamedNodes()) {
+                resolveNode(xsdNode);
+            }
+            for (XsdRedefine xsdRedefine : this.redefineMap.values()) {
+                resolveNode(xsdRedefine);
+            }
         }
 
-        private void resolveNode(XsdNode node) {
+        private void resolveNode(XsdNode node) throws XsdParseException {
             switch (node.getType()) {
             case XsdElement.TYPE -> resolveElement((XsdElement) node);
             case XsdGroup.TYPE -> resolveGroup((XsdGroup) node);
@@ -381,7 +388,7 @@ public class XsdParser {
             }
         }
 
-        private void resolveChildren(XsdNode parentNode) {
+        private void resolveChildren(XsdNode parentNode) throws XsdParseException {
             for (XmlElement childElement : parentNode.getElement().getElements()) {
                 try {
                     XsdNode childNode = createAndAddNode(parentNode.getUri(), childElement, parentNode);
@@ -393,7 +400,7 @@ public class XsdParser {
             }
         }
 
-        private void resolveElement(XsdElement elementNode) {
+        private void resolveElement(XsdElement elementNode) throws XsdParseException {
             String typeAttributeValue = elementNode.getAttribute("type");
             String refAttributeValue = elementNode.getAttribute("ref");
             if (typeAttributeValue != null) {
@@ -414,7 +421,7 @@ public class XsdParser {
             resolveChildren(elementNode);
         }
 
-        private void resolveGroup(XsdGroup groupNode) {
+        private void resolveGroup(XsdGroup groupNode) throws XsdParseException {
             String ref = groupNode.getAttribute("ref");
             if (ref != null) {
                 groupNode.setReferenceName(XmlExpandedName.of(ref));
@@ -423,7 +430,7 @@ public class XsdParser {
             resolveChildren(groupNode);
         }
 
-        private void resolveAttribute(XsdAttribute attributeNode) {
+        private void resolveAttribute(XsdAttribute attributeNode) throws XsdParseException {
             String type = attributeNode.getAttribute("type");
             String ref = attributeNode.getAttribute("ref");
             if (type != null) {
@@ -443,7 +450,7 @@ public class XsdParser {
             resolveChildren(attributeNode);
         }
 
-        private void resolveAttributeGroup(XsdAttributeGroup attributeGroupNode) {
+        private void resolveAttributeGroup(XsdAttributeGroup attributeGroupNode) throws XsdParseException {
             String ref = attributeGroupNode.getAttribute("ref");
             if (ref != null) {
                 attributeGroupNode.setReferenceName(XmlExpandedName.of(ref));
@@ -453,14 +460,14 @@ public class XsdParser {
             resolveChildren(attributeGroupNode);
         }
 
-        private void resolveIncludeRedefine(XsdRedefine includeRedefineNode) {
+        private void resolveIncludeRedefine(XsdRedefine includeRedefineNode) throws XsdParseException {
             resolveChildren(includeRedefineNode);
         }
 
         /**
          * @param restrictionNode the restriction node
          */
-        private void resolveRestriction(XsdRestriction restrictionNode) {
+        private void resolveRestriction(XsdRestriction restrictionNode) throws XsdParseException {
             // set @base
             String base = restrictionNode.getAttribute("base");
             if (base != null) {
@@ -476,7 +483,7 @@ public class XsdParser {
          *
          * @param extensionNode the extension node
          */
-        private void resolveExtension(XsdExtension extensionNode) {
+        private void resolveExtension(XsdExtension extensionNode) throws XsdParseException {
             resolveChildren(extensionNode);
             XmlExpandedName baseName = XmlExpandedName.of(extensionNode.getAttribute("base"));
             extensionNode.setBaseName(baseName);
@@ -531,7 +538,7 @@ public class XsdParser {
                 });
         }
 
-        private void resolveUnion(XsdUnion union) {
+        private void resolveUnion(XsdUnion union) throws XsdParseException {
             resolveChildren(union);
             String memberTypessString = union.getAttribute("memberTypes");
             if (memberTypessString == null) {
@@ -542,7 +549,7 @@ public class XsdParser {
             }
         }
 
-        private void resolveList(XsdList list) {
+        private void resolveList(XsdList list) throws XsdParseException {
             resolveChildren(list);
             String itemType = list.getAttribute("itemType");
             if (itemType == null) {
@@ -597,7 +604,7 @@ public class XsdParser {
         }
 
         private <T extends XsdNode> T instantiateNode(Class<T> nodeClass, String uri, XmlElement element,
-            XsdNode parentNode) {
+            XsdNode parentNode) throws XsdParseException {
             try {
                 Constructor<T> nodeConstructor = nodeClass.getConstructor(
                     Xsd.class, String.class, XmlElement.class, XsdNode.class
@@ -609,7 +616,7 @@ public class XsdParser {
             }
         }
 
-        private XsdNode createNode(String uri, XmlElement element, XsdNode parentNode) {
+        private XsdNode createNode(String uri, XmlElement element, XsdNode parentNode) throws XsdParseException {
             Class<? extends XsdNode> nodeClass = getNodeClass(element);
             if (nodeClass == null) {
                 return null;
@@ -617,7 +624,7 @@ public class XsdParser {
             return instantiateNode(nodeClass, uri, element, parentNode);
         }
 
-        private XsdNode createAndAddNode(String uri, XmlElement element, XsdNode parentNode) {
+        private XsdNode createAndAddNode(String uri, XmlElement element, XsdNode parentNode) throws XsdParseException {
             XsdNode node = createNode(uri, element, parentNode);
             if (node == null) {
                 return null;
@@ -630,7 +637,8 @@ public class XsdParser {
             node.setLink(new XsdLink(type, XmlExpandedName.of(name)));
         }
 
-        private void setLink(XsdNode node, XmlExpandedName linkName, Consumer<Class<? extends XsdNode>> consumer) {
+        private void setLink(XsdNode node, XmlExpandedName linkName, Consumer<Class<? extends XsdNode>> consumer)
+            throws XsdParseException {
             if (XsdBuiltInDatatypes.is(linkName)) {
                 return;
             }

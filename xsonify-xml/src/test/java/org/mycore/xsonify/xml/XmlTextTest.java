@@ -1,7 +1,6 @@
 package org.mycore.xsonify.xml;
 
 import org.junit.jupiter.api.Test;
-import org.mycore.xsonify.xml.XmlText;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

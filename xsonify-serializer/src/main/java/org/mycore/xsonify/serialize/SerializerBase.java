@@ -1,5 +1,6 @@
 package org.mycore.xsonify.serialize;
 
+import org.mycore.xsonify.serialize.detector.XsdDetectorException;
 import org.mycore.xsonify.serialize.detector.XsdJsonPrimitiveDetector;
 import org.mycore.xsonify.serialize.detector.XsdMixedContentDetector;
 import org.mycore.xsonify.serialize.detector.XsdPrefixConflictDetector;
@@ -21,24 +22,29 @@ public abstract class SerializerBase {
 
     private final XsdJsonPrimitiveDetector jsonPrimitiveDetector;
 
-    public SerializerBase(Xsd xsd, SerializerSettings settings) {
+    public SerializerBase(Xsd xsd, SerializerSettings settings) throws SerializationException {
         this(xsd, settings, new SerializerStyle());
     }
 
-    public SerializerBase(Xsd xsd, SerializerSettings settings, SerializerStyle style) {
+    public SerializerBase(Xsd xsd, SerializerSettings settings, SerializerStyle style)
+        throws SerializationException {
         this.xsd = xsd;
         this.settings = settings;
         this.style = style;
 
-        this.mixedContentDetector = new XsdMixedContentDetector(xsd);
-        if (SerializerSettings.JsonStructure.SCHEMA_BASED.equals(settings.jsonStructure())) {
-            this.repeatableElementDetector = new XsdRepeatableElementDetector(xsd);
+        try {
+            this.mixedContentDetector = new XsdMixedContentDetector(xsd);
+            if (SerializerSettings.JsonStructure.SCHEMA_BASED.equals(settings.jsonStructure())) {
+                this.repeatableElementDetector = new XsdRepeatableElementDetector(xsd);
+            }
+            if (SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT.equals(settings.attributePrefixHandling()) ||
+                SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT.equals(settings.elementPrefixHandling())) {
+                this.prefixConflictDetector = new XsdPrefixConflictDetector(xsd);
+            }
+            this.jsonPrimitiveDetector = new XsdJsonPrimitiveDetector(xsd);
+        } catch (XsdDetectorException detectorException) {
+            throw new SerializationException("Unable to create serializer", detectorException);
         }
-        if (SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT.equals(settings.attributePrefixHandling()) ||
-            SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT.equals(settings.elementPrefixHandling())) {
-            this.prefixConflictDetector = new XsdPrefixConflictDetector(xsd);
-        }
-        this.jsonPrimitiveDetector = new XsdJsonPrimitiveDetector(xsd);
     }
 
     public Xsd xsd() {

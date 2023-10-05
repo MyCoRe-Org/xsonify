@@ -13,7 +13,7 @@ import java.util.Set;
 public class XmlNamespaceDeclarationRootStrategy implements XmlNamespaceDeclarationStrategy {
 
     @Override
-    public void apply(XmlElement element) {
+    public void apply(XmlElement element) throws XmlException {
         Map<String, XmlNamespace> namespaces = new HashMap<>();
         Set<XmlElement> additionalNamespaceDeclarationElements = new HashSet<>();
         // collect namespaces and elements which have a namespace declaration
@@ -33,7 +33,8 @@ public class XmlNamespaceDeclarationRootStrategy implements XmlNamespaceDeclarat
      * @param namespaces a map holding prefixes and their respective namespaces
      * @param declarations a set holding XML elements with additional namespace declarations
      */
-    private void collect(XmlElement element, Map<String, XmlNamespace> namespaces, Set<XmlElement> declarations) {
+    private void collect(XmlElement element, Map<String, XmlNamespace> namespaces, Set<XmlElement> declarations)
+        throws XmlException {
         Collection<XmlNamespace> localNamespaces = element.getNamespacesIntroduced().values();
         if (!element.getAdditionalNamespaces().isEmpty()) {
             declarations.add(element);

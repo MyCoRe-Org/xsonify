@@ -136,9 +136,9 @@ public class XmlEqualityChecker {
         }
         String path = e1.getParent() != null ? (XmlPath.of(e1.getParent()) + ":\n") : "";
         if (debugRenderContent) {
-            throw new XmlException("\n" + path + e1 + "\ndiffers from\n" + e2);
+            throw new RuntimeException("\n" + path + e1 + "\ndiffers from\n" + e2);
         } else {
-            throw new XmlException("\n" + path + e1.toXmlNoContent() + "\ndiffers from\n" + e2.toXmlNoContent());
+            throw new RuntimeException("\n" + path + e1.toXmlNoContent() + "\ndiffers from\n" + e2.toXmlNoContent());
         }
     }
 

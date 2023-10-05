@@ -4,9 +4,6 @@ import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdNode;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class XsdSimpleType extends XsdDatatype {
 
     public static final String TYPE = "simpleType";

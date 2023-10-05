@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class XmlDocumentTest extends XmlBaseTest {
 
     @Test
-    public void collectNamespaces() throws ParserConfigurationException, SAXException, IOException {
+    public void collectNamespaces() throws ParserConfigurationException, SAXException, IOException, XmlException {
         XmlDocument xmlDocument = getXml("/xml/mods-simple.xml");
         Map<String, XmlNamespace> namespaces = xmlDocument.collectNamespacesSqueezed();
         assertEquals(2, namespaces.size());

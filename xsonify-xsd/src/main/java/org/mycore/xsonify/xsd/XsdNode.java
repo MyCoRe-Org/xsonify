@@ -11,7 +11,6 @@ import org.mycore.xsonify.xsd.node.XsdReferenceable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Represents a node in the XSD (XML Schema Definition) hierarchy.

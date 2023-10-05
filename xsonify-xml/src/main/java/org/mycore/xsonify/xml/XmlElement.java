@@ -162,7 +162,7 @@ public class XmlElement extends XmlContent {
      * @param qualifiedName the qualified name of the attribute to set
      * @param value         the value of the attribute
      */
-    public void setAttribute(String qualifiedName, String value) {
+    public void setAttribute(String qualifiedName, String value) throws XmlException {
         String prefix;
         String localName;
 
@@ -926,7 +926,7 @@ public class XmlElement extends XmlContent {
      * @return list of XmlElement objects
      */
     public static List<XmlContent> decodeContent(String content, Charset charset)
-        throws ParserConfigurationException, SAXException, IOException {
+        throws ParserConfigurationException, SAXException, IOException, XmlParseException {
         return decodeContent(content, charset, new ArrayList<>());
     }
 
@@ -940,7 +940,7 @@ public class XmlElement extends XmlContent {
      * @return list of XmlElement objects
      */
     public static List<XmlContent> decodeContent(String content, Charset charset, Collection<XmlNamespace> namespaces)
-        throws ParserConfigurationException, SAXException, IOException {
+        throws ParserConfigurationException, SAXException, IOException, XmlParseException {
         // build xml string
         StringBuilder sb = new StringBuilder();
         sb.append("<root");

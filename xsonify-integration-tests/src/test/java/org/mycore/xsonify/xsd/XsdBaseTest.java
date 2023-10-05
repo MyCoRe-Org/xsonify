@@ -2,6 +2,7 @@ package org.mycore.xsonify.xsd;
 
 import org.mycore.xsonify.xml.XmlDocument;
 import org.mycore.xsonify.xml.XmlEntityResolverDocumentLoader;
+import org.mycore.xsonify.xml.XmlParseException;
 import org.mycore.xsonify.xml.XmlParser;
 import org.mycore.xsonify.xml.XmlSaxParser;
 import org.xml.sax.SAXException;
@@ -16,7 +17,8 @@ public abstract class XsdBaseTest {
 
     public static Collection<String> NODE_TYPES = XsdParser.NODE_TYPE_CLASS_MAP.keySet();
 
-    public XmlDocument getXml(String resourceName) throws ParserConfigurationException, SAXException, IOException {
+    public XmlDocument getXml(String resourceName)
+        throws ParserConfigurationException, SAXException, IOException, XmlParseException {
         URL resource = XsdBaseTest.class.getResource(resourceName);
         if (resource == null) {
             throw new IllegalArgumentException("Unable to locate resource '" + resourceName + "'.");

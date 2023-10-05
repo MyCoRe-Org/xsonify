@@ -11,9 +11,11 @@ import org.mycore.xsonify.xml.XmlEqualityChecker;
 import org.mycore.xsonify.xml.XmlException;
 import org.mycore.xsonify.xml.XmlName;
 import org.mycore.xsonify.xml.XmlNamespace;
+import org.mycore.xsonify.xml.XmlParseException;
 import org.mycore.xsonify.xml.XmlParser;
 import org.mycore.xsonify.xml.XmlSaxParser;
 import org.mycore.xsonify.xsd.Xsd;
+import org.mycore.xsonify.xsd.XsdParseException;
 import org.mycore.xsonify.xsd.XsdUtil;
 import org.xml.sax.SAXException;
 
@@ -105,7 +107,7 @@ public class SerializerIntegrationTest {
     }
 
     private void test(URL resource, XmlName rootName, List<XmlNamespace> namespaces)
-        throws ParserConfigurationException, SAXException, IOException {
+        throws ParserConfigurationException, SAXException, IOException, XsdParseException, XmlParseException {
         XmlParser parser = new XmlSaxParser();
         XmlDocument xmlDocument = parser.parse(resource);
 
@@ -192,12 +194,9 @@ public class SerializerIntegrationTest {
             // check if they are equal
             XmlEqualityChecker equalityChecker = new XmlEqualityChecker();
             equalityChecker.equals(xmlDocument.getRoot(), serializedDocument.getRoot(), true);
-        } catch (XmlException equalityException) {
+        } catch (Exception equalityException) {
             print(xsd, xmlDocument, gson, serializedJson, serializedDocument);
-            Assertions.fail("original element and serialized element are not equal", equalityException);
-        } catch (Exception otherException) {
-            print(xsd, xmlDocument, gson, serializedJson, serializedDocument);
-            Assertions.fail("error while serialization", otherException);
+            Assertions.fail("exception while testing", equalityException);
         }
         if (printDebug) {
             print(xsd, xmlDocument, gson, serializedJson, serializedDocument);

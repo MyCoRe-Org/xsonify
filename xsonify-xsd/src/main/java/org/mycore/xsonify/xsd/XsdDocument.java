@@ -1,7 +1,9 @@
 package org.mycore.xsonify.xsd;
 
+import org.mycore.xsonify.xml.XmlAttribute;
 import org.mycore.xsonify.xml.XmlDocument;
 import org.mycore.xsonify.xml.XmlElement;
+import org.mycore.xsonify.xml.XmlException;
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xml.XmlQualifiedName;
@@ -23,7 +25,8 @@ public class XsdDocument extends XmlDocument {
     /**
      * List of attribute names that should be expanded.
      */
-    public static final List<String> EXPANDED_ATTRIBUTES = Arrays.asList("base", "ref", "type", "memberTypes", "itemType");
+    public static final List<String> EXPANDED_ATTRIBUTES = Arrays.asList("base", "ref", "type", "memberTypes",
+        "itemType");
     // TODO substitutionGroup (element), refer (keyref)
 
     private final String schemaLocation;
@@ -69,27 +72,36 @@ public class XsdDocument extends XmlDocument {
     }
 
     private void expandAttributes(XmlElement element) throws XsdParseException {
-        element.getAttributes().stream()
-            .filter(attribute -> EXPANDED_ATTRIBUTES.contains(attribute.getLocalName()))
-            .forEach(attribute -> expandAttribute(element, attribute.getLocalName(), attribute.getValue()));
-        element.getElements().forEach(this::expandAttributes);
+        for (XmlAttribute attribute : element.getAttributes()) {
+            if (EXPANDED_ATTRIBUTES.contains(attribute.getLocalName())) {
+                expandAttribute(element, attribute.getLocalName(), attribute.getValue());
+            }
+        }
+        for (XmlElement xmlElement : element.getElements()) {
+            expandAttributes(xmlElement);
+        }
     }
 
     private void expandAttribute(XmlElement element, String attributeName, String attributeValue)
         throws XsdParseException {
-        String expandedAttributeValue;
-        if (attributeValue.contains(" ")) {
-            expandedAttributeValue = Arrays.stream(attributeValue.split(" "))
-                .map(attributeValuePart -> toExpandedName(element, attributeName, attributeValuePart))
-                .map(XmlExpandedName::toString)
-                .collect(Collectors.joining(" "));
-        } else {
-            expandedAttributeValue = toExpandedName(element, attributeName, attributeValue).toString();
+        try {
+            String expandedAttributeValue;
+            if (attributeValue.contains(" ")) {
+                expandedAttributeValue = Arrays.stream(attributeValue.split(" "))
+                    .map(attributeValuePart -> toExpandedName(element, attributeValuePart))
+                    .map(XmlExpandedName::toString)
+                    .collect(Collectors.joining(" "));
+            } else {
+                expandedAttributeValue = toExpandedName(element, attributeValue).toString();
+            }
+            element.setAttribute(attributeName, expandedAttributeValue);
+        } catch (Exception exc) {
+            throw new XsdParseException("Unable to expand attribute @" + attributeName +
+                " with value '" + attributeValue + "'.", exc);
         }
-        element.setAttribute(attributeName, expandedAttributeValue);
     }
 
-    private XmlExpandedName toExpandedName(XmlElement element, String name, String value) {
+    private XmlExpandedName toExpandedName(XmlElement element, String value) {
         XmlQualifiedName qualifiedName = XmlQualifiedName.of(value);
         return XmlExpandedName.of(qualifiedName, (prefix) -> {
             Map<String, XmlNamespace> nsMap = getAttributeNamespaceMap(element);
@@ -97,7 +109,7 @@ public class XsdDocument extends XmlDocument {
             if (namespace != null) {
                 return namespace.uri();
             }
-            throw new XsdParseException("Missing namespace definition for " + name + "=" + value);
+            throw new RuntimeException("Unable to expand name '" + qualifiedName + "'.");
         });
     }
 

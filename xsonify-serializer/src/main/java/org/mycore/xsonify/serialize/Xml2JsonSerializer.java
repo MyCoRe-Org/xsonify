@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.mycore.xsonify.serialize.SerializerSettings.NamespaceHandling;
+import org.mycore.xsonify.serialize.detector.XsdDetectorException;
 import org.mycore.xsonify.serialize.detector.XsdJsonPrimitiveDetector;
 import org.mycore.xsonify.xml.XmlAttribute;
 import org.mycore.xsonify.xml.XmlContent;
@@ -31,30 +32,36 @@ import java.util.Map;
 
 public class Xml2JsonSerializer extends SerializerBase {
 
-    public Xml2JsonSerializer(Xsd xsd) {
+    public Xml2JsonSerializer(Xsd xsd) throws SerializationException {
         super(xsd, new SerializerSettings());
     }
 
-    public Xml2JsonSerializer(Xsd xsd, SerializerSettings settings) {
+    public Xml2JsonSerializer(Xsd xsd, SerializerSettings settings) throws SerializationException {
         super(xsd, settings, new SerializerStyle());
     }
 
-    public Xml2JsonSerializer(Xsd xsd, SerializerSettings settings, SerializerStyle style) {
+    public Xml2JsonSerializer(Xsd xsd, SerializerSettings settings, SerializerStyle style) throws
+        SerializationException {
         super(xsd, settings, style);
     }
 
-    public JsonObject serialize(XmlDocument document) {
-        JsonObject jsonContent = new JsonObject();
-        serializeElement(document.getRoot(), jsonContent, null);
-        if (settings().omitRootElement()) {
-            return jsonContent;
+    public JsonObject serialize(XmlDocument document) throws SerializationException {
+        try {
+            JsonObject jsonContent = new JsonObject();
+            serializeElement(document.getRoot(), jsonContent, null);
+            if (settings().omitRootElement()) {
+                return jsonContent;
+            }
+            JsonObject json = new JsonObject();
+            json.add(getName(document.getRoot()), jsonContent);
+            return json;
+        } catch (XsdDetectorException detectorException) {
+            throw new SerializationException(detectorException);
         }
-        JsonObject json = new JsonObject();
-        json.add(getName(document.getRoot()), jsonContent);
-        return json;
     }
 
-    public void serializeElement(XmlElement element, JsonObject json, XmlNamespace parentNamespace) {
+    private void serializeElement(XmlElement element, JsonObject json, XmlNamespace parentNamespace)
+        throws SerializationException, XsdDetectorException {
 
         // NAMESPACES
         handleNamespaces(element, json, parentNamespace);
@@ -84,9 +91,7 @@ public class Xml2JsonSerializer extends SerializerBase {
         // - run through the map and serialize
         for (Map.Entry<XmlExpandedName, List<XmlElement>> entry : childContentMap.entrySet()) {
             List<XmlElement> xmlContent = entry.getValue();
-            List<? extends JsonElement> jsonContent = xmlContent.stream().map(childElement -> {
-                return serializeChildElement(childElement, element.getNamespace());
-            }).toList();
+            List<JsonElement> jsonContent = serializeChildElements(xmlContent, element.getNamespace());
             String name = getName(xmlContent);
             if (useArray(xmlContent)) {
                 JsonArray arr = new JsonArray();
@@ -95,13 +100,23 @@ public class Xml2JsonSerializer extends SerializerBase {
             } else if (jsonContent.size() == 1) {
                 json.add(name, jsonContent.get(0));
             } else {
-                throw new SerializerException(
+                throw new SerializationException(
                     "Expected exactly one occurrence of " + name + ". But found an additional.");
             }
         }
     }
 
-    private JsonElement serializeChildElement(XmlElement element, XmlNamespace parentNamespace) {
+    private List<JsonElement> serializeChildElements(List<XmlElement> children, XmlNamespace parentNamespace)
+        throws SerializationException, XsdDetectorException {
+        List<JsonElement> jsonList = new ArrayList<>();
+        for (XmlElement childElement : children) {
+            jsonList.add(serializeChildElement(childElement, parentNamespace));
+        }
+        return jsonList;
+    }
+
+    private JsonElement serializeChildElement(XmlElement element, XmlNamespace parentNamespace)
+        throws SerializationException, XsdDetectorException {
         if (hasPlainText(element)) {
             XsdJsonPrimitiveDetector.JsonPrimitive jsonPrimitive = jsonPrimitiveDetector().detect(XmlPath.of(element));
             String text = element.getTextNormalized();
@@ -120,16 +135,19 @@ public class Xml2JsonSerializer extends SerializerBase {
         return settings().normalizeText() ? childElement.getTextNormalized() : childElement.getText();
     }
 
-    private String getName(List<XmlElement> elements) {
+    private String getName(List<XmlElement> elements) throws SerializationException, XsdDetectorException {
         LinkedHashSet<String> names = new LinkedHashSet<>();
-        elements.stream().map(this::getName).forEach(names::add);
+        for (XmlElement element : elements) {
+            String name = getName(element);
+            names.add(name);
+        }
         if (names.size() != 1) {
-            throw new SerializerException("name conflict for elements " + elements);
+            throw new SerializationException("name conflict for elements " + elements);
         }
         return names.stream().findFirst().get();
     }
 
-    private String getName(XmlElement element) {
+    private String getName(XmlElement element) throws XsdDetectorException {
         if (SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT.equals(settings().elementPrefixHandling())) {
             boolean hasNameConflict = prefixConflictDetector().detect(element);
             return hasNameConflict ? element.getQualifiedName().toString() : element.getLocalName();
@@ -137,7 +155,7 @@ public class Xml2JsonSerializer extends SerializerBase {
         return element.getQualifiedName().toString();
     }
 
-    private String getAttributeName(XmlAttribute attribute) {
+    private String getAttributeName(XmlAttribute attribute) throws XsdDetectorException {
         if (SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT.equals(settings().attributePrefixHandling())) {
             boolean hasNameConflict = prefixConflictDetector().detect(attribute);
             return getAttributeName(hasNameConflict ?
@@ -158,11 +176,11 @@ public class Xml2JsonSerializer extends SerializerBase {
         return style().xmlnsPrefix() + ":" + namespace.prefix();
     }
 
-    private boolean hasMixedContent(XmlElement element) {
+    private boolean hasMixedContent(XmlElement element) throws XsdDetectorException {
         return mixedContentDetector().detect(element);
     }
 
-    private boolean useArray(List<XmlElement> elements) {
+    private boolean useArray(List<XmlElement> elements) throws XsdDetectorException {
         if (this.repeatableElementDetector() != null) {
             return this.repeatableElementDetector().detect(elements.get(0));
         }
@@ -172,7 +190,7 @@ public class Xml2JsonSerializer extends SerializerBase {
         return elements.size() > 1;
     }
 
-    private boolean hasPlainText(XmlElement element) {
+    private boolean hasPlainText(XmlElement element) throws SerializationException {
         // ALWAYS WRAP
         if (SerializerSettings.PlainTextHandling.ALWAYS_WRAP.equals(settings().plainTextHandling())) {
             return false;
@@ -204,7 +222,7 @@ public class Xml2JsonSerializer extends SerializerBase {
         return !isChildOfXsAny(element);
     }
 
-    private Boolean isSimpleType(XmlElement element) {
+    private Boolean isSimpleType(XmlElement element) throws SerializationException {
         try {
             XsdElement xsdElement = xsd().resolveXmlElement(element);
             return isSimpleType(xsdElement);
@@ -213,7 +231,7 @@ public class Xml2JsonSerializer extends SerializerBase {
         }
     }
 
-    private Boolean isSimpleType(XsdNode xsdNode) {
+    private Boolean isSimpleType(XsdNode xsdNode) throws SerializationException {
         if (xsdNode == null) {
             return null;
         }
@@ -231,11 +249,11 @@ public class Xml2JsonSerializer extends SerializerBase {
             if (linkedNode != null) {
                 return isSimpleType(linkedNode);
             }
-            throw new SerializerException("Unable to @type '" + type + "'.");
+            throw new SerializationException("Unable to @type '" + type + "'.");
         }
         // check first child
         if (xsdNode.getChildren().isEmpty()) {
-            throw new SerializerException("XsdNode has neither @type nor any children '" + xsdNode + "'.");
+            throw new SerializationException("XsdNode has neither @type nor any children '" + xsdNode + "'.");
         }
         XsdNode child = xsdNode.getChildren().get(0);
         // TODO extension/restriction
@@ -276,11 +294,13 @@ public class Xml2JsonSerializer extends SerializerBase {
         return parentXsdNode != null && parentXsdNode.hasAny();
     }
 
-    private void handleAttributes(XmlElement element, JsonObject json) {
-        element.getAttributes().forEach(attribute -> handleAttribute(attribute, json));
+    private void handleAttributes(XmlElement element, JsonObject json) throws XsdDetectorException {
+        for (XmlAttribute attribute : element.getAttributes()) {
+            handleAttribute(attribute, json);
+        }
     }
 
-    private void handleAttribute(XmlAttribute attribute, JsonObject json) {
+    private void handleAttribute(XmlAttribute attribute, JsonObject json) throws XsdDetectorException {
         final String attributeName = getAttributeName(attribute);
         final String attributeValue = attribute.getValue();
         XsdJsonPrimitiveDetector.JsonPrimitive jsonPrimitive = jsonPrimitiveDetector().detect(XmlPath.of(attribute));
@@ -291,7 +311,8 @@ public class Xml2JsonSerializer extends SerializerBase {
         }
     }
 
-    private void handleMixedContent(XmlElement element, JsonObject json) {
+    private void handleMixedContent(XmlElement element, JsonObject json)
+        throws SerializationException, XsdDetectorException {
         if (SerializerSettings.MixedContentHandling.UTF_8_ENCODING.equals(settings().mixedContentHandling())) {
             String mixedContentAsString = element.encodeContent(StandardCharsets.UTF_8);
             if (!mixedContentAsString.isEmpty()) {
@@ -302,25 +323,26 @@ public class Xml2JsonSerializer extends SerializerBase {
         serializeMixedContent(element, json);
     }
 
-    private void serializeMixedContent(XmlElement element, JsonObject json) {
+    private void serializeMixedContent(XmlElement element, JsonObject json)
+        throws SerializationException, XsdDetectorException {
         JsonArray content = new JsonArray();
         if (settings().normalizeText()) {
-            element.trailingContent().forEach(trailingInfo -> {
+            for (XmlElement.TrailingInfo trailingInfo : element.trailingContent()) {
                 XmlContent childContent = trailingInfo.content();
                 if (childContent instanceof XmlElement) {
                     serializeMixedContentElement((XmlElement) childContent, element, content);
                 } else if (childContent instanceof XmlText) {
                     serializeMixedContentText((XmlText) childContent, content, true, trailingInfo.trailing());
                 }
-            });
+            }
         } else {
-            element.getContent().forEach(childContent -> {
+            for (XmlContent childContent : element.getContent()) {
                 if (childContent instanceof XmlElement) {
                     serializeMixedContentElement((XmlElement) childContent, element, content);
                 } else if (childContent instanceof XmlText) {
                     serializeMixedContentText((XmlText) childContent, content, false, false);
                 }
-            });
+            }
         }
         json.add(style().mixedContentKey(), content);
     }
@@ -333,13 +355,15 @@ public class Xml2JsonSerializer extends SerializerBase {
         content.add(textAsString);
     }
 
-    private void serializeMixedContentElement(XmlElement element, XmlElement parentElement, JsonArray content) {
+    private void serializeMixedContentElement(XmlElement element, XmlElement parentElement, JsonArray content)
+        throws SerializationException, XsdDetectorException {
         JsonObject childObject = new JsonObject();
         serializeMixedContentElement(element, childObject, parentElement.getNamespace());
         content.add(childObject);
     }
 
-    private void serializeMixedContentElement(XmlElement element, JsonObject json, XmlNamespace parentNamespace) {
+    private void serializeMixedContentElement(XmlElement element, JsonObject json, XmlNamespace parentNamespace)
+        throws SerializationException, XsdDetectorException {
         // NAME
         json.addProperty(style().mixedContentElementNameKey(), element.getLocalName());
 

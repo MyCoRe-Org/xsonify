@@ -370,7 +370,7 @@ public class Xsd {
             "element '" + elementToFind + "' could not be found in parent '" + parent.getName() + "'");
     }
 
-    private XsdNode resolvePathForAttribute(XsdNode parent, XmlName attributeName) {
+    private XsdNode resolvePathForAttribute(XsdNode parent, XmlName attributeName) throws XsdAnyException {
         // add uri to attribute if empty
         // this is needed because attributes usually have an empty namespace, but the xsd definition uses namespaces
         XmlExpandedName resolvedAttributeName = attributeName.expandedName();

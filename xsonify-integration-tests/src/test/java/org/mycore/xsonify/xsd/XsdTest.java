@@ -13,7 +13,7 @@ import static org.mycore.xsonify.xml.XmlBaseTest.MODS_NS;
 public class XsdTest extends XsdBaseTest {
 
     @Test
-    public void getTargetNamespace() throws IOException, ParserConfigurationException, SAXException {
+    public void getTargetNamespace() throws IOException, ParserConfigurationException, SAXException, XsdParseException {
         Xsd modsXsd = getXsd("mods-3-8.xsd");
         assertEquals(MODS_NS.uri(), modsXsd.getTargetNamespace());
 

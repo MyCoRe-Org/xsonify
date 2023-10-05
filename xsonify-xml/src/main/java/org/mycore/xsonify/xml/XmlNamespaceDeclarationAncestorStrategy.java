@@ -12,12 +12,14 @@ import java.util.Map;
 public class XmlNamespaceDeclarationAncestorStrategy implements XmlNamespaceDeclarationStrategy {
 
     @Override
-    public void apply(XmlElement element) {
+    public void apply(XmlElement element) throws XmlException {
         Map<XmlNamespace, List<XmlElement>> namespaceElementMap = new HashMap<>();
         collect(element, namespaceElementMap);
-        namespaceElementMap.forEach((namespace, elements) -> {
+        for (Map.Entry<XmlNamespace, List<XmlElement>> entry : namespaceElementMap.entrySet()) {
+            XmlNamespace namespace = entry.getKey();
+            List<XmlElement> elements = entry.getValue();
             if (elements.size() == 1) {
-                return;
+                continue;
             }
             // find ancestor
             XmlElement commonAncestor = findCommonAncestor(elements);
@@ -30,7 +32,7 @@ public class XmlNamespaceDeclarationAncestorStrategy implements XmlNamespaceDecl
             }
             // add to ancestor
             commonAncestor.setAdditionalNamespace(namespace);
-        });
+        }
     }
 
     /**

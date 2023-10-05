@@ -122,13 +122,14 @@ public abstract class XsdUtil {
      * @throws SAXException                 for SAX errors.
      */
     public static Xsd getXsdFromCatalog(String schemaLocation, CatalogResolver catalogResolver)
-        throws ParserConfigurationException, SAXException {
+        throws XsdParseException, ParserConfigurationException, SAXException {
         XmlDocumentLoader loader = new XmlEntityResolverDocumentLoader(catalogResolver, new XmlSaxParser());
         XsdParser parser = new XsdParser(loader);
         return parser.parse(schemaLocation);
     }
 
-    public static Xsd getXsdFromResource(String systemResource) throws ParserConfigurationException, SAXException {
+    public static Xsd getXsdFromResource(String systemResource)
+        throws XsdParseException, ParserConfigurationException, SAXException {
         XmlDocumentLoader loader = new XmlResourceDocumentLoader(new XmlSaxParser());
         XsdParser parser = new XsdParser(loader);
         return parser.parse(systemResource);

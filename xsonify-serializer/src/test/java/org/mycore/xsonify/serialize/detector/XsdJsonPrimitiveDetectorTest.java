@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mycore.xsonify.serialize.detector.XsdJsonPrimitiveDetector.JsonPrimitive;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xsd.Xsd;
+import org.mycore.xsonify.xsd.XsdParseException;
 import org.mycore.xsonify.xsd.XsdUtil;
 import org.xml.sax.SAXException;
 
@@ -18,7 +19,7 @@ public class XsdJsonPrimitiveDetectorTest {
     private final static Map<String, XmlNamespace> NS_MAP = Map.of("", NS);
 
     @Test
-    public void detect() throws ParserConfigurationException, SAXException {
+    public void detect() throws ParserConfigurationException, SAXException, XsdDetectorException, XsdParseException {
         Xsd xsd = XsdUtil.getXsdFromResource("jsonPrimitiveDetectorTest.xsd");
         System.out.println(xsd.toTreeString());
         XsdJsonPrimitiveDetector detector = new XsdJsonPrimitiveDetector(xsd);

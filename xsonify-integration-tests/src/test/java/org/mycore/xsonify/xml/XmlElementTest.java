@@ -18,7 +18,7 @@ public class XmlElementTest extends XmlBaseTest {
     private final String ACCESS_STRING = "<access type=\"public\">Open <b>S</b>ource</access>";
 
     @Test
-    public void encodeContent() throws ParserConfigurationException, SAXException, IOException {
+    public void encodeContent() throws ParserConfigurationException, SAXException, IOException, XmlException {
         XmlDocument modsXml = getXml("/xml/mods-simple.xml");
 
         Map<String, XmlNamespace> namespaceMap = modsXml.collectNamespacesSqueezed();
@@ -29,7 +29,7 @@ public class XmlElementTest extends XmlBaseTest {
     }
 
     @Test
-    public void decodeContent() throws ParserConfigurationException, SAXException, IOException {
+    public void decodeContent() throws ParserConfigurationException, SAXException, IOException, XmlParseException {
         List<XmlContent> contentList = XmlElement.decodeContent(ACCESS_STRING, Charset.defaultCharset());
         XmlElement tempElement = new XmlElement("temp");
         tempElement.addAll(contentList);
@@ -37,7 +37,7 @@ public class XmlElementTest extends XmlBaseTest {
     }
 
     @Test
-    public void getNamespacesLocal() throws ParserConfigurationException, IOException, SAXException {
+    public void getNamespacesLocal() throws ParserConfigurationException, IOException, SAXException, XmlException {
         // mods simple
         XmlDocument modsSimple = getXml("/xml/mods-simple.xml");
         XmlElement titleInfo = modsSimple.queryFirstElement(
@@ -67,7 +67,7 @@ public class XmlElementTest extends XmlBaseTest {
     }
 
     @Test
-    public void getNamespacesInScope() throws ParserConfigurationException, IOException, SAXException {
+    public void getNamespacesInScope() throws ParserConfigurationException, IOException, SAXException, XmlException {
         // mods simple
         XmlDocument modsXml = getXml("/xml/mods-simple.xml");
         XmlElement title = modsXml.queryFirstElement(XmlPath.of("/mods:mods/mods:titleInfo/mods:title",
@@ -104,7 +104,7 @@ public class XmlElementTest extends XmlBaseTest {
     }
 
     @Test
-    public void getNamespacesIntroduced() throws ParserConfigurationException, IOException, SAXException {
+    public void getNamespacesIntroduced() throws ParserConfigurationException, IOException, SAXException, XmlException {
         // mods simple
         XmlDocument modsXml = getXml("/xml/mods-simple.xml");
         XmlElement titleInfo = modsXml.queryFirstElement(

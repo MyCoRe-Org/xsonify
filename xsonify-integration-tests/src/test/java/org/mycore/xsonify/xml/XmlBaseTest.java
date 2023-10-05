@@ -13,7 +13,8 @@ public abstract class XmlBaseTest {
     public static final XmlNamespace MODS_NS = new XmlNamespace("mods", "http://www.loc.gov/mods/v3");
     public static final XmlNamespace CMD_NS = new XmlNamespace("cmd", "http://www.cdlib.org/inside/diglib/copyrightMD");
 
-    public XmlDocument getXml(String resourceName) throws ParserConfigurationException, SAXException, IOException {
+    public XmlDocument getXml(String resourceName)
+        throws ParserConfigurationException, SAXException, IOException, XmlParseException {
         URL resource = XmlBaseTest.class.getResource(resourceName);
         if (resource == null) {
             throw new IllegalArgumentException("Unable to locate resource '" + resourceName + "'.");

@@ -1,6 +1,5 @@
 package org.mycore.xsonify.serialize.detector;
 
-import org.mycore.xsonify.serialize.SerializerException;
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
@@ -24,23 +23,43 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * A detector for identifying repeatable XML elements based on XSD definitions.
+ * <p>
+ * This class analyzes an XSD schema and determines if a given XML path refers to a repeatable element.
+ * The analysis considers elements, complex types, and groups within the XSD.
+ * </p>
+ */
 public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
 
     private final XsdRoot root;
 
-    public XsdRepeatableElementDetector(Xsd xsd) {
+    /**
+     * Initializes a new instance of {@link XsdRepeatableElementDetector} using the provided XSD schema.
+     *
+     * @param xsd The XSD schema to be analyzed.
+     * @throws XsdDetectorException if an error occurs during initialization.
+     */
+    public XsdRepeatableElementDetector(Xsd xsd) throws XsdDetectorException {
         this.root = createRoot(xsd);
         create(xsd);
     }
 
+    /**
+     * Determines if the specified XML path refers to a repeatable element in the XSD.
+     *
+     * @param path The XML path to be checked.
+     * @return {@code true} if the element at the given XML path is repeatable, {@code false} otherwise.
+     * @throws XsdDetectorException if the element is not found in the XSD definition or another error occurs.
+     */
     @Override
-    public Boolean detect(XmlPath path) {
+    public Boolean detect(XmlPath path) throws XsdDetectorException {
         if (path.isEmpty() || path.size() == 1) {
             return false;
         }
         Node rootNode = this.root.getElementNode(path.root().name().expandedName());
         if (rootNode == null) {
-            throw new SerializerException("Unable to find element " + path.root().name() + " in xsd definition.");
+            throw new XsdDetectorException("Unable to find element " + path.root().name() + " in xsd definition.");
         }
         Boolean repeatable = isRepeatable(rootNode, path, 1, false);
         return repeatable != null ? repeatable : false;
@@ -75,9 +94,12 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
         return found ? Boolean.FALSE : null;
     }
 
-    record RepeatableInfo(Node node, Boolean repeatable) {
-    }
-
+    /**
+     * Constructs the root of the XSD schema tree.
+     *
+     * @param xsd The XSD schema to be transformed into a tree.
+     * @return The root of the constructed XSD schema tree.
+     */
     private XsdRoot createRoot(Xsd xsd) {
         XsdRoot root = new XsdRoot();
         xsd.getNamedNodes(
@@ -90,34 +112,52 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
         return root;
     }
 
-    private void create(Xsd xsd) {
+    private void create(Xsd xsd) throws XsdDetectorException {
         // elements
-        this.root.getElementNodes().forEach(node -> {
-            XsdElement xsdElement = xsd.getNamedNode(XsdElement.class, node.name);
-            XsdDatatype datatype = xsdElement.getDatatype();
-            if (datatype != null) {
-                if (datatype instanceof XsdComplexType) {
-                    Node complexTypeNode = this.root.getComplexTypeNode(datatype.getName());
-                    node.put(complexTypeNode.name, new RepeatableInfo(complexTypeNode, false));
-                }
-                // we don't care for simple types
-            } else {
-                xsdElement.getChildren().forEach(xsdChildNode -> create(xsdChildNode, node, false));
-            }
-        });
+        for (Node elementNode : this.root.getElementNodes()) {
+            handleRootElement(xsd, elementNode);
+        }
         // complex types
-        this.root.getComplexTypeNodes().forEach(node -> {
-            XsdComplexType xsdComplexType = xsd.getNamedNode(XsdComplexType.class, node.name);
-            xsdComplexType.getChildren().forEach(xsdChildNode -> create(xsdChildNode, node, false));
-        });
+        for (Node complexTypeNode : this.root.getComplexTypeNodes()) {
+            handleRootComplexType(xsd, complexTypeNode);
+        }
         // groups
-        this.root.getGroupNodes().forEach(node -> {
-            XsdGroup xsdGroup = xsd.getNamedNode(XsdGroup.class, node.name);
-            xsdGroup.getChildren().forEach(xsdChildNode -> create(xsdChildNode, node, false));
-        });
+        for (Node groupNode : this.root.getGroupNodes()) {
+            handeRootGroup(xsd, groupNode);
+        }
     }
 
-    private void create(XsdNode xsdNode, Node elementNode, boolean isRepeatable) {
+    private void handleRootElement(Xsd xsd, Node node) throws XsdDetectorException {
+        XsdElement xsdElement = xsd.getNamedNode(XsdElement.class, node.name);
+        XsdDatatype datatype = xsdElement.getDatatype();
+        if (datatype != null) {
+            if (datatype instanceof XsdComplexType) {
+                Node complexTypeNode = this.root.getComplexTypeNode(datatype.getName());
+                node.put(complexTypeNode.name, new RepeatableInfo(complexTypeNode, false));
+            }
+            // we don't care for simple types
+        } else {
+            for (XsdNode xsdChildNode : xsdElement.getChildren()) {
+                create(xsdChildNode, node, false);
+            }
+        }
+    }
+
+    private void handleRootComplexType(Xsd xsd, Node node) throws XsdDetectorException {
+        XsdComplexType xsdComplexType = xsd.getNamedNode(XsdComplexType.class, node.name);
+        for (XsdNode xsdChildNode : xsdComplexType.getChildren()) {
+            create(xsdChildNode, node, false);
+        }
+    }
+
+    private void handeRootGroup(Xsd xsd, Node node) throws XsdDetectorException {
+        XsdGroup xsdGroup = xsd.getNamedNode(XsdGroup.class, node.name);
+        for (XsdNode xsdChildNode : xsdGroup.getChildren()) {
+            create(xsdChildNode, node, false);
+        }
+    }
+
+    private void create(XsdNode xsdNode, Node elementNode, boolean isRepeatable) throws XsdDetectorException {
         if (!XsdElement.CONTAINER_NODES.contains(xsdNode.getClass())) {
             return;
         }
@@ -143,7 +183,8 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
         }
     }
 
-    private void createElement(XsdElement xsdElement, Node elementNode, boolean forceRepeatable) {
+    private void createElement(XsdElement xsdElement, Node elementNode, boolean forceRepeatable)
+        throws XsdDetectorException {
         XsdElement reference = xsdElement.getReference();
         XsdDatatype datatype = xsdElement.getDatatype();
         if (reference != null) {
@@ -167,7 +208,7 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
         }
     }
 
-    public Integer getMaxOccurs(XsdNode xsdNode) {
+    public Integer getMaxOccurs(XsdNode xsdNode) throws XsdDetectorException {
         // maxOccurs is set
         String maxOccurs = xsdNode.getAttribute("maxOccurs");
         if (maxOccurs != null) {
@@ -189,13 +230,19 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
             return 1;
         }
         }
-        throw new SerializerException("Unexpected Type " + xsdNode.getType());
+        throw new XsdDetectorException("Unexpected Type " + xsdNode.getType());
     }
 
     public String toTreeString() {
         StringBuilder sb = new StringBuilder();
         this.root.nodes().forEach(e -> sb.append(e.toTreeString()).append("\n"));
         return sb.toString();
+    }
+
+    /**
+     * Holds information about the repeatability and node of an element.
+     */
+    record RepeatableInfo(Node node, Boolean repeatable) {
     }
 
     private static class XsdRoot {

@@ -14,11 +14,26 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * The {@code XsdMixedContentDetector} class is designed to detect mixed content elements
+ * within an XML Schema Definition (XSD). In XML Schema, an element with mixed content
+ * can contain both child elements and character data. This detector identifies such
+ * elements and provides utility methods to query this information.
+ */
 public class XsdMixedContentDetector implements XsdDetector<Boolean> {
 
+    /**
+     * A set of XML expanded names representing elements that have mixed content.
+     */
     private final Set<XmlExpandedName> mixedContentElements;
 
-    public XsdMixedContentDetector(Xsd xsd) {
+    /**
+     * Constructs an {@code XsdMixedContentDetector} by analyzing the provided XSD.
+     *
+     * @param xsd the XML Schema Definition to analyze
+     * @throws XsdDetectorException if there's an issue detecting mixed content elements in the XSD
+     */
+    public XsdMixedContentDetector(Xsd xsd) throws XsdDetectorException {
         this.mixedContentElements = new HashSet<>();
         // mixed content can only appear in complexType or complexContent
         Collection<XsdNode> complexNodes = xsd.collect(XsdComplexType.class, XsdComplexContent.class);
@@ -26,7 +41,14 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
         buildMixedContentElements(xsd, mixedComplexTypes);
     }
 
-    private List<XsdComplexType> getMixedComplexTypes(Collection<XsdNode> nodes) {
+    /**
+     * Returns a list of complex types that have mixed content from the provided nodes.
+     *
+     * @param nodes collection of nodes to inspect
+     * @return list of complex types with mixed content
+     * @throws XsdDetectorException if a node type mismatch occurs
+     */
+    private List<XsdComplexType> getMixedComplexTypes(Collection<XsdNode> nodes) throws XsdDetectorException {
         List<XsdComplexType> mixedComplexTypes = new ArrayList<>();
         for (XsdNode node : nodes) {
             if (!isMixedContent(node)) {
@@ -41,14 +63,25 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
         return mixedComplexTypes;
     }
 
-    private void buildMixedContentElements(Xsd xsd, Collection<XsdComplexType> mixedComplexTypes) {
+    /**
+     * Analyzes the provided collection of mixed complex types and populates
+     * the {@code mixedContentElements} set.
+     *
+     * @param xsd the XML Schema Definition being analyzed
+     * @param mixedComplexTypes collection of mixed complex types to analyze
+     * @throws XsdDetectorException if a node type mismatch occurs
+     */
+    private void buildMixedContentElements(Xsd xsd, Collection<XsdComplexType> mixedComplexTypes)
+        throws XsdDetectorException {
         Collection<XsdElement> elementNodes = xsd.collect(XsdElement.class);
         for (XsdComplexType mixedComplexTypeNode : mixedComplexTypes) {
             if (mixedComplexTypeNode.getParent() == null) {
                 // root node
-                elementNodes.stream()
-                    .filter(node -> node.getDatatype() == mixedComplexTypeNode)
-                    .forEach(this::addMixedContentElement);
+                for (XsdElement node : elementNodes) {
+                    if (node.getDatatype() == mixedComplexTypeNode) {
+                        addMixedContentElement(node);
+                    }
+                }
                 continue;
             }
             // local node
@@ -56,16 +89,31 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
         }
     }
 
-    private void addMixedContentElement(XsdNode node) {
+    /**
+     * Adds a mixed content element to the {@code mixedContentElements} set.
+     *
+     * @param node the node representing the mixed content element
+     * @throws XsdDetectorException if the node is not of the expected type
+     */
+    private void addMixedContentElement(XsdNode node) throws XsdDetectorException {
         XsdElement xsdElement = expectNodeType(XsdElement.class, node);
         if (xsdElement.getReference() != null) {
             xsdElement = xsdElement.getReference();
         }
-        mixedContentElements.add(xsdElement.getName());
+        this.mixedContentElements.add(xsdElement.getName());
     }
 
+    /**
+     * Validates that the provided node is of the expected type. If not, throws an {@link XsdDetectorException}.
+     *
+     * @param <T> the type of node expected
+     * @param nodeClass the class object of the expected node type
+     * @param node the node to validate
+     * @return the node cast to the expected type
+     * @throws XsdDetectorException if the node is not of the expected type
+     */
     @SuppressWarnings("unchecked")
-    private <T extends XsdNode> T expectNodeType(Class<T> nodeClass, XsdNode node) {
+    private <T extends XsdNode> T expectNodeType(Class<T> nodeClass, XsdNode node) throws XsdDetectorException {
         if (!nodeClass.equals(node.getClass())) {
             throw new XsdDetectorException(
                 "Couldn't build XsdMixedContentDetector. Expected node '" + nodeClass + "' but found "
@@ -74,6 +122,12 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
         return (T) node;
     }
 
+    /**
+     * Determines if the provided node represents mixed content.
+     *
+     * @param node the node to check
+     * @return {@code true} if the node represents mixed content, otherwise {@code false}
+     */
     private boolean isMixedContent(XsdNode node) {
         String mixed = node.getAttribute("mixed");
         if (mixed == null) {
@@ -82,10 +136,21 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
         return Boolean.parseBoolean(mixed);
     }
 
+    /**
+     * Returns a set of mixed content elements detected in the XSD.
+     *
+     * @return set of XML expanded names representing mixed content elements
+     */
     public Set<XmlExpandedName> getMixedContentElements() {
         return mixedContentElements;
     }
 
+    /**
+     * Determines if the provided XML path corresponds to a mixed content element.
+     *
+     * @param path the XML path to check
+     * @return {@code true} if the path corresponds to a mixed content element, otherwise {@code false}
+     */
     @Override
     public Boolean detect(XmlPath path) {
         XmlPath.Node last = path.last();

@@ -43,7 +43,7 @@ public class XmlEntityResolverDocumentLoader implements XmlDocumentLoader {
      * @throws IOException If an I/O error occurs while reading the document.
      * @throws SAXException If a parsing error occurs while reading the document.
      */
-    public XmlDocument load(String systemId) throws IOException, SAXException {
+    public XmlDocument load(String systemId) throws IOException, SAXException, XmlParseException {
         InputSource source = loadSource(systemId);
         URI uri = URI.create(source.getSystemId());
         return this.xmlParser.parse(uri.toURL());

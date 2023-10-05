@@ -1,7 +1,6 @@
 package org.mycore.xsonify.xml;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -151,10 +150,12 @@ public class XmlPath implements Iterable<XmlPath.Node> {
      */
     public static XmlPath of(String path, Map<String, XmlNamespace> namespaceMap) {
         XmlPath xmlPath = new XmlPath();
-        Arrays.stream(path.split("/"))
-            .filter(s -> !s.isEmpty())
-            .map((String name) -> createNode(name, namespaceMap))
-            .forEach(xmlPath::add);
+        for (String s : path.split("/")) {
+            if (!s.isEmpty()) {
+                Node node = createNode(s, namespaceMap);
+                xmlPath.add(node);
+            }
+        }
         return xmlPath;
     }
 
@@ -180,7 +181,7 @@ public class XmlPath implements Iterable<XmlPath.Node> {
             if (defaultNamespace != null) {
                 return defaultNamespace.uri();
             }
-            throw new XmlException("Unable to get namespace uri for '" + qualifiedName + "'.");
+            throw new RuntimeException("Unable to get namespace uri for '" + qualifiedName + "'.");
         });
     }
 

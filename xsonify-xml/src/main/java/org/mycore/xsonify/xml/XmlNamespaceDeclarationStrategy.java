@@ -10,7 +10,7 @@ public interface XmlNamespaceDeclarationStrategy {
      *
      * @param xmlDocument the XML document to apply the strategy to
      */
-    default void apply(XmlDocument xmlDocument) {
+    default void apply(XmlDocument xmlDocument) throws XmlException {
         apply(xmlDocument.getRoot());
     }
 
@@ -19,6 +19,6 @@ public interface XmlNamespaceDeclarationStrategy {
      *
      * @param element the XML element to which the strategy should be applied
      */
-    void apply(XmlElement element);
+    void apply(XmlElement element) throws XmlException;
 
 }

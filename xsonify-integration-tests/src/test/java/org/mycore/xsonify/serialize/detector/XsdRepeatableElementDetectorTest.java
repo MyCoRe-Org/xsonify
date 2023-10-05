@@ -10,9 +10,6 @@ import org.mycore.xsonify.xsd.XsdUtil;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 public class XsdRepeatableElementDetectorTest extends XsdDetectorTest {
 
     @Test

@@ -1,13 +1,11 @@
 package org.mycore.xsonify.serialize.detector;
 
-import org.mycore.xsonify.xml.XmlBuiltInAttributes;
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
 import org.mycore.xsonify.xsd.XsdNode;
-import org.mycore.xsonify.xsd.XsdParseException;
 import org.mycore.xsonify.xsd.node.XsdAttribute;
 import org.mycore.xsonify.xsd.node.XsdComplexType;
 import org.mycore.xsonify.xsd.node.XsdContent;
@@ -19,7 +17,6 @@ import org.mycore.xsonify.xsd.node.XsdRestriction;
 import org.mycore.xsonify.xsd.node.XsdSimpleType;
 import org.mycore.xsonify.xsd.node.XsdUnion;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +81,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
      *
      * @param xsd The XSD used for detection.
      */
-    public XsdJsonPrimitiveDetector(Xsd xsd) {
+    public XsdJsonPrimitiveDetector(Xsd xsd) throws XsdDetectorException {
         this.xsd = xsd;
         this.nodeJsonPrimitiveMap = new LinkedHashMap<>();
         init();
@@ -94,27 +91,28 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
      * Initializes the detector by analyzing the XSD structure and populating
      * the {@link #nodeJsonPrimitiveMap} with element/attribute nodes and their corresponding JSON primitive types.
      */
-    private void init() {
-        this.xsd.collect(XsdElement.class, XsdAttribute.class).stream()
+    private void init() throws XsdDetectorException {
+        List<XsdNode> nodes = this.xsd.collect(XsdElement.class, XsdAttribute.class).stream()
             .filter(XsdReferenceable.class::isInstance)
             .map(XsdReferenceable.class::cast)
             .filter(node -> node.getReference() == null)
             .map(XsdNode.class::cast)
-            .forEach(node -> {
-                if (node instanceof XsdElement) {
-                    JsonPrimitive primitive = detectElementNode((XsdElement) node);
-                    nodeJsonPrimitiveMap.put(node, primitive);
-                } else if (node instanceof XsdAttribute) {
-                    JsonPrimitive primitive = detectAttributeNode((XsdAttribute) node);
-                    nodeJsonPrimitiveMap.put(node, primitive);
-                }
-            });
+            .toList();
+        for (XsdNode node : nodes) {
+            if (node instanceof XsdElement) {
+                JsonPrimitive primitive = detectElementNode((XsdElement) node);
+                nodeJsonPrimitiveMap.put(node, primitive);
+            } else if (node instanceof XsdAttribute) {
+                JsonPrimitive primitive = detectAttributeNode((XsdAttribute) node);
+                nodeJsonPrimitiveMap.put(node, primitive);
+            }
+        }
     }
 
     @Override
     public JsonPrimitive detect(XmlPath path) {
         try {
-            // check for built in attributes
+            // check for built-in attributes
             XmlPath.Node lastNode = path.last();
             if (path.last().isAttribute()) {
                 JsonPrimitive builtInPrimitiveValue = BUILT_IN_ATTRIBUTES.get(lastNode.name().expandedName());
@@ -137,7 +135,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
      * @param element The XSD element to detect.
      * @return The detected JSON primitive type.
      */
-    private JsonPrimitive detectElementNode(XsdElement element) {
+    private JsonPrimitive detectElementNode(XsdElement element) throws XsdDetectorException {
         // @type
         XmlExpandedName datatypeName = element.getDatatypeName();
         if (datatypeName != null) {
@@ -162,7 +160,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
      * @param attribute The XSD attribute to detect.
      * @return The detected JSON primitive type.
      */
-    private JsonPrimitive detectAttributeNode(XsdAttribute attribute) {
+    private JsonPrimitive detectAttributeNode(XsdAttribute attribute) throws XsdDetectorException {
         // @type
         XmlExpandedName datatypeName = attribute.getDatatypeName();
         if (datatypeName != null) {
@@ -172,7 +170,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
         return detectSingleSimpleTypeChild(attribute);
     }
 
-    private JsonPrimitive detectSimpleTypeNode(XsdSimpleType simpleType) {
+    private JsonPrimitive detectSimpleTypeNode(XsdSimpleType simpleType) throws XsdDetectorException {
         JsonPrimitive result = null;
         for (XsdNode node : simpleType.getChildren()) {
             JsonPrimitive primitive;
@@ -183,7 +181,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
             } else if (node instanceof XsdList) {
                 primitive = detectListNode((XsdList) node);
             } else {
-                throw new XsdParseException("Invalid child of xs:simpleType '" + node
+                throw new XsdDetectorException("Invalid child of xs:simpleType '" + node
                     + "'. Only xs:union, xs:list and xs:restriction should be allowed");
             }
             result = max(result, primitive);
@@ -195,7 +193,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
         return result;
     }
 
-    private JsonPrimitive detectComplexTypeNode(XsdComplexType complexType) {
+    private JsonPrimitive detectComplexTypeNode(XsdComplexType complexType) throws XsdDetectorException {
         // check complex & simple content
         XsdContent content = complexType.getFirstChild(XsdContent.class);
         if (content != null) {
@@ -204,7 +202,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
         return null;
     }
 
-    private JsonPrimitive detectContentNode(XsdContent content) {
+    private JsonPrimitive detectContentNode(XsdContent content) throws XsdDetectorException {
         // check extension
         XsdExtension extension = content.getFirstChild(XsdExtension.class);
         if (extension != null) {
@@ -218,11 +216,11 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
         return null;
     }
 
-    private JsonPrimitive detectExtensionNode(XsdExtension extension) {
+    private JsonPrimitive detectExtensionNode(XsdExtension extension) throws XsdDetectorException {
         return getJsonPrimitive(extension.getBaseName());
     }
 
-    private JsonPrimitive detectRestrictionNode(XsdRestriction restriction) {
+    private JsonPrimitive detectRestrictionNode(XsdRestriction restriction) throws XsdDetectorException {
         // check @base first
         JsonPrimitive result = getJsonPrimitive(restriction.getBaseName());
         if (result != null) {
@@ -232,7 +230,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
         return detectSingleSimpleTypeChild(restriction);
     }
 
-    private JsonPrimitive detectUnionNode(XsdUnion union) {
+    private JsonPrimitive detectUnionNode(XsdUnion union) throws XsdDetectorException {
         JsonPrimitive result = null;
         // check @memberTypes first
         for (XmlExpandedName type : union.getMemberTypes()) {
@@ -246,7 +244,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
         return detectMultipleSingleTypeChild(union);
     }
 
-    private JsonPrimitive detectListNode(XsdList list) {
+    private JsonPrimitive detectListNode(XsdList list) throws XsdDetectorException {
         // check @itemType first
         JsonPrimitive result = getJsonPrimitive(list.getItemType());
         if (result != null) {
@@ -256,21 +254,24 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
         return detectSingleSimpleTypeChild(list);
     }
 
-    private JsonPrimitive detectMultipleSingleTypeChild(XsdNode parentNode) {
-        return parentNode.getChildren().stream()
-            .filter(XsdSimpleType.class::isInstance)
-            .map(XsdSimpleType.class::cast)
-            .map(this::detectSimpleTypeNode)
-            .reduce(null, this::max);
+    private JsonPrimitive detectMultipleSingleTypeChild(XsdNode parentNode) throws XsdDetectorException {
+        JsonPrimitive acc = null;
+        for (XsdNode xsdNode : parentNode.getChildren()) {
+            if (xsdNode instanceof XsdSimpleType simpleType) {
+                JsonPrimitive primitive = detectSimpleTypeNode(simpleType);
+                acc = max(acc, primitive);
+            }
+        }
+        return acc;
     }
 
-    private JsonPrimitive detectSingleSimpleTypeChild(XsdNode parentNode) {
-        return parentNode.getChildren().stream()
-            .filter(XsdSimpleType.class::isInstance)
-            .map(XsdSimpleType.class::cast)
-            .map(this::detectSimpleTypeNode)
-            .findFirst()
-            .orElse(null);
+    private JsonPrimitive detectSingleSimpleTypeChild(XsdNode parentNode) throws XsdDetectorException {
+        for (XsdNode xsdNode : parentNode.getChildren()) {
+            if (xsdNode instanceof XsdSimpleType simpleType) {
+                return detectSimpleTypeNode(simpleType);
+            }
+        }
+        return null;
     }
 
     /**
@@ -296,7 +297,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
      * @param type The XSD type for which to get the JSON primitive type.
      * @return The corresponding JSON primitive type, or null if none found.
      */
-    private JsonPrimitive getJsonPrimitive(XmlExpandedName type) {
+    private JsonPrimitive getJsonPrimitive(XmlExpandedName type) throws XsdDetectorException {
         if (type == null) {
             return null;
         }

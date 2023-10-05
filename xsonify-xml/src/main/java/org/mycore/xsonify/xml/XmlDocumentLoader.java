@@ -6,6 +6,6 @@ import java.io.IOException;
 
 public interface XmlDocumentLoader {
 
-    XmlDocument load(String systemId) throws IOException, SAXException;
+    XmlDocument load(String systemId) throws IOException, SAXException, XmlParseException;
 
 }

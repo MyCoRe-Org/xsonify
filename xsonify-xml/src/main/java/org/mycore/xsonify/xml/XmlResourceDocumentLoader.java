@@ -15,7 +15,7 @@ public class XmlResourceDocumentLoader implements XmlDocumentLoader {
     }
 
     @Override
-    public XmlDocument load(String systemResource) throws IOException, SAXException {
+    public XmlDocument load(String systemResource) throws IOException, SAXException, XmlParseException {
         URL url = ClassLoader.getSystemResource(systemResource);
         if (url == null) {
             throw new NullPointerException("Unable to locate system resource " + systemResource);

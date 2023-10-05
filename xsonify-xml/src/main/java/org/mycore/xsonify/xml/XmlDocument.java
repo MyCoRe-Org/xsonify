@@ -2,6 +2,7 @@ package org.mycore.xsonify.xml;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -82,18 +83,18 @@ public class XmlDocument {
         }
     }
 
-    public Map<String, XmlNamespace> collectNamespacesSqueezed() {
-        return collectNamespaces().entrySet().stream()
-            .peek(entry -> {
-                if (entry.getValue().size() != 1) {
-                    throw new XmlException("Multiple namespaces bound to prefix '" + entry.getKey() + "': " +
-                        entry.getValue());
-                }
-            })
-            .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> entry.getValue().iterator().next()
-            ));
+    public Map<String, XmlNamespace> collectNamespacesSqueezed() throws XmlException {
+        Map<String, XmlNamespace> map = new HashMap<>();
+        for (Map.Entry<String, LinkedHashSet<XmlNamespace>> entry : collectNamespaces().entrySet()) {
+            if (entry.getValue().size() != 1) {
+                throw new XmlException("Multiple namespaces bound to prefix '" + entry.getKey() + "': " +
+                    entry.getValue());
+            }
+            if (map.put(entry.getKey(), entry.getValue().iterator().next()) != null) {
+                throw new XmlException("Duplicate key");
+            }
+        }
+        return map;
     }
 
     /**
