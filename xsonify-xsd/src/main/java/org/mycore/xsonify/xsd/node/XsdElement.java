@@ -16,7 +16,6 @@ public class XsdElement extends XsdNode implements XsdReferenceable<XsdElement> 
      * List of nodes which can contain elements. Either as a child or somewhere down their hierarchy.
      */
     public static final List<Class<? extends XsdNode>> CONTAINER_NODES = List.of(
-        XsdInclude.class, XsdRedefine.class,
         XsdElement.class, XsdGroup.class,
         XsdComplexType.class,
         XsdChoice.class, XsdAll.class, XsdSequence.class,

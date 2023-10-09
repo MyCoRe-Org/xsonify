@@ -16,7 +16,6 @@ public class XsdAttribute extends XsdNode implements XsdReferenceable<XsdAttribu
      * List of nodes which can contain attributes. Either as a child or somewhere down their hierarchy.
      */
     public static final List<Class<? extends XsdNode>> CONTAINER_NODES = List.of(
-        XsdInclude.class, XsdRedefine.class,
         XsdElement.class, XsdGroup.class,
         XsdComplexType.class, XsdSimpleType.class,
         XsdChoice.class, XsdAll.class, XsdSequence.class,
@@ -87,7 +86,6 @@ public class XsdAttribute extends XsdNode implements XsdReferenceable<XsdAttribu
         XsdAttribute attribute = new XsdAttribute(getXsd(), getUri(), getElement(), getParent());
         attribute.setReferenceName(this.referenceName);
         attribute.setDatatypeName(this.datatypeName);
-        attribute.setLink(this.getLink()); // TODO remove
         cloneChildren(attribute);
         return attribute;
     }

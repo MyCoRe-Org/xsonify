@@ -59,7 +59,6 @@ public class XsdGroup extends XsdNode implements XsdReferenceable<XsdGroup> {
     public XsdGroup clone() {
         XsdGroup group = new XsdGroup(getXsd(), getUri(), getElement(), getParent());
         group.setReferenceName(getReferenceName());
-        group.setLink(getLink());
         cloneChildren(group);
         return group;
     }

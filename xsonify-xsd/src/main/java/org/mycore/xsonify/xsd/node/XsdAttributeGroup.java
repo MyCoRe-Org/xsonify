@@ -50,7 +50,6 @@ public class XsdAttributeGroup extends XsdNode implements XsdReferenceable<XsdAt
     public XsdAttributeGroup clone() {
         XsdAttributeGroup attributeGroup = new XsdAttributeGroup(getXsd(), getUri(), getElement(), getParent());
         attributeGroup.setReferenceName(this.referenceName);
-        attributeGroup.setLink(this.getLink()); // TODO remove
         cloneChildren(attributeGroup);
         return attributeGroup;
     }

@@ -17,10 +17,7 @@ import org.mycore.xsonify.xsd.node.XsdDatatype;
 import org.mycore.xsonify.xsd.node.XsdElement;
 import org.mycore.xsonify.xsd.node.XsdExtension;
 import org.mycore.xsonify.xsd.node.XsdGroup;
-import org.mycore.xsonify.xsd.node.XsdImport;
-import org.mycore.xsonify.xsd.node.XsdInclude;
 import org.mycore.xsonify.xsd.node.XsdList;
-import org.mycore.xsonify.xsd.node.XsdRedefine;
 import org.mycore.xsonify.xsd.node.XsdRestriction;
 import org.mycore.xsonify.xsd.node.XsdSequence;
 import org.mycore.xsonify.xsd.node.XsdSimpleContent;
@@ -56,6 +53,12 @@ public class XsdParser {
 
     public static final Map<String, Class<? extends XsdNode>> NODE_TYPE_CLASS_MAP;
 
+    public static final String IMPORT_DIRECTIVE = "import";
+
+    public static final String INCLUDE_DIRECTIVE = "include";
+
+    public static final String REDEFINE_DIRECTIVE = "redefine";
+
     static {
         NODE_TYPE_CLASS_MAP = new HashMap<>();
         NODE_TYPE_CLASS_MAP.put(XsdAll.TYPE, XsdAll.class);
@@ -69,10 +72,7 @@ public class XsdParser {
         NODE_TYPE_CLASS_MAP.put(XsdElement.TYPE, XsdElement.class);
         NODE_TYPE_CLASS_MAP.put(XsdExtension.TYPE, XsdExtension.class);
         NODE_TYPE_CLASS_MAP.put(XsdGroup.TYPE, XsdGroup.class);
-        NODE_TYPE_CLASS_MAP.put(XsdImport.TYPE, XsdImport.class);
-        NODE_TYPE_CLASS_MAP.put(XsdInclude.TYPE, XsdInclude.class);
         NODE_TYPE_CLASS_MAP.put(XsdList.TYPE, XsdList.class);
-        NODE_TYPE_CLASS_MAP.put(XsdRedefine.TYPE, XsdRedefine.class);
         NODE_TYPE_CLASS_MAP.put(XsdRestriction.TYPE, XsdRestriction.class);
         NODE_TYPE_CLASS_MAP.put(XsdSequence.TYPE, XsdSequence.class);
         NODE_TYPE_CLASS_MAP.put(XsdSimpleContent.TYPE, XsdSimpleContent.class);
@@ -165,7 +165,7 @@ public class XsdParser {
                     continue;
                 }
                 switch (type) {
-                case XsdImport.TYPE, XsdInclude.TYPE, XsdRedefine.TYPE -> resolve(element);
+                case IMPORT_DIRECTIVE, INCLUDE_DIRECTIVE, REDEFINE_DIRECTIVE -> resolve(element);
                 }
             }
         }
@@ -264,12 +264,12 @@ public class XsdParser {
                 return;
             }
             switch (type) {
-            case XsdImport.TYPE -> {
+            case IMPORT_DIRECTIVE -> {
                 String schemaLocation = element.getAttribute("schemaLocation");
                 String namespace = element.getAttribute("namespace");
                 resolveFragment(new FragmentId(schemaLocation, namespace));
             }
-            case XsdInclude.TYPE, XsdRedefine.TYPE -> {
+            case INCLUDE_DIRECTIVE, REDEFINE_DIRECTIVE -> {
                 String schemaLocation = element.getAttribute("schemaLocation");
                 String namespace = fragment.getTargetNamespace();
                 resolveFragment(new FragmentId(schemaLocation, namespace));
@@ -306,7 +306,7 @@ public class XsdParser {
 
         private final LinkedHashMap<FragmentId, Fragment> fragmentMap;
 
-        private final LinkedHashMap<RedefineId, XsdRedefine> redefineMap;
+        private final LinkedHashMap<RedefineId, Redefine> redefineMap;
 
         /**
          * Creates a new NodeResolver.
@@ -327,7 +327,7 @@ public class XsdParser {
          */
         public void resolve() throws XsdParseException {
             for (Fragment fragment : fragmentMap.values()) {
-                resolveRootNodes(fragment.document());
+                createRootNodes(fragment.document());
             }
             resolveHierarchy();
             resolveRedefines();
@@ -340,8 +340,14 @@ public class XsdParser {
             this.xsd.buildCache();
         }
 
-        private void resolveRootNodes(XsdDocument document) throws XsdParseException {
+        private void createRootNodes(XsdDocument document) throws XsdParseException {
             for (XmlElement element : document.getRoot().getElements()) {
+                // xs:redefine
+                if (element.getLocalName().equals(REDEFINE_DIRECTIVE)) {
+                    createRedefine(document, element);
+                    continue;
+                }
+                // XsdNodes
                 Class<? extends XsdNode> nodeClass = getNodeClass(element);
                 if (nodeClass == null) {
                     continue;
@@ -355,19 +361,30 @@ public class XsdParser {
                     nodeClass.isAssignableFrom(XsdAttributeGroup.class)) {
                     XsdNode rootNode = instantiateNode(nodeClass, uri, element, null);
                     xsd.addNamedNode(rootNode);
-                } else if (nodeClass.isAssignableFrom(XsdRedefine.class)) {
-                    XsdRedefine xsdRedefine = instantiateNode(XsdRedefine.class, uri, element, null);
-                    addRedefineNode(xsdRedefine);
                 }
             }
+        }
+
+        private void createRedefine(XsdDocument document, XmlElement redefineElement) throws XsdParseException {
+            String uri = document.getTargetNamespace();
+            String sourceLocation = document.getSchemaLocation();
+            String targetLocation = redefineElement.getAttribute("schemaLocation");
+            List<XsdNode> childNodes = new ArrayList<>();
+            for (XmlElement childElement : redefineElement.getElements()) {
+                XsdNode node = createNode(uri, childElement, null);
+                childNodes.add(node);
+            }
+            this.redefineMap.put(new RedefineId(sourceLocation, targetLocation), new Redefine(childNodes));
         }
 
         private void resolveHierarchy() throws XsdParseException {
             for (XsdNode xsdNode : this.xsd.getNamedNodes()) {
                 resolveNode(xsdNode);
             }
-            for (XsdRedefine xsdRedefine : this.redefineMap.values()) {
-                resolveNode(xsdRedefine);
+            for (Redefine redefine : this.redefineMap.values()) {
+                for (XsdNode node : redefine.nodes()) {
+                    resolveNode(node);
+                }
             }
         }
 
@@ -382,7 +399,6 @@ public class XsdParser {
             case XsdAttributeGroup.TYPE -> resolveAttributeGroup((XsdAttributeGroup) node);
             case XsdRestriction.TYPE -> resolveRestriction((XsdRestriction) node);
             case XsdExtension.TYPE -> resolveExtension((XsdExtension) node);
-            case XsdInclude.TYPE, XsdRedefine.TYPE -> resolveIncludeRedefine((XsdRedefine) node);
             case XsdUnion.TYPE -> resolveUnion((XsdUnion) node);
             case XsdList.TYPE -> resolveList((XsdList) node);
             }
@@ -460,10 +476,6 @@ public class XsdParser {
             resolveChildren(attributeGroupNode);
         }
 
-        private void resolveIncludeRedefine(XsdRedefine includeRedefineNode) throws XsdParseException {
-            resolveChildren(includeRedefineNode);
-        }
-
         /**
          * @param restrictionNode the restriction node
          */
@@ -494,32 +506,28 @@ public class XsdParser {
             }));
         }
 
-        public void addRedefineNode(XsdRedefine redefineNode) {
-            String sourceLocation = redefineNode.getDocument().getSchemaLocation();
-            String targetLocation = redefineNode.getAttribute("schemaLocation");
-            this.redefineMap.put(new RedefineId(sourceLocation, targetLocation), redefineNode);
-        }
-
         private void resolveRedefines() {
             XsdDependencySorter<RedefineId> sorter = new XsdDependencySorter<>();
             List<RedefineId> sortedRedefineList = sorter.sort(redefineMap.keySet(),
                 xml -> new XsdDependencySorter.Link(xml.sourceLocation(), xml.targetLocation()));
 
             for (RedefineId redefineId : sortedRedefineList) {
-                XsdRedefine redefineNode = redefineMap.get(redefineId);
-                resolveRedefineExtensions(redefineNode);
-                resolveRedefineRestrictions(redefineNode);
+                Redefine redefine = redefineMap.get(redefineId);
+                for (XsdNode node : redefine.nodes()) {
+                    resolveRedefineExtensions(node);
+                    resolveRedefineRestrictions(node);
+                }
             }
         }
 
-        private void resolveRedefineExtensions(XsdRedefine redefineNode) {
-            List<XsdExtension> extensionNodes = this.xsd.collect(redefineNode, XsdExtension.class);
+        private void resolveRedefineExtensions(XsdNode node) {
+            List<XsdExtension> extensionNodes = this.xsd.collect(node, XsdExtension.class);
             resolveExtensions(extensionNodes);
             replaceWithRedefineNode(extensionNodes);
         }
 
-        private void resolveRedefineRestrictions(XsdRedefine redefineNode) {
-            List<XsdRestriction> restrictionNodes = this.xsd.collect(redefineNode, XsdRestriction.class);
+        private void resolveRedefineRestrictions(XsdNode node) {
+            List<XsdRestriction> restrictionNodes = this.xsd.collect(node, XsdRestriction.class);
             replaceWithRedefineNode(restrictionNodes);
         }
 
@@ -722,6 +730,9 @@ public class XsdParser {
             return document.getSchemaLocation();
         }
 
+    }
+
+    private record Redefine(List<XsdNode> nodes) {
     }
 
     private record RedefineId(String sourceLocation, String targetLocation) {
