@@ -12,7 +12,5 @@
 * element @substitutionGroup not supported
 
 ### TODO
-* use checked exceptions
-* replace gson with jackson
 * remove XsdNode#link and replace it with concrete member
 * implement streaming api

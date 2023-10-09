@@ -1,9 +1,8 @@
 package org.mycore.xsonify.serialize;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.mycore.xsonify.serialize.SerializerSettings.AdditionalNamespaceDeclarationStrategy;
 import org.mycore.xsonify.serialize.SerializerSettings.NamespaceHandling;
 import org.mycore.xsonify.serialize.SerializerSettings.XsAnyNamespaceStrategy;
@@ -76,21 +75,21 @@ public class Json2XmlSerializer extends SerializerBase {
         return this;
     }
 
-    public XmlDocument serialize(JsonObject json) throws SerializationException {
-        XmlDocument xmlDocument = createXmlDocument(json);
+    public XmlDocument serialize(ObjectNode jsonObject) throws SerializationException {
+        XmlDocument xmlDocument = createXmlDocument(jsonObject);
         optimizeNamespaceDeclaration(xmlDocument);
         return xmlDocument;
     }
 
-    private XmlDocument createXmlDocument(JsonObject json) throws SerializationException {
-        JsonObject rootValue = getRootValue(json);
-        JsonNode jsonNode = toJsonNode(rootValue);
-        XsdNode xsdNode = getRootXsdNode(json, jsonNode);
+    private XmlDocument createXmlDocument(ObjectNode json) throws SerializationException {
+        ObjectNode rootValue = getRootValue(json);
+        SerializationNode serializationNode = toJsonNode(rootValue);
+        XsdNode xsdNode = getRootXsdNode(json, serializationNode);
         XmlName rootName = getRootName() != null ? getRootName() : getName(xsdNode, null);
         XmlDocument xmlDocument = new XmlDocument();
         XmlElement rootElement = new XmlElement(rootName, xmlDocument);
         xmlDocument.setRoot(rootElement);
-        SerializationContext rootContext = new SerializationContext(null, rootElement, xsdNode, jsonNode);
+        SerializationContext rootContext = new SerializationContext(null, rootElement, xsdNode, serializationNode);
         handleObject(rootContext);
         return xmlDocument;
     }
@@ -118,43 +117,44 @@ public class Json2XmlSerializer extends SerializerBase {
         }
     }
 
-    private void serializeElement(String jsonKey, JsonElement jsonValue, SerializationContext parentContext)
+    private void serializeElement(String jsonKey, JsonNode jsonValue, SerializationContext parentContext)
         throws SerializationException {
-        if (jsonValue.isJsonArray()) {
-            serializeArray(jsonKey, jsonValue.getAsJsonArray(), parentContext);
-        } else if (jsonValue.isJsonObject()) {
-            JsonNode jsonNode = toJsonNode(jsonValue.getAsJsonObject());
-            serializeNode(jsonKey, jsonNode, parentContext);
-        } else if (jsonValue.isJsonPrimitive()) {
-            JsonNode jsonNode = toJsonNode(jsonValue.getAsJsonPrimitive());
-            serializeNode(jsonKey, jsonNode, parentContext);
+        if (jsonValue.isArray()) {
+            serializeArray(jsonKey, (ArrayNode) jsonValue, parentContext);
+        } else if (jsonValue.isObject()) {
+            SerializationNode serializationNode = toJsonNode((ObjectNode) jsonValue);
+            serializeNode(jsonKey, serializationNode, parentContext);
+        } else if (jsonValue.isValueNode()) {
+            SerializationNode serializationNode = new SerializationNode();
+            serializationNode.text = jsonValue.asText();
+            serializeNode(jsonKey, serializationNode, parentContext);
         } else {
             throw new SerializationException("Unable to serialize '" + jsonKey + "'.");
         }
     }
 
-    private void serializeNode(String jsonKey, JsonNode jsonNode, SerializationContext parentContext)
+    private void serializeNode(String jsonKey, SerializationNode serializationNode, SerializationContext parentContext)
         throws SerializationException {
-        XsdNode xsdNode = getXsdNode(jsonKey, jsonNode, parentContext);
+        XsdNode xsdNode = getXsdNode(jsonKey, serializationNode, parentContext);
         XmlName name = getName(xsdNode, jsonKey);
         XmlElement element = new XmlElement(name, parentContext.getDocument());
-        SerializationContext context = new SerializationContext(parentContext, element, xsdNode, jsonNode);
+        SerializationContext context = new SerializationContext(parentContext, element, xsdNode, serializationNode);
         parentContext.children().add(context);
         handleObject(context);
     }
 
-    private void serializeArray(String jsonKey, JsonArray jsonArray, SerializationContext parentContext)
+    private void serializeArray(String jsonKey, ArrayNode jsonArray, SerializationContext parentContext)
         throws SerializationException {
-        for (JsonElement childJson : jsonArray) {
+        for (JsonNode childJson : jsonArray) {
             serializeElement(jsonKey, childJson, parentContext);
         }
     }
 
-    private void serializeMixedContent(JsonElement mixedContent, SerializationContext parentContext)
+    private void serializeMixedContent(JsonNode mixedContent, SerializationContext parentContext)
         throws SerializationException {
         XmlElement parentElement = parentContext.element();
-        if (mixedContent.isJsonPrimitive()) {
-            String contentAsString = mixedContent.getAsString();
+        if (mixedContent.isValueNode()) {
+            String contentAsString = mixedContent.asText();
             try {
                 List<XmlContent> xmlContentList = XmlElement.decodeContent(contentAsString, StandardCharsets.UTF_8,
                     parentElement.getNamespacesInScope().values());
@@ -162,57 +162,51 @@ public class Json2XmlSerializer extends SerializerBase {
             } catch (Exception exc) {
                 throw new SerializationException("Unable to serialize mixed content: " + contentAsString, exc);
             }
-        } else if (mixedContent.isJsonArray()) {
-            serializeMixedContent(mixedContent.getAsJsonArray(), parentContext);
+        } else if (mixedContent.isArray()) {
+            serializeMixedContent((ArrayNode) mixedContent, parentContext);
         } else {
             throw new SerializationException("Unable to serialize mixed content: " + mixedContent);
         }
     }
 
-    private void serializeMixedContent(JsonArray mixedContentArray, SerializationContext parentContext)
+    private void serializeMixedContent(ArrayNode mixedContentArray, SerializationContext parentContext)
         throws SerializationException {
         XmlElement parentElement = parentContext.element();
-        for (JsonElement mixedContent : mixedContentArray) {
-            if (mixedContent.isJsonPrimitive()) {
-                parentElement.addText(mixedContent.getAsJsonPrimitive().getAsString());
-            } else if (mixedContent.isJsonObject()) {
-                serializeMixedContent(mixedContent.getAsJsonObject(), parentContext);
+        for (JsonNode mixedContent : mixedContentArray) {
+            if (mixedContent.isValueNode()) {
+                parentElement.addText(mixedContent.asText());
+            } else if (mixedContent.isObject()) {
+                serializeMixedContent((ObjectNode) mixedContent, parentContext);
             }
         }
     }
 
-    private void serializeMixedContent(JsonObject jsonValue, SerializationContext parentContext)
+    private void serializeMixedContent(ObjectNode jsonValue, SerializationContext parentContext)
         throws SerializationException {
-        String jsonKey = jsonValue.get(style().mixedContentElementNameKey()).getAsString();
+        String jsonKey = jsonValue.get(style().mixedContentElementNameKey()).asText();
         serializeElement(jsonKey, jsonValue, parentContext);
     }
 
-    private JsonNode toJsonNode(JsonPrimitive jsonPrimitive) {
-        JsonNode jsonNode = new JsonNode();
-        jsonNode.text = jsonPrimitive.getAsString();
-        return jsonNode;
-    }
-
-    private JsonNode toJsonNode(JsonObject jsonObject) {
-        JsonNode jsonNode = new JsonNode();
-        for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+    private SerializationNode toJsonNode(ObjectNode jsonObject) {
+        SerializationNode serializationNode = new SerializationNode();
+        for (Map.Entry<String, JsonNode> entry : jsonObject.properties()) {
             if (entry.getKey().equals(style().namespacePrefixKey())) {
-                jsonNode.namespacePrefix = entry.getValue().getAsString();
+                serializationNode.namespacePrefix = entry.getValue().asText();
             } else if (entry.getKey().startsWith(style().xmlnsPrefix())) {
                 XmlNamespace namespace = getNamespace(entry.getKey(), entry.getValue());
-                jsonNode.namespaces.put(namespace.prefix(), namespace);
+                serializationNode.namespaces.put(namespace.prefix(), namespace);
             } else if (entry.getKey().startsWith(style().attributePrefix())) {
                 String attributeName = entry.getKey().substring(style().attributePrefix().length());
-                jsonNode.attributes.put(attributeName, entry.getValue().getAsString());
+                serializationNode.attributes.put(attributeName, entry.getValue().asText());
             } else if (entry.getKey().equals(style().textKey())) {
-                jsonNode.text = entry.getValue().getAsString();
+                serializationNode.text = entry.getValue().asText();
             } else if (entry.getKey().equals(style().mixedContentKey())) {
-                jsonNode.mixedContent = entry.getValue();
+                serializationNode.mixedContent = entry.getValue();
             } else {
-                jsonNode.children.put(entry.getKey(), entry.getValue());
+                serializationNode.children.put(entry.getKey(), entry.getValue());
             }
         }
-        return jsonNode;
+        return serializationNode;
     }
 
     private void handleObject(SerializationContext context) throws SerializationException {
@@ -230,14 +224,14 @@ public class Json2XmlSerializer extends SerializerBase {
         handleText(context);
 
         // mixed content
-        JsonElement mixedContent = context.jsonNode().getMixedContent();
+        JsonNode mixedContent = context.jsonNode().getMixedContent();
         if (mixedContent != null) {
             serializeMixedContent(mixedContent, context);
             return;
         }
 
         // children
-        for (Map.Entry<String, JsonElement> child : context.jsonNode().getChildren().entrySet()) {
+        for (Map.Entry<String, JsonNode> child : context.jsonNode().getChildren().entrySet()) {
             serializeElement(child.getKey(), child.getValue(), context);
         }
         // TODO order xs:sequence nodes
@@ -253,7 +247,7 @@ public class Json2XmlSerializer extends SerializerBase {
             return;
         }
         String uri = context.xsdNode() != null ? context.xsdNode().getUri() :
-                     getUri(context.jsonNode, context.parentContext);
+                     getUri(context.serializationNode, context.parentContext);
         String prefix = context.jsonNode().getNamespacePrefix();
         if (prefix != null && uri != null) {
             element.setNamespace(new XmlNamespace(prefix, uri));
@@ -347,9 +341,9 @@ public class Json2XmlSerializer extends SerializerBase {
 
     private void handleText(SerializationContext context) {
         XmlElement element = context.element();
-        JsonNode jsonNode = context.jsonNode();
-        if (jsonNode.getText() != null) {
-            element.setText(jsonNode.getText());
+        SerializationNode serializationNode = context.jsonNode();
+        if (serializationNode.getText() != null) {
+            element.setText(serializationNode.getText());
         }
     }
 
@@ -398,20 +392,20 @@ public class Json2XmlSerializer extends SerializerBase {
      * @return the name of the root
      * @throws SerializationException if neither the root name is set manually, nor omitRootElement is set to false
      */
-    public String getRootName(JsonObject rootJson) throws SerializationException {
+    public String getRootName(ObjectNode rootJson) throws SerializationException {
         // root name is not determinable
         if (settings().omitRootElement()) {
             throw new SerializationException("Cannot determine xml root name. Either use 'setRootName()' manually, " +
                 "or provide a json where the settings 'omitRootElement()' is set to false.");
         }
         // root name is defined in the first json object of the given root json
-        Set<Map.Entry<String, JsonElement>> entries = rootJson.entrySet();
+        Set<Map.Entry<String, JsonNode>> entries = rootJson.properties();
         if (entries.isEmpty()) {
             throw new SerializationException(rootJson + " doesn't have a root node");
         }
-        Map.Entry<String, JsonElement> rootEntry = entries.iterator().next();
-        JsonElement rootElement = rootEntry.getValue();
-        if (!rootElement.isJsonObject()) {
+        Map.Entry<String, JsonNode> rootEntry = entries.iterator().next();
+        JsonNode rootElement = rootEntry.getValue();
+        if (!rootElement.isObject()) {
             throw new SerializationException("root '" + rootEntry.getKey() +
                 "' should be an object {} but is " + rootElement);
         }
@@ -428,13 +422,14 @@ public class Json2XmlSerializer extends SerializerBase {
         return new XmlName(XmlQualifiedName.of(jsonKey).localName(), null);
     }
 
-    private JsonObject getRootValue(JsonObject json) {
+    private ObjectNode getRootValue(ObjectNode json) {
         return settings().omitRootElement() ?
                json :
-               json.entrySet().iterator().next().getValue().getAsJsonObject();
+               (ObjectNode) json.iterator().next();
     }
 
-    private XsdNode getRootXsdNode(JsonObject rootJson, JsonNode jsonNode) throws SerializationException {
+    private XsdNode getRootXsdNode(ObjectNode rootJson, SerializationNode serializationNode)
+        throws SerializationException {
         if (getRootName() != null) {
             XsdNode rootNode = xsd().getNamedNode(XsdElement.class, getRootName());
             if (rootNode != null) {
@@ -448,14 +443,14 @@ public class Json2XmlSerializer extends SerializerBase {
         if (candidates.isEmpty()) {
             throw new SerializationException("Unable to find root node '" + localName + "' in xsd definition");
         }
-        XsdNode xsdNode = getXsdNode(jsonNode, null, candidates);
+        XsdNode xsdNode = getXsdNode(serializationNode, null, candidates);
         if (xsdNode == null) {
             throw new SerializationException("Unable to find root node '" + localName + "' in xsd definition");
         }
         return xsdNode;
     }
 
-    private XsdNode getXsdNode(String jsonKey, JsonNode jsonNode, SerializationContext parentContext)
+    private XsdNode getXsdNode(String jsonKey, SerializationNode serializationNode, SerializationContext parentContext)
         throws SerializationException {
         String localName = XmlQualifiedName.of(jsonKey).localName();
         // xs:any check
@@ -477,7 +472,7 @@ public class Json2XmlSerializer extends SerializerBase {
             throw new SerializationException("'" + localName + "' is not a valid child of '" +
                 parentContext.xsdNode().getLocalName() + "'.");
         }
-        XsdNode xsdNode = getXsdNode(jsonNode, parentContext, candidates);
+        XsdNode xsdNode = getXsdNode(serializationNode, parentContext, candidates);
         if (xsdNode == null) {
             throw new SerializationException("Multiple element definitions of '" + localName + "' found in " +
                 parentContext.xsdNode().getLocalName() + ". Getting the XsdNode is therefore ambiguous.");
@@ -485,12 +480,12 @@ public class Json2XmlSerializer extends SerializerBase {
         return xsdNode;
     }
 
-    private XsdNode getXsdNode(JsonNode jsonNode, SerializationContext parentContext,
+    private XsdNode getXsdNode(SerializationNode serializationNode, SerializationContext parentContext,
         List<? extends XsdNode> candidates) {
         if (candidates.size() == 1) {
             return candidates.get(0);
         }
-        String uri = getUri(jsonNode, parentContext);
+        String uri = getUri(serializationNode, parentContext);
         if (uri != null) {
             return candidates.stream()
                 .filter(xsdNode -> xsdNode.getReferenceOrSelf().getUri().equals(uri))
@@ -500,8 +495,8 @@ public class Json2XmlSerializer extends SerializerBase {
         return null;
     }
 
-    private String getUri(JsonNode jsonNode, SerializationContext parentContext) {
-        String prefix = jsonNode.getNamespacePrefix();
+    private String getUri(SerializationNode serializationNode, SerializationContext parentContext) {
+        String prefix = serializationNode.getNamespacePrefix();
         // take prefix from parent if jsonPrefix is null
         if (prefix == null && parentContext != null) {
             prefix = parentContext.element().getPrefix();
@@ -513,7 +508,7 @@ public class Json2XmlSerializer extends SerializerBase {
         }
         // check namespace json object itself
         if (!NamespaceHandling.OMIT.equals(settings().namespaceHandling())) {
-            namespace = jsonNode.getNamespaces().get(prefix);
+            namespace = serializationNode.getNamespaces().get(prefix);
             if (namespace != null) {
                 return namespace.uri();
             }
@@ -534,10 +529,10 @@ public class Json2XmlSerializer extends SerializerBase {
         return null;
     }
 
-    private XmlNamespace getNamespace(String jsonKey, JsonElement jsonElement) {
+    private XmlNamespace getNamespace(String jsonKey, JsonNode jsonNode) {
         String prefix = style().xmlnsPrefix().equals(jsonKey) ? "" :
                         jsonKey.substring(style().xmlnsPrefix().length() + 1);
-        String uri = jsonElement.getAsString();
+        String uri = jsonNode.asText();
         return new XmlNamespace(prefix, uri);
     }
 
@@ -570,15 +565,15 @@ public class Json2XmlSerializer extends SerializerBase {
         private final SerializationContext parentContext;
         private final XmlElement element;
         private final XsdNode xsdNode;
-        private final JsonNode jsonNode;
+        private final SerializationNode serializationNode;
         private final List<SerializationContext> children;
 
         private SerializationContext(SerializationContext parentContext, XmlElement element, XsdNode xsdNode,
-            JsonNode jsonNode) {
+            SerializationNode serializationNode) {
             this.parentContext = parentContext;
             this.element = element;
             this.xsdNode = xsdNode;
-            this.jsonNode = jsonNode;
+            this.serializationNode = serializationNode;
             this.children = new ArrayList<>();
         }
 
@@ -607,8 +602,8 @@ public class Json2XmlSerializer extends SerializerBase {
             return xsdNode;
         }
 
-        public JsonNode jsonNode() {
-            return jsonNode;
+        public SerializationNode jsonNode() {
+            return serializationNode;
         }
 
         public List<SerializationContext> children() {
@@ -617,16 +612,16 @@ public class Json2XmlSerializer extends SerializerBase {
 
     }
 
-    private static class JsonNode {
+    private static class SerializationNode {
 
         private String namespacePrefix;
         private String text;
-        private JsonElement mixedContent;
-        private final Map<String, JsonElement> children;
+        private JsonNode mixedContent;
+        private final Map<String, JsonNode> children;
         private final Map<String, XmlNamespace> namespaces;
         private final Map<String, String> attributes;
 
-        public JsonNode() {
+        public SerializationNode() {
             this.namespacePrefix = null;
             this.children = new LinkedHashMap<>();
             this.namespaces = new LinkedHashMap<>();
@@ -639,7 +634,7 @@ public class Json2XmlSerializer extends SerializerBase {
             return namespacePrefix;
         }
 
-        public Map<String, JsonElement> getChildren() {
+        public Map<String, JsonNode> getChildren() {
             return children;
         }
 
@@ -655,7 +650,7 @@ public class Json2XmlSerializer extends SerializerBase {
             return text;
         }
 
-        public JsonElement getMixedContent() {
+        public JsonNode getMixedContent() {
             return mixedContent;
         }
 

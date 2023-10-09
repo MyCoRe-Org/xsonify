@@ -1,14 +1,11 @@
 package org.mycore.xsonify.serialize;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mycore.xsonify.xml.XmlDocument;
 import org.mycore.xsonify.xml.XmlEqualityChecker;
-import org.mycore.xsonify.xml.XmlException;
 import org.mycore.xsonify.xml.XmlName;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xml.XmlParseException;
@@ -60,10 +57,8 @@ public class SerializerIntegrationTest {
             .build();
         Xml2JsonSerializer xml2jsonSerializer = new Xml2JsonSerializer(xsd, settings);
 
-        JsonObject serializedJson = xml2jsonSerializer.serialize(xmlDocument);
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        System.out.println(gson.toJson(serializedJson));
+        ObjectNode serializedJson = xml2jsonSerializer.serialize(xmlDocument);
+        System.out.println(serializedJson.toPrettyString());
 
         //Map<String, XmlNamespace> stringXmlNamespaceMap = xmlDocument.collectNamespaces();
 
@@ -177,8 +172,7 @@ public class SerializerIntegrationTest {
 
     private void test(XmlDocument xmlDocument, Xsd xsd, XmlName rootName, List<XmlNamespace> namespaces,
         boolean printDebug, SerializerSettings settings) {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        JsonObject serializedJson = null;
+        ObjectNode serializedJson = null;
         XmlDocument serializedDocument = null;
         try {
             // to json
@@ -194,23 +188,23 @@ public class SerializerIntegrationTest {
             // check if they are equal
             XmlEqualityChecker equalityChecker = new XmlEqualityChecker();
             equalityChecker.equals(xmlDocument.getRoot(), serializedDocument.getRoot(), true);
-        } catch (Exception equalityException) {
-            print(xsd, xmlDocument, gson, serializedJson, serializedDocument);
-            Assertions.fail("exception while testing", equalityException);
+        } catch (Exception exception) {
+            print(xsd, xmlDocument, serializedJson, serializedDocument);
+            Assertions.fail("exception while testing", exception);
         }
         if (printDebug) {
-            print(xsd, xmlDocument, gson, serializedJson, serializedDocument);
+            print(xsd, xmlDocument, serializedJson, serializedDocument);
         }
     }
 
-    private static void print(Xsd xsd, XmlDocument xmlDocument, Gson gson, JsonObject serializedJson,
+    private static void print(Xsd xsd, XmlDocument xmlDocument, ObjectNode serializedJson,
         XmlDocument serializedDocument) {
         System.out.println("\n===== XSD Tree =====");
         System.out.println(xsd.toTreeString());
         System.out.println("\n===== Original XML =====");
         System.out.println(xmlDocument.toXml(true));
         System.out.println("\n===== Serialized JSON =====");
-        System.out.println(serializedJson != null ? gson.toJson(serializedJson) : "json is null");
+        System.out.println(serializedJson != null ? serializedJson.toPrettyString() : "json is null");
         System.out.println("\n===== Serialized XML from JSON =====");
         System.out.println(serializedDocument != null ? serializedDocument.toXml(true) : "xml is null");
     }
