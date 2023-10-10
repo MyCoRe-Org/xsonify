@@ -20,8 +20,8 @@ import org.mycore.xsonify.xml.XmlQualifiedName;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
 import org.mycore.xsonify.xsd.node.XsdAttribute;
-import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdElement;
+import org.mycore.xsonify.xsd.node.XsdNode;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;

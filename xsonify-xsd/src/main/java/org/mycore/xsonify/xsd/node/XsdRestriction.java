@@ -1,14 +1,11 @@
 package org.mycore.xsonify.xsd.node;
 
 import org.mycore.xsonify.xml.XmlElement;
-import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xsd.Xsd;
 
-public class XsdRestriction extends XsdNode {
+public class XsdRestriction extends XsdTypeDerivation {
 
     public static final String TYPE = "restriction";
-
-    private XmlExpandedName baseName;
 
     /**
      * Constructs a new XsdNode.
@@ -25,14 +22,6 @@ public class XsdRestriction extends XsdNode {
     @Override
     public String getType() {
         return TYPE;
-    }
-
-    public void setBaseName(XmlExpandedName baseName) {
-        this.baseName = baseName;
-    }
-
-    public XmlExpandedName getBaseName() {
-        return baseName;
     }
 
     @Override

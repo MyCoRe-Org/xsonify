@@ -41,11 +41,6 @@ public class XsdGroup extends XsdNode implements XsdReferenceable<XsdGroup> {
     }
 
     @Override
-    public XsdNode getLinkedNode() {
-        return getReference();
-    }
-
-    @Override
     public String getType() {
         return TYPE;
     }

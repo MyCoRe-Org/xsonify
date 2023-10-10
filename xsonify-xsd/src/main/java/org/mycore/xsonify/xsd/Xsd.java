@@ -10,7 +10,6 @@ import org.mycore.xsonify.xsd.node.XsdAttribute;
 import org.mycore.xsonify.xsd.node.XsdAttributeGroup;
 import org.mycore.xsonify.xsd.node.XsdComplexType;
 import org.mycore.xsonify.xsd.node.XsdElement;
-import org.mycore.xsonify.xsd.node.XsdExtension;
 import org.mycore.xsonify.xsd.node.XsdGroup;
 import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdSimpleType;
@@ -292,20 +291,20 @@ public class Xsd {
     }
 
     /**
-     * Builds the element, attribute and xs:any cache for each @{@link XsdNode}. This will be called by the
+     * Builds the element, attribute and xs:any cache for each @{@link XsdElement}. This will be called by the
      * {@link XsdParser} after all processing has been done. Usually it is not required to call this method manually,
      * except if you changed the structure and called {@link #clearCache()}.
      */
     public void buildCache() {
-        this.collectAll().forEach(XsdNode::buildCache);
+        this.collect(XsdElement.class).forEach(XsdElement::buildCache);
     }
 
     /**
-     * Clears the element and attribute cache of each {@link XsdNode}. This should be called if the xsd structure has
+     * Clears the element and attribute cache of each {@link XsdElement}. This should be called if the xsd structure has
      * changed.
      */
     public void clearCache() {
-        this.collectAll().forEach(XsdNode::clearCache);
+        this.collect(XsdElement.class).forEach(XsdElement::clearCache);
     }
 
     /**

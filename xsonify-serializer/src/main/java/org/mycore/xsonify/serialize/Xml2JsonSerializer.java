@@ -18,8 +18,8 @@ import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
 import org.mycore.xsonify.xsd.XsdBuiltInDatatypes;
 import org.mycore.xsonify.xsd.node.XsdDatatype;
-import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdElement;
+import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdSimpleType;
 
 import java.math.BigDecimal;

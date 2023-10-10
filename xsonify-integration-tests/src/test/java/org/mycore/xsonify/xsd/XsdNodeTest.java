@@ -1,9 +1,7 @@
 package org.mycore.xsonify.xsd;
 
 import org.junit.jupiter.api.Test;
-import org.mycore.xsonify.xsd.node.XsdComplexType;
 import org.mycore.xsonify.xsd.node.XsdElement;
-import org.mycore.xsonify.xsd.node.XsdNode;
 
 import java.util.List;
 
@@ -24,16 +22,16 @@ public class XsdNodeTest extends XsdBaseTest {
         List<XsdElement> childrenOfParent = parent.collectElements();
         assertEquals(1, childrenOfParent.size());
 
-        XsdNode child = childrenOfParent.get(0);
+        XsdElement child = childrenOfParent.get(0);
         assertEquals(4, child.collectElements().size());
     }
 
     @Test
     public void collectAttributes() throws Exception {
         Xsd modsXsd = getXsd("mods-3-8.xsd");
-        XsdComplexType dateDefinition = modsXsd.getNamedNode(XsdComplexType.class, "dateDefinition",
+        XsdElement dateIssued = modsXsd.getNamedNode(XsdElement.class, "dateIssued",
             "http://www.loc.gov/mods/v3");
-        assertEquals(9, dateDefinition.collectAttributes().size());
+        assertEquals(9, dateIssued.collectAttributes().size());
 
         Xsd circularXsd = getXsd("circularTest.xsd");
         XsdElement refCircleTest = circularXsd.getNamedNode(XsdElement.class, "refCircleTest",
@@ -48,9 +46,9 @@ public class XsdNodeTest extends XsdBaseTest {
     @Test
     public void hasAny() throws Exception {
         Xsd modsXsd = getXsd("mods-3-8.xsd");
-        XsdComplexType dateDefinition = modsXsd.getNamedNode(XsdComplexType.class, "dateDefinition",
+        XsdElement dateIssued = modsXsd.getNamedNode(XsdElement.class, "dateIssued",
             "http://www.loc.gov/mods/v3");
-        assertFalse(dateDefinition.hasAny());
+        assertFalse(dateIssued.hasAny());
 
         XsdElement accessCondition = modsXsd.getNamedNode(XsdElement.class, "accessCondition",
             "http://www.loc.gov/mods/v3");

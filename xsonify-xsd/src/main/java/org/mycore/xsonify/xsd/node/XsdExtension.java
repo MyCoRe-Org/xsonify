@@ -1,15 +1,11 @@
 package org.mycore.xsonify.xsd.node;
 
 import org.mycore.xsonify.xml.XmlElement;
-import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xsd.Xsd;
-import org.mycore.xsonify.xsd.XsdBuiltInDatatypes;
 
-public class XsdExtension extends XsdNode {
+public class XsdExtension extends XsdTypeDerivation {
 
     public static final String TYPE = "extension";
-
-    private XmlExpandedName baseName;
 
     private boolean resolved;
 
@@ -23,35 +19,12 @@ public class XsdExtension extends XsdNode {
      */
     public XsdExtension(Xsd xsd, String uri, XmlElement element, XsdNode parent) {
         super(xsd, uri, element, parent);
-        this.baseName = null;
         this.resolved = false;
     }
 
     @Override
     public String getType() {
         return TYPE;
-    }
-
-    public void setBaseName(XmlExpandedName baseName) {
-        this.baseName = baseName;
-    }
-
-    public XmlExpandedName getBaseName() {
-        return baseName;
-    }
-
-    public XsdDatatype getBase() {
-        if (this.baseName == null) {
-            return null;
-        }
-        if (XsdBuiltInDatatypes.is(this.baseName)) {
-            return null;
-        }
-        XsdComplexType complexType = this.getXsd().getNamedNode(XsdComplexType.class, this.baseName);
-        if (complexType != null) {
-            return complexType;
-        }
-        return this.getXsd().getNamedNode(XsdSimpleType.class, this.baseName);
     }
 
     public void setResolved(boolean resolved) {
@@ -65,26 +38,9 @@ public class XsdExtension extends XsdNode {
     @Override
     public XsdExtension clone() {
         XsdExtension extension = new XsdExtension(getXsd(), getUri(), getElement(), getParent());
+        extension.setBaseName(getBaseName());
         cloneChildren(extension);
         return extension;
     }
-
-    /*
-    TODO use base instead of "link"
-    public void setBase(XsdLink base) {
-        this.base = base;
-    }
-
-    public XsdLink getBase() {
-        return base;
-    }
-
-    public XsdNode getBaseNode() {
-        if (this.base == null) {
-            return null;
-        }
-        return this.getXsd().getNamedNode(this.base.type(), this.base.name());
-    }
-    */
 
 }

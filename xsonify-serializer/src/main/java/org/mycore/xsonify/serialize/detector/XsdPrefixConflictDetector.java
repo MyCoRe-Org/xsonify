@@ -6,8 +6,8 @@ import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
 import org.mycore.xsonify.xsd.node.XsdAttribute;
-import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdElement;
+import org.mycore.xsonify.xsd.node.XsdNode;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -46,18 +46,18 @@ public class XsdPrefixConflictDetector implements XsdDetector<Boolean> {
 
         Collection<XsdElement> elementCollection = xsd.collect(XsdElement.class);
 
-        for (XsdNode node : elementCollection) {
+        for (XsdElement xsdElement : elementCollection) {
             // elements
-            List<XsdElement> elementNodes = XsdElement.resolveReferences(node.collectElements());
+            List<XsdElement> elementNodes = XsdElement.resolveReferences(xsdElement.collectElements());
             Map<String, Set<XmlExpandedName>> duplicateElements = getDuplicates(elementNodes);
             if (!duplicateElements.isEmpty()) {
-                this.elementNameConflicts.put(node, duplicateElements);
+                this.elementNameConflicts.put(xsdElement, duplicateElements);
             }
             // attributes
-            List<XsdAttribute> attributeNodes = XsdAttribute.resolveReferences(node.collectAttributes());
+            List<XsdAttribute> attributeNodes = XsdAttribute.resolveReferences(xsdElement.collectAttributes());
             Map<String, Set<XmlExpandedName>> duplicateAttributes = getDuplicates(attributeNodes);
             if (!duplicateAttributes.isEmpty()) {
-                this.attributeNameConflicts.put(node, duplicateAttributes);
+                this.attributeNameConflicts.put(xsdElement, duplicateAttributes);
             }
         }
     }

@@ -3,10 +3,10 @@ package org.mycore.xsonify.serialize.detector;
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
-import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdComplexContent;
 import org.mycore.xsonify.xsd.node.XsdComplexType;
 import org.mycore.xsonify.xsd.node.XsdElement;
+import org.mycore.xsonify.xsd.node.XsdNode;
 
 import java.util.ArrayList;
 import java.util.Collection;

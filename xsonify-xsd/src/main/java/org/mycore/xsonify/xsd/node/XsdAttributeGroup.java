@@ -42,6 +42,16 @@ public class XsdAttributeGroup extends XsdNode implements XsdReferenceable<XsdAt
     }
 
     @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(super.toString());
+        XsdAttributeGroup reference = getReference();
+        if (reference != null) {
+            sb.append(" -> ").append(reference);
+        }
+        return sb.toString();
+    }
+
+    @Override
     protected <T> boolean collect(Class<T> type, List<Class<? extends XsdNode>> searchNodes, List<T> found,
         List<XsdNode> visited) {
         if (super.collect(type, searchNodes, found, visited)) {

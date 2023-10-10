@@ -11,18 +11,6 @@ public class XsdAttribute extends XsdNode implements XsdReferenceable<XsdAttribu
 
     public static final String TYPE = "attribute";
 
-    /**
-     * List of nodes which can contain attributes. Either as a child or somewhere down their hierarchy.
-     */
-    public static final List<Class<? extends XsdNode>> CONTAINER_NODES = List.of(
-        XsdElement.class, XsdGroup.class,
-        XsdComplexType.class, XsdSimpleType.class,
-        XsdChoice.class, XsdAll.class, XsdSequence.class,
-        XsdSimpleContent.class, XsdComplexContent.class,
-        XsdAttributeGroup.class,
-        XsdRestriction.class, XsdExtension.class
-    );
-
     private XmlExpandedName referenceName;
 
     private XmlExpandedName datatypeName;
@@ -88,6 +76,19 @@ public class XsdAttribute extends XsdNode implements XsdReferenceable<XsdAttribu
             datatype.collect(type, searchNodes, found, visited);
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(super.toString());
+        XsdAttribute reference = getReference();
+        XsdDatatype datatype = getDatatype();
+        if (reference != null) {
+            sb.append(" -> ").append(reference);
+        } else if (datatype != null) {
+            sb.append(" -> ").append(datatype);
+        }
+        return sb.toString();
     }
 
     @Override

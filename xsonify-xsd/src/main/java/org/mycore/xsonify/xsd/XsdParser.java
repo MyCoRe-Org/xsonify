@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -423,16 +422,10 @@ public class XsdParser {
             if (typeAttributeValue != null) {
                 XmlExpandedName type = XmlExpandedName.of(typeAttributeValue);
                 elementNode.setDatatypeName(type);
-                // TODO remove setLink
-                setLink(elementNode, type, (nodeClass -> {
-                    XsdLink link = new XsdLink(nodeClass, type);
-                    elementNode.setLink(link);
-                }));
                 return;
             }
             if (refAttributeValue != null) {
                 elementNode.setReferenceName(XmlExpandedName.of(refAttributeValue));
-                setLink(elementNode, XsdElement.class, refAttributeValue); // TODO remove
                 return;
             }
             resolveChildren(elementNode);
@@ -453,15 +446,10 @@ public class XsdParser {
             if (type != null) {
                 XmlExpandedName dataType = XmlExpandedName.of(type);
                 attributeNode.setDatatypeName(dataType);
-                if (XsdBuiltInDatatypes.is(dataType)) { // TODO remove
-                    return;
-                }
-                attributeNode.setLink(new XsdLink(XsdSimpleType.class, dataType));
                 return;
             }
             if (ref != null) {
                 attributeNode.setReferenceName(XmlExpandedName.of(ref));
-                setLink(attributeNode, XsdAttribute.class, ref); // TODO remove
                 return;
             }
             resolveChildren(attributeNode);
@@ -471,7 +459,6 @@ public class XsdParser {
             String ref = attributeGroupNode.getAttribute("ref");
             if (ref != null) {
                 attributeGroupNode.setReferenceName(XmlExpandedName.of(ref));
-                setLink(attributeGroupNode, XsdAttributeGroup.class, ref); // TODO remove
                 return;
             }
             resolveChildren(attributeGroupNode);
@@ -500,11 +487,6 @@ public class XsdParser {
             resolveChildren(extensionNode);
             XmlExpandedName baseName = XmlExpandedName.of(extensionNode.getAttribute("base"));
             extensionNode.setBaseName(baseName);
-            // TODO remove
-            setLink(extensionNode, baseName, (nodeClass -> {
-                XsdLink link = new XsdLink(nodeClass, baseName);
-                extensionNode.setLink(link);
-            }));
         }
 
         private void resolveRedefines() {
@@ -640,30 +622,6 @@ public class XsdParser {
             }
             parentNode.getChildren().add(node);
             return node;
-        }
-
-        private void setLink(XsdNode node, Class<? extends XsdNode> type, String name) {
-            node.setLink(new XsdLink(type, XmlExpandedName.of(name)));
-        }
-
-        private void setLink(XsdNode node, XmlExpandedName linkName, Consumer<Class<? extends XsdNode>> consumer)
-            throws XsdParseException {
-            if (XsdBuiltInDatatypes.is(linkName)) {
-                return;
-            }
-            XsdComplexType complexLinkedType = xsd.getNamedNode(XsdComplexType.class, linkName);
-            if (complexLinkedType != null) {
-                consumer.accept(XsdComplexType.class);
-                return;
-            }
-            XsdSimpleType simpleLinkedType = xsd.getNamedNode(XsdSimpleType.class, linkName);
-            if (simpleLinkedType != null) {
-                consumer.accept(XsdSimpleType.class);
-                return;
-            }
-            throw new XsdParseException(
-                "Unable to set link for node '" + node.getName() + "'. Couldn't find either COMPLEX-/"
-                    + "SIMPLETYPE with the name '" + linkName + "'.");
         }
 
         /**

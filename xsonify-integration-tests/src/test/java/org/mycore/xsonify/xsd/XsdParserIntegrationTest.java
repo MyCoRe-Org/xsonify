@@ -18,13 +18,10 @@ import org.mycore.xsonify.xsd.node.XsdSimpleContent;
 import org.mycore.xsonify.xsd.node.XsdSimpleType;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 
 public class XsdParserIntegrationTest extends XsdBaseTest {
 
@@ -52,9 +49,6 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
         assertEquals(1, modsCounter.get(XsdComplexContent.TYPE).get());
         // 36 + 52 due to extensions
         assertEquals(36 + 52, modsCounter.get(XsdSimpleContent.TYPE).get());
-
-        // check if links are correctly mapped
-        checkLinks(xsd);
     }
 
     @Test
@@ -67,9 +61,6 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
         assertEquals(8, counter.get(XsdComplexType.TYPE).get());
         assertEquals(8, counter.get(XsdChoice.TYPE).get());
         assertEquals(1, counter.get(XsdSequence.TYPE).get());
-
-        // check if links are correctly mapped
-        checkLinks(xsd);
     }
 
     @Test
@@ -94,9 +85,6 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
         assertEquals(0, counter.get(XsdSimpleContent.TYPE).get());
         assertEquals(2, counter.get(XsdRestriction.TYPE).get());
         assertEquals(3, counter.get(XsdExtension.TYPE).get());
-
-        // check if links are correctly mapped
-        checkLinks(xsd);
     }
 
     @Test
@@ -114,9 +102,6 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
         assertEquals(33, counter.get(XsdComplexType.TYPE).get());
         assertEquals(6, counter.get(XsdGroup.TYPE).get());
         assertEquals(29, counter.get(XsdChoice.TYPE).get());
-
-        // check if links are correctly mapped
-        checkLinks(xsd);
     }
 
     @Test
@@ -131,9 +116,6 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
         assertEquals(4, counter.get(XsdElement.TYPE).get());
         assertEquals(2, counter.get(XsdComplexType.TYPE).get());
         assertEquals(1, counter.get(XsdRestriction.TYPE).get());
-
-        // check if links are correctly mapped
-        checkLinks(xsd);
     }
 
     @Test
@@ -150,9 +132,6 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
         assertEquals(2, counter.get(XsdSequence.TYPE).get());
         assertEquals(3, counter.get(XsdChoice.TYPE).get());
         assertEquals(2, counter.get(XsdExtension.TYPE).get());
-
-        // check if links are correctly mapped
-        checkLinks(xsd);
     }
 
     @Test
@@ -167,9 +146,6 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
         assertEquals(6, includeTestCounter.get(XsdElement.TYPE).get());
         assertEquals(2, includeTestCounter.get(XsdComplexType.TYPE).get());
         assertEquals(2, includeTestCounter.get(XsdChoice.TYPE).get());
-
-        // check if links are correctly mapped
-        checkLinks(xsd);
     }
 
     @Test
@@ -192,9 +168,6 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
             .getChildren().get(0)
             .getChildren().get(1))).getReference();
         assertEquals("{https://test.com/redefine}includeB", elementNode.getDatatype().getName().toString());
-
-        // check if links are correctly mapped
-        checkLinks(xsd);
     }
 
     @Test
@@ -207,9 +180,6 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
         assertEquals(11, counter.get(XsdElement.TYPE).get());
         assertEquals(7, counter.get(XsdChoice.TYPE).get());
         assertEquals(4, counter.get(XsdExtension.TYPE).get());
-
-        // check if links are correctly mapped
-        checkLinks(xsd);
     }
 
     @Test
@@ -222,9 +192,6 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
         assertEquals(1, counter.get(XsdChoice.TYPE).get());
 
         System.out.println(xsd.toTreeString());
-
-        // check if links are correctly mapped
-        checkLinks(xsd);
     }
 
     @Test
@@ -234,17 +201,6 @@ public class XsdParserIntegrationTest extends XsdBaseTest {
 
         assertEquals(3, counter.get(XsdAttribute.TYPE).get());
         assertEquals(1, counter.get(XsdAnyAttribute.TYPE).get());
-    }
-
-    private void checkLinks(Xsd xsd) {
-        List<XsdNode> links = xsd.collectAll().stream()
-            .map(XsdNode::getLinkedNode)
-            .filter(Objects::nonNull)
-            .toList();
-        for (XsdNode link : links) {
-            XsdNode namedNode = xsd.getNamedNode(link.getClass(), link.getName());
-            assertSame(link, namedNode);
-        }
     }
 
     private Map<String, AtomicInteger> createCounter(Xsd xsd) {

@@ -2,7 +2,6 @@ package org.mycore.xsonify.serialize.detector;
 
 import org.mycore.xsonify.xml.XmlAttribute;
 import org.mycore.xsonify.xml.XmlElement;
-import org.mycore.xsonify.xml.XmlException;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xml.XmlPath;
 

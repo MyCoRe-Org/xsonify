@@ -3,7 +3,6 @@ package org.mycore.xsonify.serialize.detector;
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
-import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdAll;
 import org.mycore.xsonify.xsd.node.XsdAny;
 import org.mycore.xsonify.xsd.node.XsdChoice;
@@ -13,6 +12,7 @@ import org.mycore.xsonify.xsd.node.XsdDatatype;
 import org.mycore.xsonify.xsd.node.XsdElement;
 import org.mycore.xsonify.xsd.node.XsdExtension;
 import org.mycore.xsonify.xsd.node.XsdGroup;
+import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdRestriction;
 import org.mycore.xsonify.xsd.node.XsdSequence;
 
@@ -158,7 +158,7 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
     }
 
     private void create(XsdNode xsdNode, Node elementNode, boolean isRepeatable) throws XsdDetectorException {
-        if (!XsdElement.CONTAINER_NODES.contains(xsdNode.getClass())) {
+        if (!XsdElement.ELEMENT_NODES.contains(xsdNode.getClass())) {
             return;
         }
         Integer maxOccurs = getMaxOccurs(xsdNode);

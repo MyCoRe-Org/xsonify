@@ -3,7 +3,6 @@ package org.mycore.xsonify.xsd;
 import org.mycore.xsonify.xml.XmlAttribute;
 import org.mycore.xsonify.xml.XmlDocument;
 import org.mycore.xsonify.xml.XmlElement;
-import org.mycore.xsonify.xml.XmlException;
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xml.XmlQualifiedName;
