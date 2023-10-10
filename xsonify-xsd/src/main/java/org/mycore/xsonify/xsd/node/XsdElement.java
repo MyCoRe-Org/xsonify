@@ -4,7 +4,6 @@ import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdBuiltInDatatypes;
-import org.mycore.xsonify.xsd.XsdNode;
 
 import java.util.List;
 
@@ -55,12 +54,6 @@ public class XsdElement extends XsdNode implements XsdReferenceable<XsdElement> 
         return this.getXsd().getNamedNode(XsdElement.class, this.referenceName);
     }
 
-    @Override
-    public XsdElement getReferenceOrSelf() {
-        XsdElement reference = getReference();
-        return reference != null ? reference : this;
-    }
-
     public XmlExpandedName getDatatypeName() {
         return datatypeName;
     }
@@ -85,6 +78,22 @@ public class XsdElement extends XsdNode implements XsdReferenceable<XsdElement> 
     }
 
     @Override
+    protected <T> boolean collect(Class<T> type, List<Class<? extends XsdNode>> searchNodes, List<T> found,
+        List<XsdNode> visited) {
+        if (super.collect(type, searchNodes, found, visited)) {
+            return true;
+        }
+        XsdElement reference = getReference();
+        XsdDatatype datatype = getDatatype();
+        if (reference != null) {
+            reference.collect(type, searchNodes, found, visited);
+        } else if (datatype != null) {
+            datatype.collect(type, searchNodes, found, visited);
+        }
+        return false;
+    }
+
+    @Override
     public XsdElement clone() {
         XsdElement element = new XsdElement(getXsd(), getUri(), getElement(), getParent());
         element.setReferenceName(this.referenceName);
@@ -92,6 +101,10 @@ public class XsdElement extends XsdNode implements XsdReferenceable<XsdElement> 
         element.setLink(this.getLink()); // TODO remove
         cloneChildren(element);
         return element;
+    }
+
+    public static List<XsdElement> resolveReferences(List<? extends XsdElement> nodes) {
+        return nodes.stream().map(XsdElement::getReferenceOrSelf).toList();
     }
 
 }

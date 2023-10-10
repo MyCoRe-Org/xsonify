@@ -18,6 +18,7 @@ import org.mycore.xsonify.xsd.node.XsdElement;
 import org.mycore.xsonify.xsd.node.XsdExtension;
 import org.mycore.xsonify.xsd.node.XsdGroup;
 import org.mycore.xsonify.xsd.node.XsdList;
+import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdRestriction;
 import org.mycore.xsonify.xsd.node.XsdSequence;
 import org.mycore.xsonify.xsd.node.XsdSimpleContent;
@@ -333,7 +334,7 @@ public class XsdParser {
             resolveRedefines();
 
             List<XsdExtension> extensionNodes = xsd.collect(XsdExtension.class).stream()
-                .filter(node -> node.getLinkedNode() != null)
+                .filter(node -> node.getBase() != null && !node.isResolved())
                 .collect(Collectors.toList());
 
             resolveExtensions(extensionNodes);
@@ -539,7 +540,7 @@ public class XsdParser {
                     } else {
                         XsdDatatype baseDatatype = extensionNode.getBase();
                         linkExtensionNode(extensionNode, baseDatatype);
-                        extensionNode.setLink(null); // TODO check how to remove link here (base)
+                        extensionNode.setResolved(true);
                         return true;
                     }
                     return changed;
@@ -590,7 +591,7 @@ public class XsdParser {
         private boolean hasUnresolvedSubExtension(XsdNode node) {
             List<XsdExtension> extensions = xsd.collect(node, XsdExtension.class);
             return extensions.stream()
-                .anyMatch(extension -> extension.getLinkedNode() != null);
+                .anyMatch(extension -> !extension.isResolved() && extension.getBase() != null);
         }
 
         private void linkExtensionNode(XsdExtension extensionNode, XsdNode baseNode) {

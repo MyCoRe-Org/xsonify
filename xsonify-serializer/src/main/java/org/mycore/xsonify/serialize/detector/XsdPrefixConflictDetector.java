@@ -5,7 +5,8 @@ import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
-import org.mycore.xsonify.xsd.XsdNode;
+import org.mycore.xsonify.xsd.node.XsdAttribute;
+import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdElement;
 
 import java.util.Collection;
@@ -47,13 +48,13 @@ public class XsdPrefixConflictDetector implements XsdDetector<Boolean> {
 
         for (XsdNode node : elementCollection) {
             // elements
-            List<XsdNode> elementNodes = XsdNode.resolveReferences(node.collectElements());
+            List<XsdElement> elementNodes = XsdElement.resolveReferences(node.collectElements());
             Map<String, Set<XmlExpandedName>> duplicateElements = getDuplicates(elementNodes);
             if (!duplicateElements.isEmpty()) {
                 this.elementNameConflicts.put(node, duplicateElements);
             }
             // attributes
-            List<XsdNode> attributeNodes = XsdNode.resolveReferences(node.collectAttributes());
+            List<XsdAttribute> attributeNodes = XsdAttribute.resolveReferences(node.collectAttributes());
             Map<String, Set<XmlExpandedName>> duplicateAttributes = getDuplicates(attributeNodes);
             if (!duplicateAttributes.isEmpty()) {
                 this.attributeNameConflicts.put(node, duplicateAttributes);
@@ -67,7 +68,7 @@ public class XsdPrefixConflictDetector implements XsdDetector<Boolean> {
      * @param nodes The list of XML nodes to check.
      * @return A map containing duplicated names as keys and their corresponding XML expanded names as values.
      */
-    private Map<String, Set<XmlExpandedName>> getDuplicates(List<XsdNode> nodes) {
+    private Map<String, Set<XmlExpandedName>> getDuplicates(List<? extends XsdNode> nodes) {
         Map<String, Set<XmlExpandedName>> nameMap = new HashMap<>();
         nodes.stream()
             .map(XsdNode::getName)

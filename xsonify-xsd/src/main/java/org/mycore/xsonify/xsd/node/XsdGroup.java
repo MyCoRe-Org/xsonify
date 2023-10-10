@@ -3,7 +3,8 @@ package org.mycore.xsonify.xsd.node;
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xsd.Xsd;
-import org.mycore.xsonify.xsd.XsdNode;
+
+import java.util.List;
 
 public class XsdGroup extends XsdNode implements XsdReferenceable<XsdGroup> {
 
@@ -40,12 +41,6 @@ public class XsdGroup extends XsdNode implements XsdReferenceable<XsdGroup> {
     }
 
     @Override
-    public XsdGroup getReferenceOrSelf() {
-        XsdGroup reference = getReference();
-        return reference != null ? reference : this;
-    }
-
-    @Override
     public XsdNode getLinkedNode() {
         return getReference();
     }
@@ -53,6 +48,19 @@ public class XsdGroup extends XsdNode implements XsdReferenceable<XsdGroup> {
     @Override
     public String getType() {
         return TYPE;
+    }
+
+    @Override
+    protected <T> boolean collect(Class<T> type, List<Class<? extends XsdNode>> searchNodes, List<T> found,
+        List<XsdNode> visited) {
+        if (super.collect(type, searchNodes, found, visited)) {
+            return true;
+        }
+        XsdGroup reference = getReference();
+        if (reference != null) {
+            reference.collect(type, searchNodes, found, visited);
+        }
+        return false;
     }
 
     @Override

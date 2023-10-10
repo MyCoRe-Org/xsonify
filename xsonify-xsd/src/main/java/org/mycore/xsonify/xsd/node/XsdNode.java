@@ -1,12 +1,11 @@
-package org.mycore.xsonify.xsd;
+package org.mycore.xsonify.xsd.node;
 
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xml.XmlExpandedName;
-import org.mycore.xsonify.xsd.node.XsdAny;
-import org.mycore.xsonify.xsd.node.XsdAnyAttribute;
-import org.mycore.xsonify.xsd.node.XsdAttribute;
-import org.mycore.xsonify.xsd.node.XsdElement;
-import org.mycore.xsonify.xsd.node.XsdReferenceable;
+import org.mycore.xsonify.xsd.Xsd;
+import org.mycore.xsonify.xsd.XsdDocument;
+import org.mycore.xsonify.xsd.XsdLink;
+import org.mycore.xsonify.xsd.XsdParser;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -159,7 +158,7 @@ public abstract class XsdNode {
         return sb.toString();
     }
 
-    void toTreeString(StringBuilder sb, String indent) {
+    public void toTreeString(StringBuilder sb, String indent) {
         sb.append(indent).append(this).append('\n');
         this.children.forEach(child -> {
             child.toTreeString(sb, indent + "|  ");
@@ -198,7 +197,7 @@ public abstract class XsdNode {
     public List<XsdElement> collectElements() {
         if (this.elementCache == null) {
             this.elementCache = new ArrayList<>();
-            collect(XsdElement.class, XsdElement.CONTAINER_NODES, this, this.elementCache,
+            this.collect(XsdElement.class, XsdElement.CONTAINER_NODES, this.elementCache,
                 new ArrayList<>());
         }
         return Collections.unmodifiableList(this.elementCache);
@@ -216,7 +215,7 @@ public abstract class XsdNode {
             this.attributeCache = new ArrayList<>();
             List<Class<? extends XsdNode>> searchNodes = new ArrayList<>(XsdAttribute.CONTAINER_NODES);
             searchNodes.remove(XsdElement.class);
-            collect(XsdAttribute.class, searchNodes, this, this.attributeCache, new ArrayList<>());
+            this.collect(XsdAttribute.class, searchNodes, this.attributeCache, new ArrayList<>());
         }
         return Collections.unmodifiableList(this.attributeCache);
     }
@@ -260,33 +259,22 @@ public abstract class XsdNode {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> void collect(Class<T> type, List<Class<? extends XsdNode>> searchNodes, XsdNode node,
-        List<T> found, List<XsdNode> visited) {
-        if (visited.contains(node)) {
-            return;
+    protected <T> boolean collect(Class<T> type, List<Class<? extends XsdNode>> searchNodes, List<T> found,
+        List<XsdNode> visited) {
+        if (visited.contains(this)) {
+            return true;
         }
-        visited.add(node);
-        if (node.getLinkedNode() != null) {
-            collect(type, searchNodes, node.getLinkedNode(), found, visited);
-            return;
-        }
-        if (node instanceof XsdReferenceable<?>) {
-            XsdNode reference = ((XsdReferenceable<?>) node).getReference();
-            if (reference != null) {
-                collect(type, searchNodes, reference, found, visited);
-                return;
-            }
-        }
-
-        for (XsdNode childNode : node.getChildren()) {
+        visited.add(this);
+        for (XsdNode childNode : getChildren()) {
             if (childNode.getClass().equals(type)) {
                 found.add((T) childNode);
                 continue;
             }
             if (searchNodes.contains(childNode.getClass())) {
-                collect(type, searchNodes, childNode, found, visited);
+                childNode.collect(type, searchNodes, found, visited);
             }
         }
+        return false;
     }
 
     private boolean hasAnyCheck(XsdNode node, List<XsdNode> visited, Class<? extends XsdNode> nodeTypeToCheck) {
@@ -310,23 +298,6 @@ public abstract class XsdNode {
             }
         }
         return false;
-    }
-
-    /**
-     * Returns the referenced node of this node. If there is no reference node then this node is returned. A reference
-     * in xsd is defined by the @ref attribute.
-     *
-     * @return the reference or this node
-     */
-    public XsdNode getReferenceOrSelf() {
-        if (this.getLinkedNode() != null && this.getLinkedNode().getType().equals(this.getType())) {
-            return this.getLinkedNode();
-        }
-        return this;
-    }
-
-    public static List<XsdNode> resolveReferences(List<? extends XsdNode> nodes) {
-        return nodes.stream().map(XsdNode::getReferenceOrSelf).toList();
     }
 
     public abstract XsdNode clone();

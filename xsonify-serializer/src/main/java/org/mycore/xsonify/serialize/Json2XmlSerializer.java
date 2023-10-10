@@ -19,7 +19,8 @@ import org.mycore.xsonify.xml.XmlNamespaceDeclarationStrategy;
 import org.mycore.xsonify.xml.XmlQualifiedName;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
-import org.mycore.xsonify.xsd.XsdNode;
+import org.mycore.xsonify.xsd.node.XsdAttribute;
+import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdElement;
 
 import java.nio.charset.StandardCharsets;
@@ -84,12 +85,12 @@ public class Json2XmlSerializer extends SerializerBase {
     private XmlDocument createXmlDocument(ObjectNode json) throws SerializationException {
         ObjectNode rootValue = getRootValue(json);
         SerializationNode serializationNode = toJsonNode(rootValue);
-        XsdNode xsdNode = getRootXsdNode(json, serializationNode);
-        XmlName rootName = getRootName() != null ? getRootName() : getName(xsdNode, null);
+        XsdElement xsdElement = getRootXsdNode(json, serializationNode);
+        XmlName rootName = getRootName() != null ? getRootName() : getName(xsdElement, null);
         XmlDocument xmlDocument = new XmlDocument();
         XmlElement rootElement = new XmlElement(rootName, xmlDocument);
         xmlDocument.setRoot(rootElement);
-        SerializationContext rootContext = new SerializationContext(null, rootElement, xsdNode, serializationNode);
+        SerializationContext rootContext = new SerializationContext(null, rootElement, xsdElement, serializationNode);
         handleObject(rootContext);
         return xmlDocument;
     }
@@ -135,7 +136,7 @@ public class Json2XmlSerializer extends SerializerBase {
 
     private void serializeNode(String jsonKey, SerializationNode serializationNode, SerializationContext parentContext)
         throws SerializationException {
-        XsdNode xsdNode = getXsdNode(jsonKey, serializationNode, parentContext);
+        XsdElement xsdNode = getXsdElement(jsonKey, serializationNode, parentContext);
         XmlName name = getName(xsdNode, jsonKey);
         XmlElement element = new XmlElement(name, parentContext.getDocument());
         SerializationContext context = new SerializationContext(parentContext, element, xsdNode, serializationNode);
@@ -246,7 +247,7 @@ public class Json2XmlSerializer extends SerializerBase {
         if (element.getNamespace() != null) {
             return;
         }
-        String uri = context.xsdNode() != null ? context.xsdNode().getUri() :
+        String uri = context.xsdElement() != null ? context.xsdElement().getUri() :
                      getUri(context.serializationNode, context.parentContext);
         String prefix = context.jsonNode().getNamespacePrefix();
         if (prefix != null && uri != null) {
@@ -258,9 +259,9 @@ public class Json2XmlSerializer extends SerializerBase {
 
     private boolean useEmptyNamespaceForXsAny(SerializationContext context) {
         boolean isChildOfXsAny =
-            context.xsdNode() == null &&
-                context.parentContext().xsdNode() != null &&
-                context.parentContext().xsdNode().hasAny();
+            context.xsdElement() == null &&
+                context.parentContext().xsdElement() != null &&
+                context.parentContext().xsdElement().hasAny();
         if (!isChildOfXsAny) {
             return false;
         }
@@ -307,12 +308,13 @@ public class Json2XmlSerializer extends SerializerBase {
             return;
         }
         // handle xs:any attributes
-        if (context.xsdNode() == null) {
+        if (context.xsdElement() == null) {
             element.setAttribute(attributeName, attributeValue, XmlNamespace.EMPTY);
             return;
         }
         // get xsd attribute nodes -> in best case there should be only one
-        List<XsdNode> attributeNodes = XsdNode.resolveReferences(context.xsdNode().collectAttributes(attributeName));
+        List<XsdAttribute> attributeNodes = XsdAttribute.resolveReferences(
+            context.xsdElement().collectAttributes(attributeName));
         String elementNamespace = context.element().getNamespace().uri();
         if (attributeNodes.size() > 1) {
             attributeNodes = attributeNodes.stream()
@@ -428,10 +430,10 @@ public class Json2XmlSerializer extends SerializerBase {
                (ObjectNode) json.iterator().next();
     }
 
-    private XsdNode getRootXsdNode(ObjectNode rootJson, SerializationNode serializationNode)
+    private XsdElement getRootXsdNode(ObjectNode rootJson, SerializationNode serializationNode)
         throws SerializationException {
         if (getRootName() != null) {
-            XsdNode rootNode = xsd().getNamedNode(XsdElement.class, getRootName());
+            XsdElement rootNode = xsd().getNamedNode(XsdElement.class, getRootName());
             if (rootNode != null) {
                 return rootNode;
             }
@@ -443,45 +445,46 @@ public class Json2XmlSerializer extends SerializerBase {
         if (candidates.isEmpty()) {
             throw new SerializationException("Unable to find root node '" + localName + "' in xsd definition");
         }
-        XsdNode xsdNode = getXsdNode(serializationNode, null, candidates);
-        if (xsdNode == null) {
+        XsdElement xsdElement = getXsdElement(serializationNode, null, candidates);
+        if (xsdElement == null) {
             throw new SerializationException("Unable to find root node '" + localName + "' in xsd definition");
         }
-        return xsdNode;
+        return xsdElement;
     }
 
-    private XsdNode getXsdNode(String jsonKey, SerializationNode serializationNode, SerializationContext parentContext)
+    private XsdElement getXsdElement(String jsonKey, SerializationNode serializationNode,
+        SerializationContext parentContext)
         throws SerializationException {
         String localName = XmlQualifiedName.of(jsonKey).localName();
         // xs:any check
-        if (parentContext.xsdNode() == null) {
+        if (parentContext.xsdElement() == null) {
             return null;
         }
         // collect
-        List<XsdNode> candidates = parentContext.xsdNode().collectElements().stream()
-            .map(XsdNode::getReferenceOrSelf)
+        List<XsdElement> candidates = parentContext.xsdElement().collectElements().stream()
+            .map(XsdElement::getReferenceOrSelf)
             .filter(xsdChildNode -> xsdChildNode.getLocalName().equals(localName))
             .distinct()
             .toList();
         if (candidates.isEmpty()) {
             // in case the parent element has a xs:any element
-            if (parentContext.xsdNode().hasAny()) {
+            if (parentContext.xsdElement().hasAny()) {
                 return null;
             }
             // not found -> can't recover from this
             throw new SerializationException("'" + localName + "' is not a valid child of '" +
-                parentContext.xsdNode().getLocalName() + "'.");
+                parentContext.xsdElement().getLocalName() + "'.");
         }
-        XsdNode xsdNode = getXsdNode(serializationNode, parentContext, candidates);
-        if (xsdNode == null) {
+        XsdElement xsdElement = getXsdElement(serializationNode, parentContext, candidates);
+        if (xsdElement == null) {
             throw new SerializationException("Multiple element definitions of '" + localName + "' found in " +
-                parentContext.xsdNode().getLocalName() + ". Getting the XsdNode is therefore ambiguous.");
+                parentContext.xsdElement().getLocalName() + ". Getting the XsdNode is therefore ambiguous.");
         }
-        return xsdNode;
+        return xsdElement;
     }
 
-    private XsdNode getXsdNode(SerializationNode serializationNode, SerializationContext parentContext,
-        List<? extends XsdNode> candidates) {
+    private XsdElement getXsdElement(SerializationNode serializationNode, SerializationContext parentContext,
+        List<XsdElement> candidates) {
         if (candidates.size() == 1) {
             return candidates.get(0);
         }
@@ -564,15 +567,15 @@ public class Json2XmlSerializer extends SerializerBase {
 
         private final SerializationContext parentContext;
         private final XmlElement element;
-        private final XsdNode xsdNode;
+        private final XsdElement xsdElement;
         private final SerializationNode serializationNode;
         private final List<SerializationContext> children;
 
-        private SerializationContext(SerializationContext parentContext, XmlElement element, XsdNode xsdNode,
+        private SerializationContext(SerializationContext parentContext, XmlElement element, XsdElement xsdElement,
             SerializationNode serializationNode) {
             this.parentContext = parentContext;
             this.element = element;
-            this.xsdNode = xsdNode;
+            this.xsdElement = xsdElement;
             this.serializationNode = serializationNode;
             this.children = new ArrayList<>();
         }
@@ -598,8 +601,8 @@ public class Json2XmlSerializer extends SerializerBase {
             return element;
         }
 
-        public XsdNode xsdNode() {
-            return xsdNode;
+        public XsdElement xsdElement() {
+            return xsdElement;
         }
 
         public SerializationNode jsonNode() {

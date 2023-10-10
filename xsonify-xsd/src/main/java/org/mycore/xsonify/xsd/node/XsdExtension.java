@@ -4,13 +4,14 @@ import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdBuiltInDatatypes;
-import org.mycore.xsonify.xsd.XsdNode;
 
 public class XsdExtension extends XsdNode {
 
     public static final String TYPE = "extension";
 
     private XmlExpandedName baseName;
+
+    private boolean resolved;
 
     /**
      * Constructs a new XsdNode.
@@ -23,6 +24,7 @@ public class XsdExtension extends XsdNode {
     public XsdExtension(Xsd xsd, String uri, XmlElement element, XsdNode parent) {
         super(xsd, uri, element, parent);
         this.baseName = null;
+        this.resolved = false;
     }
 
     @Override
@@ -52,10 +54,17 @@ public class XsdExtension extends XsdNode {
         return this.getXsd().getNamedNode(XsdSimpleType.class, this.baseName);
     }
 
+    public void setResolved(boolean resolved) {
+        this.resolved = resolved;
+    }
+
+    public boolean isResolved() {
+        return resolved;
+    }
+
     @Override
     public XsdExtension clone() {
         XsdExtension extension = new XsdExtension(getXsd(), getUri(), getElement(), getParent());
-        extension.setLink(getLink());
         cloneChildren(extension);
         return extension;
     }

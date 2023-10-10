@@ -2,7 +2,6 @@ package org.mycore.xsonify.xsd.node;
 
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xsd.Xsd;
-import org.mycore.xsonify.xsd.XsdNode;
 
 public class XsdChoice extends XsdNode {
 

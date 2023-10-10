@@ -10,7 +10,9 @@ import org.mycore.xsonify.xsd.node.XsdAttribute;
 import org.mycore.xsonify.xsd.node.XsdAttributeGroup;
 import org.mycore.xsonify.xsd.node.XsdComplexType;
 import org.mycore.xsonify.xsd.node.XsdElement;
+import org.mycore.xsonify.xsd.node.XsdExtension;
 import org.mycore.xsonify.xsd.node.XsdGroup;
+import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdSimpleType;
 
 import java.util.ArrayList;
@@ -321,20 +323,22 @@ public class Xsd {
         }
         List<XsdNode> nodes = new ArrayList<>();
         XmlName root = path.root().name();
-        XsdNode headNode = this.getNamedNode(XsdElement.class, root);
+        XsdElement headNode = this.getNamedNode(XsdElement.class, root);
         if (headNode == null) {
             throw new NoSuchElementException(root + " could not be found!");
         }
         nodes.add(headNode);
-        XsdNode next = headNode;
+        XsdElement next = headNode;
         for (int i = 1; i < path.size(); i++) {
             XmlPath.Node node = path.at(i);
             if (XmlPath.Type.ELEMENT.equals(node.type())) {
                 next = resolvePathForElement(next, node.name());
+                nodes.add(next);
             } else {
-                next = resolvePathForAttribute(next, node.name());
+                XsdAttribute attribute = resolvePathForAttribute(next, node.name());
+                nodes.add(attribute);
+                break;
             }
-            nodes.add(next);
         }
         return nodes;
     }
@@ -353,7 +357,7 @@ public class Xsd {
         return !nodes.isEmpty() ? (XsdElement) nodes.get(nodes.size() - 1) : null;
     }
 
-    private XsdElement resolvePathForElement(XsdNode parent, XmlName elementToFind) throws XsdAnyException,
+    private XsdElement resolvePathForElement(XsdElement parent, XmlName elementToFind) throws XsdAnyException,
         NoSuchElementException {
         List<XsdElement> children = parent.collectElements();
         for (XsdElement childNode : children) {
@@ -370,7 +374,7 @@ public class Xsd {
             "element '" + elementToFind + "' could not be found in parent '" + parent.getName() + "'");
     }
 
-    private XsdNode resolvePathForAttribute(XsdNode parent, XmlName attributeName) throws XsdAnyException {
+    private XsdAttribute resolvePathForAttribute(XsdElement parent, XmlName attributeName) throws XsdAnyException {
         // add uri to attribute if empty
         // this is needed because attributes usually have an empty namespace, but the xsd definition uses namespaces
         XmlExpandedName resolvedAttributeName = attributeName.expandedName();
@@ -380,7 +384,7 @@ public class Xsd {
         // find corresponding attribute
         List<XsdAttribute> attributes = parent.collectAttributes();
         for (XsdAttribute attributeNode : attributes) {
-            XsdNode namedNode = attributeNode.getReferenceOrSelf();
+            XsdAttribute namedNode = attributeNode.getReferenceOrSelf();
             if (namedNode.getName().equals(resolvedAttributeName)) {
                 return namedNode;
             }

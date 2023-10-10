@@ -5,7 +5,7 @@ import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
-import org.mycore.xsonify.xsd.XsdNode;
+import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdAttribute;
 import org.mycore.xsonify.xsd.node.XsdComplexType;
 import org.mycore.xsonify.xsd.node.XsdContent;
@@ -122,7 +122,11 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
             }
             // resolve the path
             List<XsdNode> xsdNodes = xsd.resolvePath(path);
-            XsdNode last = xsdNodes.get(xsdNodes.size() - 1).getReferenceOrSelf();
+            XsdNode last = xsdNodes.get(xsdNodes.size() - 1);
+            if (last instanceof XsdReferenceable<?>) {
+                XsdNode reference = ((XsdReferenceable<?>) last).getReference();
+                last = reference != null ? reference : last;
+            }
             return this.nodeJsonPrimitiveMap.get(last);
         } catch (XsdAnyException xsdAnyException) {
             return JsonPrimitive.STRING;

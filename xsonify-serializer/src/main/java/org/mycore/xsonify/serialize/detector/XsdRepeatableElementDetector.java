@@ -3,7 +3,7 @@ package org.mycore.xsonify.serialize.detector;
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
-import org.mycore.xsonify.xsd.XsdNode;
+import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdAll;
 import org.mycore.xsonify.xsd.node.XsdAny;
 import org.mycore.xsonify.xsd.node.XsdChoice;
@@ -188,13 +188,13 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
         XsdElement reference = xsdElement.getReference();
         XsdDatatype datatype = xsdElement.getDatatype();
         if (reference != null) {
-            Node globalElementNode = this.root.getElementNode(xsdElement.getLinkedNode().getName());
+            Node globalElementNode = this.root.getElementNode(xsdElement.getReference().getName());
             boolean hasSameNodeAlready = elementNode.has(globalElementNode.name);
             elementNode.put(globalElementNode.name,
                 new RepeatableInfo(globalElementNode, hasSameNodeAlready || forceRepeatable));
         } else if (datatype != null) {
             if (datatype instanceof XsdComplexType) {
-                Node globalComplexTypeNode = this.root.getComplexTypeNode(xsdElement.getLinkedNode().getName());
+                Node globalComplexTypeNode = this.root.getComplexTypeNode(xsdElement.getDatatype().getName());
                 Node childElementNode = new Node(xsdElement.getName(), XsdElement.TYPE, false);
                 elementNode.put(childElementNode.name, new RepeatableInfo(childElementNode, forceRepeatable));
                 childElementNode.put(globalComplexTypeNode.name, new RepeatableInfo(globalComplexTypeNode, false));

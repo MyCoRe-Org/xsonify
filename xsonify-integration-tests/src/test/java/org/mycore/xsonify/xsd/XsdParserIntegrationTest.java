@@ -11,6 +11,7 @@ import org.mycore.xsonify.xsd.node.XsdComplexType;
 import org.mycore.xsonify.xsd.node.XsdElement;
 import org.mycore.xsonify.xsd.node.XsdExtension;
 import org.mycore.xsonify.xsd.node.XsdGroup;
+import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdRestriction;
 import org.mycore.xsonify.xsd.node.XsdSequence;
 import org.mycore.xsonify.xsd.node.XsdSimpleContent;

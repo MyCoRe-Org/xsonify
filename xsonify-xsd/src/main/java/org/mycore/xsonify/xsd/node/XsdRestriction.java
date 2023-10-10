@@ -3,7 +3,6 @@ package org.mycore.xsonify.xsd.node;
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xsd.Xsd;
-import org.mycore.xsonify.xsd.XsdNode;
 
 public class XsdRestriction extends XsdNode {
 
@@ -39,7 +38,6 @@ public class XsdRestriction extends XsdNode {
     @Override
     public XsdRestriction clone() {
         XsdRestriction restriction = new XsdRestriction(getXsd(), getUri(), getElement(), getParent());
-        restriction.setLink(getLink());
         restriction.setBaseName(getBaseName());
         cloneChildren(restriction);
         return restriction;

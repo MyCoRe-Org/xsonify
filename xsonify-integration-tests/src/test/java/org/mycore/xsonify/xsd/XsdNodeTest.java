@@ -3,6 +3,7 @@ package org.mycore.xsonify.xsd;
 import org.junit.jupiter.api.Test;
 import org.mycore.xsonify.xsd.node.XsdComplexType;
 import org.mycore.xsonify.xsd.node.XsdElement;
+import org.mycore.xsonify.xsd.node.XsdNode;
 
 import java.util.List;
 
