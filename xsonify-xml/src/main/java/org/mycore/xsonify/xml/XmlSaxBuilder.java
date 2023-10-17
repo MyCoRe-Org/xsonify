@@ -1,6 +1,7 @@
 package org.mycore.xsonify.xml;
 
 import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.util.HashMap;
@@ -20,12 +21,12 @@ import java.util.Stack;
  */
 public class XmlSaxBuilder extends DefaultHandler {
 
-    private final Stack<XmlElement> elementStack;
-    private XmlDocument xmlDocument;
+    protected final Stack<XmlElement> elementStack;
+    protected XmlDocument xmlDocument;
 
-    private final Map<String, XmlNamespace> prefixToNamespaceMap;
+    protected final Map<String, XmlNamespace> prefixToNamespaceMap;
 
-    private final Map<String, XmlNamespace> inheritedNamespaces;
+    protected final Map<String, XmlNamespace> inheritedNamespaces;
 
     public XmlSaxBuilder() {
         this.elementStack = new Stack<>();
@@ -38,12 +39,12 @@ public class XmlSaxBuilder extends DefaultHandler {
     }
 
     @Override
-    public void startDocument() {
+    public void startDocument() throws SAXException {
         xmlDocument = new XmlDocument();
     }
 
     @Override
-    public void startElement(String uri, String localName, String qName, Attributes attributes) {
+    public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
         String prefix = qName.contains(":") ? qName.split(":")[0] : "";
         XmlNamespace elementNamespace = getElementNamespace(prefix);
 
@@ -101,17 +102,17 @@ public class XmlSaxBuilder extends DefaultHandler {
     }
 
     @Override
-    public void endElement(String uri, String localName, String qName) {
+    public void endElement(String uri, String localName, String qName) throws SAXException {
         elementStack.pop();
     }
 
     @Override
-    public void startPrefixMapping(String prefix, String uri) {
+    public void startPrefixMapping(String prefix, String uri) throws SAXException {
         prefixToNamespaceMap.put(prefix, new XmlNamespace(prefix, uri));
     }
 
     @Override
-    public void endPrefixMapping(String prefix) {
+    public void endPrefixMapping(String prefix) throws SAXException {
         prefixToNamespaceMap.remove(prefix);
         inheritedNamespaces.remove(prefix);
     }

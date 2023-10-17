@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.mycore.xsonify.serialize.SerializerSettings.AdditionalNamespaceDeclarationStrategy;
-import org.mycore.xsonify.serialize.SerializerSettings.NamespaceHandling;
+import org.mycore.xsonify.serialize.SerializerSettings.NamespaceDeclaration;
 import org.mycore.xsonify.serialize.SerializerSettings.XsAnyNamespaceStrategy;
 import org.mycore.xsonify.xml.XmlContent;
 import org.mycore.xsonify.xml.XmlDocument;
@@ -96,8 +96,8 @@ public class Json2XmlSerializer extends SerializerBase {
     }
 
     private void optimizeNamespaceDeclaration(XmlDocument xmlDocument) throws SerializationException {
-        NamespaceHandling namespaceHandling = settings().namespaceHandling();
-        if (NamespaceHandling.ADD.equals(namespaceHandling)) {
+        NamespaceDeclaration namespaceDeclaration = settings().namespaceDeclaration();
+        if (NamespaceDeclaration.ADD.equals(namespaceDeclaration)) {
             // no need to optimize, namespace information comes from the json source, and we will keep it that way
             return;
         }
@@ -191,7 +191,9 @@ public class Json2XmlSerializer extends SerializerBase {
     private SerializationNode toJsonNode(ObjectNode jsonObject) {
         SerializationNode serializationNode = new SerializationNode();
         for (Map.Entry<String, JsonNode> entry : jsonObject.properties()) {
-            if (entry.getKey().equals(style().namespacePrefixKey())) {
+            if(entry.getKey().equals(style().mixedContentElementNameKey())) {
+                serializationNode.namespacePrefix = XmlQualifiedName.of(entry.getValue().asText()).prefix();
+            } else if (entry.getKey().equals(style().namespacePrefixKey())) {
                 serializationNode.namespacePrefix = entry.getValue().asText();
             } else if (entry.getKey().startsWith(style().xmlnsPrefix())) {
                 XmlNamespace namespace = getNamespace(entry.getKey(), entry.getValue());
@@ -265,8 +267,8 @@ public class Json2XmlSerializer extends SerializerBase {
         if (!isChildOfXsAny) {
             return false;
         }
-        NamespaceHandling namespaceHandling = settings().namespaceHandling();
-        if (NamespaceHandling.OMIT.equals(namespaceHandling)) {
+        NamespaceDeclaration namespaceDeclaration = settings().namespaceDeclaration();
+        if (NamespaceDeclaration.OMIT.equals(namespaceDeclaration)) {
             return XsAnyNamespaceStrategy.USE_EMPTY.equals(settings().xsAnyNamespaceStrategy());
         }
         String prefix = context.jsonNode().getNamespacePrefix();
@@ -510,7 +512,7 @@ public class Json2XmlSerializer extends SerializerBase {
             return namespace.uri();
         }
         // check namespace json object itself
-        if (!NamespaceHandling.OMIT.equals(settings().namespaceHandling())) {
+        if (!NamespaceDeclaration.OMIT.equals(settings().namespaceDeclaration())) {
             namespace = serializationNode.getNamespaces().get(prefix);
             if (namespace != null) {
                 return namespace.uri();

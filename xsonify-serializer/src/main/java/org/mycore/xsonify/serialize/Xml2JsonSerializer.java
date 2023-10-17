@@ -3,7 +3,7 @@ package org.mycore.xsonify.serialize;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.mycore.xsonify.serialize.SerializerSettings.NamespaceHandling;
+import org.mycore.xsonify.serialize.SerializerSettings.NamespaceDeclaration;
 import org.mycore.xsonify.serialize.detector.XsdDetectorException;
 import org.mycore.xsonify.serialize.detector.XsdJsonPrimitiveDetector;
 import org.mycore.xsonify.xml.XmlAttribute;
@@ -55,7 +55,7 @@ public class Xml2JsonSerializer extends SerializerBase {
                 return jsonContent;
             }
             ObjectNode json = MAPPER.createObjectNode();
-            json.set(getName(document.getRoot()), jsonContent);
+            json.set(getName(document.getRoot(), null), jsonContent);
             return json;
         } catch (XsdDetectorException detectorException) {
             throw new SerializationException(detectorException);
@@ -66,7 +66,7 @@ public class Xml2JsonSerializer extends SerializerBase {
         throws SerializationException, XsdDetectorException {
 
         // NAMESPACES
-        handleNamespaces(element, json, parentNamespace);
+        handleNamespaceDeclaration(element, json, parentNamespace);
 
         // ATTRIBUTES
         handleAttributes(element, json);
@@ -93,7 +93,7 @@ public class Xml2JsonSerializer extends SerializerBase {
         // - run through the map and serialize
         for (Map.Entry<XmlExpandedName, List<XmlElement>> entry : childContentMap.entrySet()) {
             List<XmlElement> xmlContent = entry.getValue();
-            String name = getName(xmlContent);
+            String name = getName(xmlContent, element.getNamespace());
             if (useArray(xmlContent)) {
                 serializeChildElements(json, name, xmlContent, element.getNamespace());
             } else {
@@ -149,10 +149,11 @@ public class Xml2JsonSerializer extends SerializerBase {
         return settings().normalizeText() ? childElement.getTextNormalized() : childElement.getText();
     }
 
-    private String getName(List<XmlElement> elements) throws SerializationException, XsdDetectorException {
+    private String getName(List<XmlElement> elements, XmlNamespace parentNamespace)
+        throws SerializationException, XsdDetectorException {
         LinkedHashSet<String> names = new LinkedHashSet<>();
         for (XmlElement element : elements) {
-            String name = getName(element);
+            String name = getName(element, parentNamespace);
             names.add(name);
         }
         if (names.size() != 1) {
@@ -161,7 +162,7 @@ public class Xml2JsonSerializer extends SerializerBase {
         return names.stream().findFirst().get();
     }
 
-    private String getName(XmlElement element) throws XsdDetectorException {
+    private String getName(XmlElement element, XmlNamespace parentNamespace) throws XsdDetectorException {
         if (SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT.equals(settings().elementPrefixHandling())) {
             boolean hasNameConflict = prefixConflictDetector().detect(element);
             return hasNameConflict ? element.getQualifiedName().toString() : element.getLocalName();
@@ -226,11 +227,11 @@ public class Xml2JsonSerializer extends SerializerBase {
             return true;
         }
         // we introduce at least one namespace -> check the strategy
-        NamespaceHandling namespaceHandling = settings().namespaceHandling();
-        if (NamespaceHandling.OMIT.equals(namespaceHandling)) {
+        NamespaceDeclaration namespaceDeclaration = settings().namespaceDeclaration();
+        if (NamespaceDeclaration.OMIT.equals(namespaceDeclaration)) {
             return true;
         }
-        if (NamespaceHandling.ADD.equals(namespaceHandling)) {
+        if (NamespaceDeclaration.ADD.equals(namespaceDeclaration)) {
             return false;
         }
         return !isChildOfXsAny(element);
@@ -267,10 +268,10 @@ public class Xml2JsonSerializer extends SerializerBase {
         return XsdSimpleType.TYPE.equals(child.getType());
     }
 
-    private void handleNamespaces(XmlElement element, ObjectNode json, XmlNamespace parentNamespace) {
-        NamespaceHandling namespaceHandling = settings().namespaceHandling();
-        if (NamespaceHandling.OMIT.equals(namespaceHandling) ||
-            (NamespaceHandling.ADD_IF_XS_ANY.equals(namespaceHandling) && !isChildOfXsAny(element))) {
+    private void handleNamespaceDeclaration(XmlElement element, ObjectNode json, XmlNamespace parentNamespace) {
+        NamespaceDeclaration namespaceDeclaration = settings().namespaceDeclaration();
+        if (NamespaceDeclaration.OMIT.equals(namespaceDeclaration) ||
+            (NamespaceDeclaration.ADD_IF_XS_ANY.equals(namespaceDeclaration) && !isChildOfXsAny(element))) {
             return;
         }
         // element namespace
@@ -372,10 +373,10 @@ public class Xml2JsonSerializer extends SerializerBase {
     private void serializeMixedContentElement(XmlElement element, ObjectNode json, XmlNamespace parentNamespace)
         throws SerializationException, XsdDetectorException {
         // NAME
-        json.put(style().mixedContentElementNameKey(), element.getLocalName());
+        json.put(style().mixedContentElementNameKey(), getName(element, parentNamespace));
 
         // NAMESPACES
-        handleNamespaces(element, json, parentNamespace);
+        handleNamespaceDeclaration(element, json, parentNamespace);
 
         // ATTRIBUTES
         handleAttributes(element, json);

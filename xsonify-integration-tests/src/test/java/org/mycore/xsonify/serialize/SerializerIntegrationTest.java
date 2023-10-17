@@ -117,7 +117,7 @@ public class SerializerIntegrationTest {
         test(xmlDocument, xsd, null, new ArrayList<>(), false, serializerSettingsBuilder
             .reset()
             .omitRootElement(false)
-            .namespaceHandling(SerializerSettings.NamespaceHandling.ADD)
+            .namespaceHandling(SerializerSettings.NamespaceDeclaration.ADD)
             .build());
 
         // include root element
@@ -188,6 +188,14 @@ public class SerializerIntegrationTest {
             // check if they are equal
             XmlEqualityChecker equalityChecker = new XmlEqualityChecker();
             equalityChecker.equals(xmlDocument.getRoot(), serializedDocument.getRoot(), true);
+
+            /*XmlHashEqualityChecker hashEqualityChecker = new XmlHashEqualityChecker();
+            List<String> errors = hashEqualityChecker.equalsDebug(xmlDocument.getRoot(), serializedDocument.getRoot());
+            if(!errors.isEmpty()) {
+                errors.forEach(System.out::println);
+                print(xsd, xmlDocument, serializedJson, serializedDocument);
+                Assertions.fail();
+            }*/
         } catch (Exception exception) {
             print(xsd, xmlDocument, serializedJson, serializedDocument);
             Assertions.fail("exception while testing", exception);

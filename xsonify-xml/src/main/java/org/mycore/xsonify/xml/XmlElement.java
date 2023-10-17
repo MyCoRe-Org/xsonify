@@ -596,6 +596,14 @@ public class XmlElement extends XmlContent {
             .filter(element -> element.getName().equals(name));
     }
 
+    public int indexOf(XmlContent content) {
+        return getContent().indexOf(content);
+    }
+
+    public int indexOfElement(XmlElement element) {
+        return getElements().indexOf(element);
+    }
+
     /**
      * Sets an additional namespace declaration to this XML element.
      * This will be used during output for stylistic reason.

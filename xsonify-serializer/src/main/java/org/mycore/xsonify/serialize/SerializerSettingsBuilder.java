@@ -1,7 +1,7 @@
 package org.mycore.xsonify.serialize;
 
 import org.mycore.xsonify.serialize.SerializerSettings.AdditionalNamespaceDeclarationStrategy;
-import org.mycore.xsonify.serialize.SerializerSettings.NamespaceHandling;
+import org.mycore.xsonify.serialize.SerializerSettings.NamespaceDeclaration;
 import org.mycore.xsonify.serialize.SerializerSettings.XsAnyNamespaceStrategy;
 
 import static org.mycore.xsonify.serialize.SerializerSettings.DEFAULT_ADDITIONAL_NAMESPACE_DECLARATION_STRATEGY;
@@ -42,7 +42,7 @@ import static org.mycore.xsonify.serialize.SerializerSettings.PrefixHandling;
 public class SerializerSettingsBuilder {
 
     private boolean omitRootElement;
-    private NamespaceHandling namespaceHandling;
+    private NamespaceDeclaration namespaceDeclaration;
     private boolean normalizeText;
     private PrefixHandling elementPrefixHandling;
     private PrefixHandling attributePrefixHandling;
@@ -58,7 +58,7 @@ public class SerializerSettingsBuilder {
 
     public SerializerSettingsBuilder reset() {
         this.omitRootElement = DEFAULT_OMIT_ROOT_ELEMENT;
-        this.namespaceHandling = DEFAULT_NAMESPACE_HANDLING;
+        this.namespaceDeclaration = DEFAULT_NAMESPACE_HANDLING;
         this.normalizeText = DEFAULT_NORMALIZE_TEXT;
         this.elementPrefixHandling = DEFAULT_ELEMENT_PREFIX_HANDLING;
         this.attributePrefixHandling = DEFAULT_ATTRIBUTE_PREFIX_HANDLING;
@@ -75,8 +75,8 @@ public class SerializerSettingsBuilder {
         return this;
     }
 
-    public SerializerSettingsBuilder namespaceHandling(NamespaceHandling namespaceHandling) {
-        this.namespaceHandling = namespaceHandling;
+    public SerializerSettingsBuilder namespaceHandling(NamespaceDeclaration namespaceDeclaration) {
+        this.namespaceDeclaration = namespaceDeclaration;
         return this;
     }
 
@@ -121,7 +121,7 @@ public class SerializerSettingsBuilder {
     }
 
     public SerializerSettings build() {
-        return new SerializerSettings(omitRootElement, namespaceHandling, normalizeText, elementPrefixHandling,
+        return new SerializerSettings(omitRootElement, namespaceDeclaration, normalizeText, elementPrefixHandling,
             attributePrefixHandling, jsonStructure, plainTextHandling,
             mixedContentHandling, additionalNamespaceDeclarationStrategy, xsAnyNamespaceStrategy);
     }

@@ -3,7 +3,7 @@ package org.mycore.xsonify.serialize;
 import static org.mycore.xsonify.serialize.SerializerSettings.AdditionalNamespaceDeclarationStrategy.MOVE_TO_COMMON_ANCESTOR;
 import static org.mycore.xsonify.serialize.SerializerSettings.JsonStructure.SCHEMA_BASED;
 import static org.mycore.xsonify.serialize.SerializerSettings.MixedContentHandling.JSON_CONVERSION;
-import static org.mycore.xsonify.serialize.SerializerSettings.NamespaceHandling.ADD_IF_XS_ANY;
+import static org.mycore.xsonify.serialize.SerializerSettings.NamespaceDeclaration.ADD_IF_XS_ANY;
 import static org.mycore.xsonify.serialize.SerializerSettings.PlainTextHandling.SIMPLIFY_SIMPLETYPE;
 import static org.mycore.xsonify.serialize.SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT;
 import static org.mycore.xsonify.serialize.SerializerSettings.XsAnyNamespaceStrategy.USE_EMPTY;
@@ -14,7 +14,7 @@ import static org.mycore.xsonify.serialize.SerializerSettings.XsAnyNamespaceStra
  * represented in the resulting JSON structure and vise versa.
  *
  * @param omitRootElement                        Determines whether to include the root element in the resulting JSON.
- * @param namespaceHandling                      Indicates whether to add namespace information, such as the @xmlns prefix, to the resulting JSON.
+ * @param namespaceDeclaration                   Indicates whether to add namespace information, such as the @xmlns prefix, to the resulting JSON.
  * @param normalizeText                          Specifies whether text content should be normalized (whitespace stripping).
  * @param elementPrefixHandling                  Specifies the strategy for handling namespace prefixes in element names, according to the rules defined in {@link PrefixHandling}.
  * @param attributePrefixHandling                Specifies the strategy for handling namespace prefixes in attribute names, according to the rules defined in {@link PrefixHandling}.
@@ -25,7 +25,7 @@ import static org.mycore.xsonify.serialize.SerializerSettings.XsAnyNamespaceStra
  */
 public record SerializerSettings(
     boolean omitRootElement,
-    NamespaceHandling namespaceHandling,
+    NamespaceDeclaration namespaceDeclaration,
     boolean normalizeText,
     PrefixHandling elementPrefixHandling,
     PrefixHandling attributePrefixHandling,
@@ -37,9 +37,10 @@ public record SerializerSettings(
 ) {
 
     /**
-     * Determines how XML namespaces are represented in the JSON output.
+     * Determines if XML namespaces are represented in the JSON output. This does not affect namespace prefixes. See
+     * {@link PrefixHandling} for that.
      */
-    public enum NamespaceHandling {
+    public enum NamespaceDeclaration {
 
         /**
          * Include namespace declarations in the resulting JSON.
@@ -48,7 +49,7 @@ public record SerializerSettings(
         ADD,
         /**
          * Exclude all namespace declarations from the resulting JSON.
-         * Any XML namespace prefixes and declarations will be omitted.
+         * Any XML namespace declarations will be omitted.
          */
         OMIT,
         /**
@@ -156,7 +157,7 @@ public record SerializerSettings(
      * <p>Determines the strategy for managing additional namespace declarations in the resulting XML.</p>
      * <p>This strategy is only used:</p>
      * <ul>
-     *     <li>if {@link NamespaceHandling#OMIT} or {@link NamespaceHandling#ADD_IF_XS_ANY} is set</li>
+     *     <li>if {@link NamespaceDeclaration#OMIT} or {@link NamespaceDeclaration#ADD_IF_XS_ANY} is set</li>
      *     <li>in the JSON -> XML serialisation process</li>
      * </ul>
      */
@@ -181,7 +182,7 @@ public record SerializerSettings(
      * <p>Determines the strategy on how to apply a namespace for 'xs:any' content.</p>
      * <p>This strategy is only used:</p>
      * <ul>
-     *     <li>if {@link NamespaceHandling#OMIT} is set</li>
+     *     <li>if {@link NamespaceDeclaration#OMIT} is set</li>
      *     <li>in the JSON -> XML serialisation process</li>
      * </ul>
      * <p>Due to the lack of a XsdNode it is impossible to determine what namespace to use for an element.</p>
@@ -213,7 +214,7 @@ public record SerializerSettings(
 
     // Default values.
     public static final boolean DEFAULT_OMIT_ROOT_ELEMENT = true;
-    public static final NamespaceHandling DEFAULT_NAMESPACE_HANDLING = ADD_IF_XS_ANY;
+    public static final NamespaceDeclaration DEFAULT_NAMESPACE_HANDLING = ADD_IF_XS_ANY;
     public static final boolean DEFAULT_NORMALIZE_TEXT = true;
     public static final PrefixHandling DEFAULT_ELEMENT_PREFIX_HANDLING = OMIT_IF_NO_CONFLICT;
     public static final PrefixHandling DEFAULT_ATTRIBUTE_PREFIX_HANDLING = OMIT_IF_NO_CONFLICT;
