@@ -10,6 +10,9 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -597,11 +600,57 @@ public class XmlElement extends XmlContent {
     }
 
     public int indexOf(XmlContent content) {
-        return getContent().indexOf(content);
+        return this.content.indexOf(content);
     }
 
     public int indexOfElement(XmlElement element) {
-        return getElements().indexOf(element);
+        return this.elements.indexOf(element);
+    }
+
+    /**
+     * Reorders the elements in the internal {@code elements} list based on the sequence provided in {@code newOrder}.
+     * Additionally, adjusts the order in the internal {@code content} list to reflect this new order while preserving
+     * the relative positions of other content types.
+     *
+     * <p>The {@code newOrder} list must:
+     * <ul>
+     *     <li>Be of the same size as the {@code elements} list.</li>
+     *     <li>Contain all elements from the {@code elements} list with no duplicates.</li>
+     * </ul>
+     *
+     * <p>If the provided {@code newOrder} list does not meet the above conditions, an {@link IllegalArgumentException}
+     * will be thrown.
+     *
+     * @param newOrder The desired order for the {@code XmlElement} objects.
+     * @throws IllegalArgumentException If the provided {@code newOrder} is invalid.
+     */
+    public void sort(List<XmlElement> newOrder) {
+        // Validate the new order
+        if (newOrder.size() != elements.size() || !new HashSet<>(newOrder).containsAll(elements)) {
+            throw new IllegalArgumentException("Invalid new order provided");
+        }
+
+        // Create a mapping from XmlElement to its index in the new order
+        Map<XmlElement, Integer> elementIndexMap = new HashMap<>();
+        for (int i = 0; i < newOrder.size(); i++) {
+            elementIndexMap.put(newOrder.get(i), i);
+        }
+
+        // Sort the elements list
+        elements.sort(Comparator.comparing(elementIndexMap::get));
+
+        // Sort the content list
+        int switchedIndex = 0;
+        for (XmlElement element : elements) {
+            for (int j = switchedIndex; j < content.size(); j++) {
+                XmlContent other = content.get(j);
+                if (other instanceof XmlElement) {
+                    content.set(j, element);
+                    switchedIndex = j + 1;
+                    break;
+                }
+            }
+        }
     }
 
     /**

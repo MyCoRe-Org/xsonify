@@ -15,6 +15,17 @@ public class XsdElement extends XsdNode implements XsdReferenceable<XsdElement> 
     public static final String TYPE = "element";
 
     /**
+     * List of container nodes.
+     */
+    public static final List<Class<? extends XsdNode>> CONTAINER_NODES = List.of(
+        XsdChoice.class, XsdSequence.class, XsdAll.class,
+        XsdGroup.class,
+        XsdComplexType.class,
+        XsdExtension.class, XsdRestriction.class,
+        XsdComplexContent.class
+    );
+
+    /**
      * List of nodes which can contain xs:elements Either as a child or somewhere down their hierarchy.
      */
     public static final List<Class<? extends XsdNode>> ELEMENT_NODES = List.of(
@@ -35,17 +46,6 @@ public class XsdElement extends XsdNode implements XsdReferenceable<XsdElement> 
         XsdSimpleContent.class, XsdComplexContent.class,
         XsdAttributeGroup.class,
         XsdRestriction.class, XsdExtension.class
-    );
-
-    /**
-     * List of nodes which can contain xs:any. Either as a child or somewhere down their hierarchy.
-     */
-    public static final List<Class<? extends XsdNode>> ANY_NODES = List.of(
-        XsdChoice.class, XsdSequence.class, XsdAll.class,
-        XsdGroup.class,
-        XsdComplexType.class,
-        XsdExtension.class, XsdRestriction.class,
-        XsdComplexContent.class
     );
 
     /**
@@ -193,6 +193,12 @@ public class XsdElement extends XsdNode implements XsdReferenceable<XsdElement> 
             .toList();
     }
 
+    public <T extends XsdNode> boolean has(Class<T> nodeClass, List<Class<? extends XsdNode>> searchNodes) {
+        List<T> nodeList = new ArrayList<>();
+        this.collect(nodeClass, searchNodes, nodeList, new ArrayList<>());
+        return !nodeList.isEmpty();
+    }
+
     /**
      * Checks if this {@link XsdElement} contains a xs:any.
      *
@@ -201,7 +207,7 @@ public class XsdElement extends XsdNode implements XsdReferenceable<XsdElement> 
     public boolean hasAny() {
         if (this.hasAny == null) {
             List<XsdAny> anyNodes = new ArrayList<>();
-            this.collect(XsdAny.class, ANY_NODES, anyNodes, new ArrayList<>());
+            this.collect(XsdAny.class, CONTAINER_NODES, anyNodes, new ArrayList<>());
             this.hasAny = !anyNodes.isEmpty();
         }
         return this.hasAny;
@@ -222,7 +228,8 @@ public class XsdElement extends XsdNode implements XsdReferenceable<XsdElement> 
     }
 
     @Override
-    protected <T> boolean collect(Class<T> type, List<Class<? extends XsdNode>> searchNodes, List<T> found,
+    protected <T extends XsdNode> boolean collect(Class<T> type, List<Class<? extends XsdNode>> searchNodes,
+        List<T> found,
         List<XsdNode> visited) {
         if (super.collect(type, searchNodes, found, visited)) {
             return true;

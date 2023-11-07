@@ -65,7 +65,7 @@ public record XmlName(String local, XmlNamespace namespace) {
 
     @Override
     public String toString() {
-        return this.qualifiedName().toString();
+        return this.namespace != null ? this.qualifiedName().toString() : this.local;
     }
 
 }

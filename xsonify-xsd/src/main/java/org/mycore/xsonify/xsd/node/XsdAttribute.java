@@ -63,7 +63,7 @@ public class XsdAttribute extends XsdNode implements XsdReferenceable<XsdAttribu
     }
 
     @Override
-    protected <T> boolean collect(Class<T> type, List<Class<? extends XsdNode>> searchNodes, List<T> found,
+    protected <T extends XsdNode> boolean collect(Class<T> type, List<Class<? extends XsdNode>> searchNodes, List<T> found,
         List<XsdNode> visited) {
         if (super.collect(type, searchNodes, found, visited)) {
             return true;

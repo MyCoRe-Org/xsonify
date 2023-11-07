@@ -396,10 +396,17 @@ public class Xsd {
             "attribute '" + resolvedAttributeName + "' could not be found in node '" + parent.getName() + "'");
     }
 
+    @Override
+    public String toString() {
+        return "targetNamespace: " + getTargetNamespace() + System.lineSeparator() + toTreeString();
+    }
+
     public String toTreeString() {
         StringBuilder sb = new StringBuilder();
         this.getNamedMap().forEach((nodeClass, map) -> {
-            sb.append("\n").append(nodeClass.getSimpleName().substring(3)).append(":\n");
+            sb.append(System.lineSeparator())
+                .append(nodeClass.getSimpleName().substring(3)).append(":")
+                .append(System.lineSeparator());
             map.forEach(toTreeString(sb));
         });
         return sb.toString();

@@ -1,6 +1,7 @@
 package org.mycore.xsonify.xml;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -139,6 +140,17 @@ public class XmlPath implements Iterable<XmlPath.Node> {
         XmlPath xmlPath = XmlPath.of(element);
         xmlPath.add(attribute.getName(), Type.ATTRIBUTE);
         return xmlPath;
+    }
+
+    /**
+     * Create an XmlPath instance based on the specified string path. Be aware that omitting the namespace map will
+     * lead to an unqualified path.
+     *
+     * @param path the string representation of the path
+     * @return a new XmlPath representing the given path
+     */
+    public static XmlPath of(String path) {
+        return of(path, new HashMap<>());
     }
 
     /**

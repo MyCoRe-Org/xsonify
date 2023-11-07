@@ -10,6 +10,7 @@ package org.mycore.xsonify.serialize;
  * @param namespacePrefixKey         Key used for namespace prefix information in the resulting JSON.
  * @param mixedContentKey            Key used for mixed content in the resulting JSON.
  * @param mixedContentElementNameKey Key used for the element name in mixed content in the resulting JSON.
+ * @param indexKey                   Key used for the elements position in parent. Relevant for xs:sequence.
  */
 public record SerializerStyle(
     String attributePrefix,
@@ -17,7 +18,8 @@ public record SerializerStyle(
     String textKey,
     String namespacePrefixKey,
     String mixedContentKey,
-    String mixedContentElementNameKey
+    String mixedContentElementNameKey,
+    String indexKey
 ) {
 
     /**
@@ -30,7 +32,8 @@ public record SerializerStyle(
             "$",
             "$namespace",
             "$content",
-            "$name"
+            "$name",
+            "$index"
         );
     }
 

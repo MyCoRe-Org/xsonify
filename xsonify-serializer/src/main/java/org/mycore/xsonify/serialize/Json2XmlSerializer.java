@@ -25,10 +25,12 @@ import org.mycore.xsonify.xsd.node.XsdNode;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -191,7 +193,7 @@ public class Json2XmlSerializer extends SerializerBase {
     private SerializationNode toJsonNode(ObjectNode jsonObject) {
         SerializationNode serializationNode = new SerializationNode();
         for (Map.Entry<String, JsonNode> entry : jsonObject.properties()) {
-            if(entry.getKey().equals(style().mixedContentElementNameKey())) {
+            if (entry.getKey().equals(style().mixedContentElementNameKey())) {
                 serializationNode.namespacePrefix = XmlQualifiedName.of(entry.getValue().asText()).prefix();
             } else if (entry.getKey().equals(style().namespacePrefixKey())) {
                 serializationNode.namespacePrefix = entry.getValue().asText();
@@ -205,6 +207,8 @@ public class Json2XmlSerializer extends SerializerBase {
                 serializationNode.text = entry.getValue().asText();
             } else if (entry.getKey().equals(style().mixedContentKey())) {
                 serializationNode.mixedContent = entry.getValue();
+            } else if (entry.getKey().equals(style().indexKey())) {
+                serializationNode.index = entry.getValue().asInt();
             } else {
                 serializationNode.children.put(entry.getKey(), entry.getValue());
             }
@@ -214,10 +218,9 @@ public class Json2XmlSerializer extends SerializerBase {
 
     private void handleObject(SerializationContext context) throws SerializationException {
         // add element to parent
-        // TODO remove when preserving order is implemented (context has child/parent relation which should be used)
         XmlElement parentElement = context.getParentElement();
         if (parentElement != null) {
-            parentElement.addElement(context.element());
+            parentElement.addElement(context.element);
         }
 
         // namespaces & attributes & text
@@ -234,10 +237,7 @@ public class Json2XmlSerializer extends SerializerBase {
         }
 
         // children
-        for (Map.Entry<String, JsonNode> child : context.jsonNode().getChildren().entrySet()) {
-            serializeElement(child.getKey(), child.getValue(), context);
-        }
-        // TODO order xs:sequence nodes
+        handleChildren(context);
     }
 
     private void handleNamespace(SerializationContext context) {
@@ -348,6 +348,24 @@ public class Json2XmlSerializer extends SerializerBase {
         SerializationNode serializationNode = context.jsonNode();
         if (serializationNode.getText() != null) {
             element.setText(serializationNode.getText());
+        }
+    }
+
+    private void handleChildren(SerializationContext context) throws SerializationException {
+        for (Map.Entry<String, JsonNode> child : context.jsonNode().getChildren().entrySet()) {
+            serializeElement(child.getKey(), child.getValue(), context);
+        }
+        boolean sortByIndex = context.children().stream()
+            .map(SerializationContext::jsonNode)
+            .map(SerializationNode::getIndex)
+            .anyMatch(Objects::nonNull);
+        if(sortByIndex) {
+            List<SerializationContext> childContextList = context.children();
+            childContextList.sort(Comparator.comparingInt(c -> c.jsonNode().index));
+            List<XmlElement> sortedChildren = childContextList.stream()
+                .map(SerializationContext::element)
+                .toList();
+            context.element().sort(sortedChildren);
         }
     }
 
@@ -622,6 +640,7 @@ public class Json2XmlSerializer extends SerializerBase {
         private String namespacePrefix;
         private String text;
         private JsonNode mixedContent;
+        private Integer index;
         private final Map<String, JsonNode> children;
         private final Map<String, XmlNamespace> namespaces;
         private final Map<String, String> attributes;
@@ -633,6 +652,7 @@ public class Json2XmlSerializer extends SerializerBase {
             this.attributes = new LinkedHashMap<>();
             this.text = null;
             this.mixedContent = null;
+            this.index = null;
         }
 
         public String getNamespacePrefix() {
@@ -657,6 +677,10 @@ public class Json2XmlSerializer extends SerializerBase {
 
         public JsonNode getMixedContent() {
             return mixedContent;
+        }
+
+        public Integer getIndex() {
+            return index;
         }
 
     }

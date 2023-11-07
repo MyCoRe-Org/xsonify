@@ -126,7 +126,7 @@ public abstract class XsdNode {
     }
 
     @SuppressWarnings("unchecked")
-    protected <T> boolean collect(Class<T> type, List<Class<? extends XsdNode>> searchNodes, List<T> found,
+    protected <T extends XsdNode> boolean collect(Class<T> type, List<Class<? extends XsdNode>> searchNodes, List<T> found,
         List<XsdNode> visited) {
         if (visited.contains(this)) {
             return true;
