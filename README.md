@@ -16,16 +16,6 @@
 * element @substitutionGroup not supported
 * XsdExtension#isResolved need more thought
 * implement streaming api
-* Json2XmlSerializer#setRootName should set local name instead of XmlName?
-* Unify Namespace handling -> ADD, OMIT, SIMPLIFIED
-    * The problem is that prefix and declaration handling is separated in two different Settings. Makes testing hard
-      and breaks sometimes.
-    * $namespace prefix and key name ('prefix:name') are mingled
-        * usually the prefix is omitted, but if there are local name conflicts, it's required to add it
-        * $namespace should only be used in xs:any
-        * but Xml2JsonSerializer#handleNamespaceDeclaration() adds $namespace also if the parent has a different
-          namespace
-          than the current element
 * fix XmlEqualityChecker debug -> should break as soon as there is a conflict (breaks at root currently)
 * remove fixed values of xsd -> optional
 * Elementgruppen können durch xs:redefine redefiniert werden; die Redefinition kann entweder eine Einschränkung (ähnlich

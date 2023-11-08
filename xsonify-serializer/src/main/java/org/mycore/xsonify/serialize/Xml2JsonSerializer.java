@@ -159,8 +159,19 @@ public class Xml2JsonSerializer extends SerializerBase {
     private String getName(SerializationContext context) throws XsdDetectorException {
         XmlElement element = context.xmlElement();
         if (SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT.equals(settings().elementPrefixHandling())) {
-            boolean hasNameConflict = prefixConflictDetector().detect(element);
-            return hasNameConflict ? element.getQualifiedName().toString() : element.getLocalName();
+            // check name conflict
+            if (prefixConflictDetector().detect(element)) {
+                return element.getQualifiedName().toString();
+            }
+            // check namespace conflict
+            String namespaceUri = element.getNamespace().uri();
+            if (element.getNamespacesInScope().values().stream()
+                .map(XmlNamespace::uri)
+                .filter(uri -> uri.equals(namespaceUri))
+                .count() > 1) {
+                return element.getQualifiedName().toString();
+            }
+            return element.getLocalName();
         }
         return element.getQualifiedName().toString();
     }
@@ -279,11 +290,6 @@ public class Xml2JsonSerializer extends SerializerBase {
             (NamespaceDeclaration.ADD_IF_XS_ANY.equals(namespaceDeclaration) && !isChildOfXsAny(
                 context.xmlElement()))) {
             return;
-        }
-        // xmlElement namespace
-        XmlNamespace namespace = context.xmlElement().getNamespace();
-        if (!namespace.equals(context.parentNamespace()) && !namespace.prefix().isEmpty()) {
-            context.json().put(style().namespacePrefixKey(), namespace.prefix());
         }
         // introduced namespaces
         context.xmlElement()

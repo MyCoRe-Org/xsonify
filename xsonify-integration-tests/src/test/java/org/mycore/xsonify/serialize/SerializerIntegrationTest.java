@@ -31,9 +31,19 @@ public class SerializerIntegrationTest {
 
     public static final XmlNamespace TEST_NS = new XmlNamespace("", "https://test.com/v1");
 
+    public static final XmlNamespace ELEMENT_NS = new XmlNamespace("et", "https://test.com/element");
+
+    public static final XmlNamespace CIRCULAR_NS = new XmlNamespace("ct", "https://test.com/circular");
+
+    public static final XmlNamespace REDEFINE_NS = new XmlNamespace("re", "https://test.com/redefine");
+
+    public static final XmlNamespace ORDER_NS = new XmlNamespace("ot", "https://test.com/order");
+
+    public static final XmlNamespace ATTRIBUTE_NS = new XmlNamespace("at", "https://test.com/attribute");
+
     @Disabled
     @Test
-    public void main() throws Exception {
+    public void test() throws Exception {
         // load xml
         URL resource = getResource("/xml/openagrar_mods_00084602.xml");
         XmlParser parser = new XmlSaxParser();
@@ -90,11 +100,8 @@ public class SerializerIntegrationTest {
 
     @Test
     public void testXml() throws Exception {
-        /*test(getResource("/xml/test.xml"), new XmlName("root", TEST_NS),
-            List.of(XSI_NS, XLINK_NS));*/
-        /*
-        TODO: reactivate
-         */
+        test(getResource("/xml/test.xml"), new XmlName("root", TEST_NS),
+            List.of(XSI_NS, XLINK_NS, ELEMENT_NS, REDEFINE_NS, CIRCULAR_NS, ORDER_NS, ATTRIBUTE_NS));
     }
 
     private URL getResource(String name) {
@@ -117,6 +124,7 @@ public class SerializerIntegrationTest {
         test(xmlDocument, xsd, null, new ArrayList<>(), false, serializerSettingsBuilder
             .reset()
             .omitRootElement(false)
+            .elementPrefixHandling(SerializerSettings.PrefixHandling.RETAIN_ORIGINAL)
             .namespaceHandling(SerializerSettings.NamespaceDeclaration.ADD)
             .build());
 
