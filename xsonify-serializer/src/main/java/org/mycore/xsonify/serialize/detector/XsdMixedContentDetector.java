@@ -1,8 +1,9 @@
 package org.mycore.xsonify.serialize.detector;
 
-import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
+import org.mycore.xsonify.xsd.XsdAnyException;
+import org.mycore.xsonify.xsd.XsdNoSuchNodeException;
 import org.mycore.xsonify.xsd.node.XsdComplexContent;
 import org.mycore.xsonify.xsd.node.XsdComplexType;
 import org.mycore.xsonify.xsd.node.XsdElement;
@@ -22,10 +23,12 @@ import java.util.Set;
  */
 public class XsdMixedContentDetector implements XsdDetector<Boolean> {
 
+    private final Xsd xsd;
+
     /**
      * A set of XML expanded names representing elements that have mixed content.
      */
-    private final Set<XmlExpandedName> mixedContentElements;
+    private final Set<XsdElement> mixedContentElements;
 
     /**
      * Constructs an {@code XsdMixedContentDetector} by analyzing the provided XSD.
@@ -34,6 +37,7 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
      * @throws XsdDetectorException if there's an issue detecting mixed content elements in the XSD
      */
     public XsdMixedContentDetector(Xsd xsd) throws XsdDetectorException {
+        this.xsd = xsd;
         this.mixedContentElements = new HashSet<>();
         // mixed content can only appear in complexType or complexContent
         Collection<XsdNode> complexNodes = xsd.collect(XsdComplexType.class, XsdComplexContent.class);
@@ -67,7 +71,7 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
      * Analyzes the provided collection of mixed complex types and populates
      * the {@code mixedContentElements} set.
      *
-     * @param xsd the XML Schema Definition being analyzed
+     * @param xsd               the XML Schema Definition being analyzed
      * @param mixedComplexTypes collection of mixed complex types to analyze
      * @throws XsdDetectorException if a node type mismatch occurs
      */
@@ -92,23 +96,21 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
     /**
      * Adds a mixed content element to the {@code mixedContentElements} set.
      *
-     * @param node the node representing the mixed content element
-     * @throws XsdDetectorException if the node is not of the expected type
+     * @param xsdElement the node representing the mixed content element
      */
-    private void addMixedContentElement(XsdNode node) throws XsdDetectorException {
-        XsdElement xsdElement = expectNodeType(XsdElement.class, node);
+    private void addMixedContentElement(XsdElement xsdElement) {
         if (xsdElement.getReference() != null) {
             xsdElement = xsdElement.getReference();
         }
-        this.mixedContentElements.add(xsdElement.getName());
+        this.mixedContentElements.add(xsdElement);
     }
 
     /**
      * Validates that the provided node is of the expected type. If not, throws an {@link XsdDetectorException}.
      *
-     * @param <T> the type of node expected
+     * @param <T>       the type of node expected
      * @param nodeClass the class object of the expected node type
-     * @param node the node to validate
+     * @param node      the node to validate
      * @return the node cast to the expected type
      * @throws XsdDetectorException if the node is not of the expected type
      */
@@ -141,7 +143,7 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
      *
      * @return set of XML expanded names representing mixed content elements
      */
-    public Set<XmlExpandedName> getMixedContentElements() {
+    public Set<XsdElement> getMixedContentElements() {
         return mixedContentElements;
     }
 
@@ -152,12 +154,24 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
      * @return {@code true} if the path corresponds to a mixed content element, otherwise {@code false}
      */
     @Override
-    public Boolean detect(XmlPath path) {
+    public Boolean detect(XmlPath path) throws XsdDetectorException {
         XmlPath.Node last = path.last();
         if (last == null) {
             return false;
         }
-        return getMixedContentElements().contains(last.name().expandedName());
+        try {
+            List<XsdElement> nodeList = xsd.resolveElementPath(path);
+            for (XsdElement xsdNode : nodeList) {
+                if (getMixedContentElements().contains(xsdNode)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (XsdAnyException anyException) {
+            return false;
+        } catch (XsdNoSuchNodeException noSuchNodeException) {
+            throw new XsdDetectorException("Unable to detect mixed content for '" + path + "'.", noSuchNodeException);
+        }
     }
 
 }

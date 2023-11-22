@@ -10,12 +10,8 @@
   SerializerIntegrationTest#testXml() case (includeB re:includeB) to recreate the error.
   <p><b>Note: ADD_IF_XS_ANY should be replaced by ADD_IF_NECESSARY which would include XS_ANY && prefixConflictDetector.
   In both cases we should add the namespace information</b></p>
-* Order of xs:sequence is not preserved.
-    * calculate if possible
-    * use $index key if in xml->json serialisation if not possible
 * element @substitutionGroup not supported
 * XsdExtension#isResolved need more thought
-* implement streaming api
 * fix XmlEqualityChecker debug -> should break as soon as there is a conflict (breaks at root currently)
 * remove fixed values of xsd -> optional
 * Elementgruppen können durch xs:redefine redefiniert werden; die Redefinition kann entweder eine Einschränkung (ähnlich

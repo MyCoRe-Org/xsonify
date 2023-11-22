@@ -5,6 +5,7 @@ import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
+import org.mycore.xsonify.xsd.XsdNoSuchNodeException;
 import org.mycore.xsonify.xsd.node.XsdAttribute;
 import org.mycore.xsonify.xsd.node.XsdElement;
 import org.mycore.xsonify.xsd.node.XsdNode;
@@ -14,7 +15,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -86,7 +86,7 @@ public class XsdPrefixConflictDetector implements XsdDetector<Boolean> {
      * Retrieves the detected element naming conflicts.
      *
      * @return A map where the key is an XML node, and the value is another map
-     *         containing the conflicting names as keys and their corresponding XML expanded names as values.
+     * containing the conflicting names as keys and their corresponding XML expanded names as values.
      */
     public Map<XsdNode, Map<String, Set<XmlExpandedName>>> getElementNameConflicts() {
         return elementNameConflicts;
@@ -96,7 +96,7 @@ public class XsdPrefixConflictDetector implements XsdDetector<Boolean> {
      * Retrieves the detected attribute naming conflicts.
      *
      * @return A map where the key is an XML node, and the value is another map
-     *         containing the conflicting names as keys and their corresponding XML expanded names as values.
+     * containing the conflicting names as keys and their corresponding XML expanded names as values.
      */
     public Map<XsdNode, Map<String, Set<XmlExpandedName>>> getAttributeNameConflicts() {
         return attributeNameConflicts;
@@ -114,7 +114,7 @@ public class XsdPrefixConflictDetector implements XsdDetector<Boolean> {
     private boolean checkElement(XmlPath path) throws XsdDetectorException {
         try {
             return check(path, this.elementNameConflicts);
-        } catch (NoSuchElementException noSuchElementException) {
+        } catch (XsdNoSuchNodeException noSuchElementException) {
             throw new XsdDetectorException("Unable to serialize path: " + path, noSuchElementException);
         } catch (XsdAnyException anyException) {
             return true;
@@ -124,7 +124,7 @@ public class XsdPrefixConflictDetector implements XsdDetector<Boolean> {
     private boolean checkAttribute(XmlPath path) throws XsdDetectorException {
         try {
             return check(path, this.attributeNameConflicts);
-        } catch (NoSuchElementException noSuchElementException) {
+        } catch (XsdNoSuchNodeException noSuchElementException) {
             XmlPath.Node attributeNode = path.last();
             if (XmlBuiltInAttributes.is(attributeNode.name().expandedName())) {
                 return true;
@@ -136,8 +136,8 @@ public class XsdPrefixConflictDetector implements XsdDetector<Boolean> {
     }
 
     private boolean check(XmlPath path, Map<XsdNode, Map<String, Set<XmlExpandedName>>> nameConflicts)
-        throws XsdAnyException {
-        List<XsdNode> nodes = xsd.resolvePath(path);
+        throws XsdAnyException, XsdNoSuchNodeException {
+        List<? extends XsdNode> nodes = xsd.resolvePath(path);
         XsdNode nodeToCheck = nodes.get(nodes.size() - 1);
         if (nodes.size() == 1) {
             return false;

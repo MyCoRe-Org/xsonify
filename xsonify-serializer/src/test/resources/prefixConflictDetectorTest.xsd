@@ -1,0 +1,24 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:sn1="https://test.com/sameName1"
+           xmlns:sn2="https://test.com/sameName2"
+           xmlns="https://test.com/prefixConflictDetectorTest"
+           targetNamespace="https://test.com/prefixConflictDetectorTest"
+           elementFormDefault="qualified">
+
+  <xs:import namespace="https://test.com/sameName1" schemaLocation="sameName1.xsd"/>
+  <xs:import namespace="https://test.com/sameName2" schemaLocation="sameName2.xsd"/>
+
+  <xs:element name="root">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="noConflictElement" type="xs:string"/>
+        <xs:element ref="sn1:sameName"/>
+        <xs:element ref="sn2:sameName"/>
+      </xs:sequence>
+      <xs:attribute name="noConflictAttribute" type="xs:string"/>
+      <xs:attribute ref="sn1:sameAttribute"/>
+      <xs:attribute ref="sn2:sameAttribute"/>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

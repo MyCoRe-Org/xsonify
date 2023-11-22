@@ -34,6 +34,8 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
 
     private final XsdRoot root;
 
+    private final Map<XsdNode, Map<XsdNode, Boolean>> rep;
+
     /**
      * Initializes a new instance of {@link XsdRepeatableElementDetector} using the provided XSD schema.
      *
@@ -42,6 +44,7 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
      */
     public XsdRepeatableElementDetector(Xsd xsd) throws XsdDetectorException {
         this.root = createRoot(xsd);
+        this.rep = new LinkedHashMap<>();
         create(xsd);
     }
 
@@ -67,7 +70,7 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
 
     private Boolean isRepeatable(Node node, XmlPath path, int index, boolean isRepeatable) {
         XmlExpandedName elementName = path.at(index).name().expandedName();
-        RepeatableInfo repeatableInfo = node.getChildren().get(elementName);
+        RepeatableInfo repeatableInfo = node.children().get(elementName);
         // found an element
         if (repeatableInfo != null) {
             // it's the last element
@@ -79,12 +82,12 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
         }
         // found something else -> go deeper
         boolean found = false;
-        for (RepeatableInfo repeatableNode : node.getChildren().values()) {
-            if (XsdElement.TYPE.equals(repeatableNode.node().nodeType)) {
+        for (RepeatableInfo childRepeatableInfo : node.children().values()) {
+            if (XsdElement.TYPE.equals(childRepeatableInfo.node().getType())) {
                 continue;
             }
-            Boolean repeatable = isRepeatable(repeatableNode.node(), path, index,
-                repeatableNode.repeatable() || isRepeatable);
+            Boolean repeatable = isRepeatable(childRepeatableInfo.node(), path, index,
+                childRepeatableInfo.repeatable() || isRepeatable);
             if (Boolean.TRUE.equals(repeatable)) {
                 return Boolean.TRUE;
             } else if (repeatable != null) {
@@ -107,7 +110,7 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
                 XsdComplexType.class,
                 XsdGroup.class
             ).stream()
-            .map(xsdNode -> new Node(xsdNode.getName(), xsdNode.getType(), true))
+            .map(Node::new)
             .forEach(root::add);
         return root;
     }
@@ -128,12 +131,12 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
     }
 
     private void handleRootElement(Xsd xsd, Node node) throws XsdDetectorException {
-        XsdElement xsdElement = xsd.getNamedNode(XsdElement.class, node.name);
+        XsdElement xsdElement = xsd.getNamedNode(XsdElement.class, node.getName());
         XsdDatatype datatype = xsdElement.getDatatype();
         if (datatype != null) {
             if (datatype instanceof XsdComplexType) {
                 Node complexTypeNode = this.root.getComplexTypeNode(datatype.getName());
-                node.put(complexTypeNode.name, new RepeatableInfo(complexTypeNode, false));
+                node.put(complexTypeNode.getName(), new RepeatableInfo(complexTypeNode, false));
             }
             // we don't care for simple types
         } else {
@@ -144,14 +147,14 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
     }
 
     private void handleRootComplexType(Xsd xsd, Node node) throws XsdDetectorException {
-        XsdComplexType xsdComplexType = xsd.getNamedNode(XsdComplexType.class, node.name);
+        XsdComplexType xsdComplexType = xsd.getNamedNode(XsdComplexType.class, node.getName());
         for (XsdNode xsdChildNode : xsdComplexType.getChildren()) {
             create(xsdChildNode, node, false);
         }
     }
 
     private void handeRootGroup(Xsd xsd, Node node) throws XsdDetectorException {
-        XsdGroup xsdGroup = xsd.getNamedNode(XsdGroup.class, node.name);
+        XsdGroup xsdGroup = xsd.getNamedNode(XsdGroup.class, node.getName());
         for (XsdNode xsdChildNode : xsdGroup.getChildren()) {
             create(xsdChildNode, node, false);
         }
@@ -189,18 +192,28 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
         XsdDatatype datatype = xsdElement.getDatatype();
         if (reference != null) {
             Node globalElementNode = this.root.getElementNode(xsdElement.getReference().getName());
-            boolean hasSameNodeAlready = elementNode.has(globalElementNode.name);
-            elementNode.put(globalElementNode.name,
+            boolean hasSameNodeAlready = elementNode.has(globalElementNode.getName());
+            elementNode.put(globalElementNode.getName(),
                 new RepeatableInfo(globalElementNode, hasSameNodeAlready || forceRepeatable));
+
+            rep.putIfAbsent(elementNode.xsdNode, new LinkedHashMap<>());
+            Map<XsdNode, Boolean> nodeMap = rep.get(elementNode.xsdNode);
+            nodeMap.put(reference, hasSameNodeAlready || forceRepeatable);
+
         } else if (datatype != null) {
             if (datatype instanceof XsdComplexType) {
                 Node globalComplexTypeNode = this.root.getComplexTypeNode(xsdElement.getDatatype().getName());
-                Node childElementNode = new Node(xsdElement.getName(), XsdElement.TYPE, false);
-                elementNode.put(childElementNode.name, new RepeatableInfo(childElementNode, forceRepeatable));
-                childElementNode.put(globalComplexTypeNode.name, new RepeatableInfo(globalComplexTypeNode, false));
+                Node childElementNode = new Node(xsdElement);
+                elementNode.put(childElementNode.getName(), new RepeatableInfo(childElementNode, forceRepeatable));
+                childElementNode.put(globalComplexTypeNode.getName(),
+                    new RepeatableInfo(globalComplexTypeNode, false));
             }
         } else {
-            Node childElementNode = new Node(xsdElement.getName(), XsdElement.TYPE, false);
+            rep.putIfAbsent(elementNode.xsdNode, new LinkedHashMap<>());
+            Map<XsdNode, Boolean> nodeMap = rep.get(elementNode.xsdNode);
+            nodeMap.put(xsdElement, forceRepeatable);
+
+            Node childElementNode = new Node(xsdElement);
             elementNode.put(xsdElement.getName(), new RepeatableInfo(childElementNode, forceRepeatable));
             for (XsdNode xsdChildNode : xsdElement.getChildren()) {
                 create(xsdChildNode, childElementNode, false);
@@ -258,10 +271,10 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
         }
 
         public void add(Node node) {
-            switch (node.nodeType) {
-            case XsdElement.TYPE -> this.elementMap.put(node.name, node);
-            case XsdComplexType.TYPE -> this.complexTypeMap.put(node.name, node);
-            case XsdGroup.TYPE -> this.groupMap.put(node.name, node);
+            switch (node.getType()) {
+            case XsdElement.TYPE -> this.elementMap.put(node.getName(), node);
+            case XsdComplexType.TYPE -> this.complexTypeMap.put(node.getName(), node);
+            case XsdGroup.TYPE -> this.groupMap.put(node.getName(), node);
             }
         }
 
@@ -298,23 +311,16 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
 
     private static class Node {
 
-        private final XmlExpandedName name;
-
-        private final String nodeType;
-
-        private final boolean root;
-
+        private final XsdNode xsdNode;
         private final Map<XmlExpandedName, RepeatableInfo> children;
 
-        public Node(XmlExpandedName name, String nodeType, boolean root) {
-            this.name = name;
-            this.nodeType = nodeType;
-            this.root = root;
+        private Node(XsdNode xsdNode) {
+            this.xsdNode = xsdNode;
             this.children = new LinkedHashMap<>();
         }
 
-        public Map<XmlExpandedName, RepeatableInfo> getChildren() {
-            return children;
+        public Map<XmlExpandedName, RepeatableInfo> children() {
+            return this.children;
         }
 
         public void put(XmlExpandedName name, RepeatableInfo repeatableInfo) {
@@ -333,7 +339,15 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
 
         @Override
         public String toString() {
-            return this.name.toString() + " (" + nodeType + ")";
+            return xsdNode.toString() + " (" + getType() + ")";
+        }
+
+        private XmlExpandedName getName() {
+            return xsdNode.getName();
+        }
+
+        private String getType() {
+            return xsdNode.getType();
         }
 
         private String toTreeString() {
@@ -346,16 +360,20 @@ public class XsdRepeatableElementDetector implements XsdDetector<Boolean> {
         private void toTreeString(StringBuilder sb, String indent) {
             this.children.forEach((name, repeatableInfo) -> {
                 Node node = repeatableInfo.node();
-                boolean isRoot = node.root;
+                boolean isNamedNode = node.isNamedNode();
                 sb.append(indent);
-                if (isRoot) {
+                if (isNamedNode) {
                     sb.append("-> ");
                 }
                 sb.append(name).append(" (").append(repeatableInfo.repeatable()).append(")").append('\n');
-                if (!isRoot) {
+                if (!isNamedNode) {
                     node.toTreeString(sb, indent + "|  ");
                 }
             });
+        }
+
+        public boolean isNamedNode() {
+            return xsdNode.getParent() == null;
         }
 
     }

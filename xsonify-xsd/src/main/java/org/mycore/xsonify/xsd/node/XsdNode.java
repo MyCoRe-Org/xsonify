@@ -15,15 +15,15 @@ import java.util.List;
  */
 public abstract class XsdNode {
 
-    private final Xsd xsd;
+    protected final Xsd xsd;
 
-    private final String uri;
+    protected final String uri;
 
-    private final XmlElement element;
+    protected final XmlElement element;
 
-    private final List<XsdNode> children;
+    protected final List<XsdNode> children;
 
-    private XsdNode parent;
+    protected XsdNode parent;
 
     /**
      * Constructs a new XsdNode.

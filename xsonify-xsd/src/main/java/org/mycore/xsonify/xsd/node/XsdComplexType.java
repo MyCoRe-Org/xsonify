@@ -25,6 +25,11 @@ public class XsdComplexType extends XsdDatatype {
     }
 
     @Override
+    public XsdElement getParent() {
+        return (XsdElement) parent;
+    }
+
+    @Override
     public XsdComplexType clone() {
         XsdComplexType complexType = new XsdComplexType(getXsd(), getUri(), getElement(), getParent());
         cloneChildren(complexType);

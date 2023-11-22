@@ -19,6 +19,7 @@ import org.mycore.xsonify.xml.XmlText;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
 import org.mycore.xsonify.xsd.XsdBuiltInDatatypes;
+import org.mycore.xsonify.xsd.XsdNoSuchNodeException;
 import org.mycore.xsonify.xsd.node.XsdDatatype;
 import org.mycore.xsonify.xsd.node.XsdElement;
 import org.mycore.xsonify.xsd.node.XsdNode;
@@ -300,7 +301,7 @@ public class Xml2JsonSerializer extends SerializerBase {
             );
     }
 
-    private void handleText(SerializationContext context) {
+    private void handleText(SerializationContext context) throws XsdDetectorException {
         XsdJsonPrimitiveDetector.JsonPrimitive jsonPrimitive = jsonPrimitiveDetector().detect(
             XmlPath.of(context.xmlElement())
         );
@@ -427,7 +428,7 @@ public class Xml2JsonSerializer extends SerializerBase {
             this.groupedChildren = null;
             try {
                 this.xsdElement = xsd().resolveXmlElement(element);
-            } catch (XsdAnyException anyException) {
+            } catch (XsdAnyException | XsdNoSuchNodeException resolveException) {
                 this.xsdElement = null;
             }
             this.json = MAPPER.createObjectNode();

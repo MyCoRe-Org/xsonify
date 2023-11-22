@@ -21,7 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -252,7 +251,7 @@ public class Xsd {
         return collectedNodes;
     }
 
-    public void collectAll(XsdNode node, List<XsdNode> collection) {
+    private void collectAll(XsdNode node, List<XsdNode> collection) {
         collection.add(node);
         for (XsdNode childNode : node.getChildren()) {
             collectAll(childNode, collection);
@@ -312,19 +311,34 @@ public class Xsd {
      *
      * @param path the requested path
      * @return list of xsd nodes
-     * @throws NoSuchElementException thrown if a node with the requested name couldn't be found
+     * @throws XsdNoSuchNodeException thrown if a node with the requested name couldn't be found
      * @throws XsdAnyException        thrown if the path reaches a xs:any or xs:anyAttribute node,
      *                                and it's unclear how to process further
      */
-    public List<XsdNode> resolvePath(XmlPath path) throws NoSuchElementException, XsdAnyException {
+    public List<? extends XsdNode> resolvePath(XmlPath path) throws XsdNoSuchNodeException, XsdAnyException {
         if (path.isEmpty()) {
             return new ArrayList<>();
         }
-        List<XsdNode> nodes = new ArrayList<>();
+        if (path.last().isAttribute()) {
+            List<XsdElement> elementNodes = resolveElementPath(path.elements());
+            XsdElement xsdElement = elementNodes.get(elementNodes.size() - 1);
+            XsdAttribute attribute = resolvePathForAttribute(xsdElement, path.last().name());
+            List<XsdNode> result = new ArrayList<>(elementNodes);
+            result.add(attribute);
+            return result;
+        }
+        return resolveElementPath(path);
+    }
+
+    public List<XsdElement> resolveElementPath(XmlPath path) throws XsdNoSuchNodeException, XsdAnyException {
+        if (path.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<XsdElement> nodes = new ArrayList<>();
         XmlName root = path.root().name();
         XsdElement headNode = this.getNamedNode(XsdElement.class, root);
         if (headNode == null) {
-            throw new NoSuchElementException(root + " could not be found!");
+            throw new XsdNoSuchNodeException(root + " could not be found!");
         }
         nodes.add(headNode);
         XsdElement next = headNode;
@@ -333,10 +347,6 @@ public class Xsd {
             if (XmlPath.Type.ELEMENT.equals(node.type())) {
                 next = resolvePathForElement(next, node.name());
                 nodes.add(next);
-            } else {
-                XsdAttribute attribute = resolvePathForAttribute(next, node.name());
-                nodes.add(attribute);
-                break;
             }
         }
         return nodes;
@@ -347,33 +357,43 @@ public class Xsd {
      *
      * @param element the requested element
      * @return xsd node matching the element
-     * @throws NoSuchElementException thrown if a node with the requested name couldn't be found
+     * @throws XsdNoSuchNodeException thrown if a node with the requested name couldn't be found
      * @throws XsdAnyException        thrown if the path reaches a xs:any, and it's unclear how to process further
      */
-    public XsdElement resolveXmlElement(XmlElement element) throws NoSuchElementException, XsdAnyException {
+    public XsdElement resolveXmlElement(XmlElement element) throws XsdNoSuchNodeException, XsdAnyException {
         XmlPath path = XmlPath.of(element);
-        List<XsdNode> nodes = resolvePath(path);
+        List<? extends XsdNode> nodes = resolvePath(path);
         return !nodes.isEmpty() ? (XsdElement) nodes.get(nodes.size() - 1) : null;
     }
 
     private XsdElement resolvePathForElement(XsdElement parent, XmlName elementToFind) throws XsdAnyException,
-        NoSuchElementException {
+        XsdNoSuchNodeException {
+        XmlExpandedName name = elementToFind.expandedName();
         List<XsdElement> children = parent.collectElements();
+        Set<XsdElement> candidates = new LinkedHashSet<>();
         for (XsdElement childNode : children) {
             XsdElement namedNode = childNode.getReferenceOrSelf();
-            if (namedNode.getName().equals(elementToFind.expandedName())) {
-                return namedNode;
+            if (namedNode.getName().equals(name)) {
+                candidates.add(namedNode);
             }
+        }
+        if (candidates.size() == 1) {
+            return candidates.iterator().next();
+        }
+        if (!candidates.isEmpty()) {
+            // TODO don't use RuntimeException
+            throw new RuntimeException("Ambiguous element definition found for '" + name + "': " + candidates);
         }
         if (parent.hasAny()) {
             throw new XsdAnyException(
                 "element '" + elementToFind + "' not found but xs:any matches in parent '" + parent.getName() + "'");
         }
-        throw new NoSuchElementException(
+        throw new XsdNoSuchNodeException(
             "element '" + elementToFind + "' could not be found in parent '" + parent.getName() + "'");
     }
 
-    private XsdAttribute resolvePathForAttribute(XsdElement parent, XmlName attributeName) throws XsdAnyException {
+    private XsdAttribute resolvePathForAttribute(XsdElement parent, XmlName attributeName)
+        throws XsdAnyException, XsdNoSuchNodeException {
         // add uri to attribute if empty
         // this is needed because attributes usually have an empty namespace, but the xsd definition uses namespaces
         XmlExpandedName resolvedAttributeName = attributeName.expandedName();
@@ -392,7 +412,7 @@ public class Xsd {
             throw new XsdAnyException("attribute '" + resolvedAttributeName +
                 "' not found but xs:anyAttribute matches in node '" + parent.getName() + "'");
         }
-        throw new NoSuchElementException(
+        throw new XsdNoSuchNodeException(
             "attribute '" + resolvedAttributeName + "' could not be found in node '" + parent.getName() + "'");
     }
 

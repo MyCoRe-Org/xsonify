@@ -19,6 +19,7 @@ import org.mycore.xsonify.xml.XmlNamespaceDeclarationStrategy;
 import org.mycore.xsonify.xml.XmlQualifiedName;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
+import org.mycore.xsonify.xsd.XsdNoSuchNodeException;
 import org.mycore.xsonify.xsd.node.XsdAttribute;
 import org.mycore.xsonify.xsd.node.XsdElement;
 import org.mycore.xsonify.xsd.node.XsdNode;
@@ -29,7 +30,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -570,10 +570,10 @@ public class Json2XmlSerializer extends SerializerBase {
         try {
             XsdElement node = xsd().resolveXmlElement(element);
             return node.getElement().getNamespacesInScope().get(prefix);
-        } catch (NoSuchElementException noSuchElementException) {
+        } catch (XsdNoSuchNodeException noSuchNodeException) {
             throw new SerializationException("Unable to determine xsd node path for " + element,
-                noSuchElementException);
-        } catch (XsdAnyException xsdAnyException) {
+                noSuchNodeException);
+        } catch (XsdAnyException anyException) {
             // TODO: is this correct?
             return XmlNamespace.EMPTY;
         }

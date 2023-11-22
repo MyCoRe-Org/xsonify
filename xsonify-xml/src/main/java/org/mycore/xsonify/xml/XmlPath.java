@@ -98,6 +98,18 @@ public class XmlPath implements Iterable<XmlPath.Node> {
         return nodes.iterator();
     }
 
+    public XmlPath elements() {
+        XmlPath elementsPath = new XmlPath();
+        for (Node node : nodes) {
+            if (node.isElement()) {
+                elementsPath.add(node);
+            } else {
+                break;
+            }
+        }
+        return elementsPath;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

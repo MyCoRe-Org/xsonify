@@ -5,6 +5,7 @@ import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
+import org.mycore.xsonify.xsd.XsdNoSuchNodeException;
 import org.mycore.xsonify.xsd.node.XsdAttribute;
 import org.mycore.xsonify.xsd.node.XsdComplexType;
 import org.mycore.xsonify.xsd.node.XsdContent;
@@ -110,7 +111,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
     }
 
     @Override
-    public JsonPrimitive detect(XmlPath path) {
+    public JsonPrimitive detect(XmlPath path) throws XsdDetectorException {
         try {
             // check for built-in attributes
             XmlPath.Node lastNode = path.last();
@@ -121,15 +122,17 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
                 }
             }
             // resolve the path
-            List<XsdNode> xsdNodes = xsd.resolvePath(path);
+            List<? extends XsdNode> xsdNodes = xsd.resolvePath(path);
             XsdNode last = xsdNodes.get(xsdNodes.size() - 1);
             if (last instanceof XsdReferenceable<?>) {
                 XsdNode reference = ((XsdReferenceable<?>) last).getReference();
                 last = reference != null ? reference : last;
             }
             return this.nodeJsonPrimitiveMap.get(last);
-        } catch (XsdAnyException xsdAnyException) {
+        } catch (XsdAnyException anyException) {
             return JsonPrimitive.STRING;
+        } catch (XsdNoSuchNodeException noSuchNodeException) {
+            throw new XsdDetectorException("Unable to detected primitive for path '" + path + "'", noSuchNodeException);
         }
     }
 
@@ -139,7 +142,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
      * @param element The XSD element to detect.
      * @return The detected JSON primitive type.
      */
-    private JsonPrimitive detectElementNode(XsdElement element) throws XsdDetectorException {
+    public JsonPrimitive detectElementNode(XsdElement element) throws XsdDetectorException {
         // @type
         XmlExpandedName datatypeName = element.getDatatypeName();
         if (datatypeName != null) {
@@ -164,7 +167,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
      * @param attribute The XSD attribute to detect.
      * @return The detected JSON primitive type.
      */
-    private JsonPrimitive detectAttributeNode(XsdAttribute attribute) throws XsdDetectorException {
+    public JsonPrimitive detectAttributeNode(XsdAttribute attribute) throws XsdDetectorException {
         // @type
         XmlExpandedName datatypeName = attribute.getDatatypeName();
         if (datatypeName != null) {

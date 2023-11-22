@@ -6,9 +6,10 @@ import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdUtil;
+import org.mycore.xsonify.xsd.node.XsdElement;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -20,7 +21,9 @@ public class XsdMixedContentDetectorTest extends XsdDetectorTest {
         Xsd modsXsd = XsdUtil.getXsdFromCatalog("mods-3-8.xsd");
         XsdMixedContentDetector feature = new XsdMixedContentDetector(modsXsd);
 
-        Set<XmlExpandedName> mixed = feature.getMixedContentElements();
+        List<XmlExpandedName> mixed = feature.getMixedContentElements().stream()
+            .map(XsdElement::getName)
+            .toList();
         assertEquals(4, mixed.size());
         assertTrue(mixed.contains(new XmlExpandedName("extension", "http://www.loc.gov/mods/v3")));
         assertTrue(mixed.contains(new XmlExpandedName("cartographicExtension", "http://www.loc.gov/mods/v3")));

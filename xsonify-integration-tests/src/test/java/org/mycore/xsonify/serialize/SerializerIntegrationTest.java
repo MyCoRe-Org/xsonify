@@ -121,7 +121,7 @@ public class SerializerIntegrationTest {
         // full include
         // - include root element
         // - include namespaces
-        test(xmlDocument, xsd, null, new ArrayList<>(), false, serializerSettingsBuilder
+        test(xmlDocument, xsd, null, new ArrayList<>(), true, serializerSettingsBuilder
             .reset()
             .omitRootElement(false)
             .elementPrefixHandling(SerializerSettings.PrefixHandling.RETAIN_ORIGINAL)

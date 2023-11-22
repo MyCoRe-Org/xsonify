@@ -1,0 +1,9 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="https://test.com/sameName2"
+           targetNamespace="https://test.com/sameName2"
+           elementFormDefault="qualified">
+
+  <xs:element name="sameName" type="xs:string"/>
+  <xs:attribute name="sameAttribute" type="xs:string"/>
+
+</xs:schema>
