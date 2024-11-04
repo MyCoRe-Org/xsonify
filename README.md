@@ -18,3 +18,6 @@
   einer Ableitung eines komplexen Typs durch Einschränkung) oder eine Erweiterung sein. (Dies ist flexibler als eine
   Erweiterung eines komplexen Typs, da der Ort, an dem die Basisgruppe in die neue Gruppe eingebunden wird, gewählt
   werden kann, während neue Elemente bei einer Ableitung durch Erweiterung stets nach dem Basistyp angeordnet werden.)
+
+
+* xsd FIXED attributes can be omitted 

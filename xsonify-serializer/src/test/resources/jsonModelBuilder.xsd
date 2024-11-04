@@ -1,0 +1,86 @@
+<!--
+/*
+-all sameName are primitive, so they are resolved to a string.
+-the sn1 and sn2 namespaces are removed cause all the content is primitive
+-the group should be unwrapped to groupElement1 & groupElement2
+-containerA and containerB should contain their localElement inside without any reference.
+
+// differentiate between interface and type? Currently, XsdComplexType has no way to determine sub elements.
+
+// i need an info object with the same node structure similar to repeatable element detector
+// it should contain info like repeatable, primitive, mixed and so so on
+// it should be used within the jsonmodel
+
+export interface Root {
+  "sameName?": [string];
+  "sn1:sameName?": [string];
+  "sn2:sameName?": [string];
+  "type?": [Type];
+  "groupElement1?": [string]
+  "groupElement1?": [string]
+  "containerA?": [{
+    "localElement": number;
+  }];
+  "containerB?": [{
+    "localElement": string;
+  }];
+}
+export interface Type {
+  typeElement1?: [string];
+  typeElement2?: [string];
+}
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:sn1="https://test.com/sameName1"
+           xmlns:sn2="https://test.com/sameName2"
+           xmlns="https://test.com/jsonModelBuilderTest"
+           targetNamespace="https://test.com/jsonModelBuilderTest"
+           elementFormDefault="qualified">
+
+  <xs:import namespace="https://test.com/sameName1" schemaLocation="sameName1.xsd"/>
+  <xs:import namespace="https://test.com/sameName2" schemaLocation="sameName2.xsd"/>
+
+  <xs:element name="root">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element ref="sameName" />
+        <xs:element ref="sn1:sameName"/>
+        <xs:element ref="sn2:sameName"/>
+        <xs:element name="type" type="type"/>
+        <xs:group ref="group"/>
+        <xs:element name="containerA">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="localElement" type="xs:integer"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="containerB">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="localElement" type="xs:string"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="sameName" type="xs:string"/>
+
+  <xs:complexType name="type">
+    <xs:choice maxOccurs="unbounded">
+      <xs:element name="typeElement1" type="xs:string"/>
+      <xs:element name="typeElement2" type="xs:string"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:group name="group">
+    <xs:choice>
+      <xs:element ref="sameName" />
+      <xs:element name="groupElement1" type="xs:string"/>
+      <xs:element name="groupElement2" type="xs:string"/>
+    </xs:choice>
+  </xs:group>
+
+</xs:schema>
