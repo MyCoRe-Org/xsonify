@@ -330,7 +330,7 @@ public class Json2XmlSerializer extends SerializerBase {
                 throw new SerializationException(
                     "Multiple XSD attribute definitions found for '" + attributeName + "' in '" +
                         element.getName() + "'. Unable to determine which one to choose: " + attributeNodes.stream()
-                        .map(XsdNode::getName)
+                        .map(XsdAttribute::getName)
                         .map(XmlExpandedName::toString)
                         .collect(Collectors.joining(",")));
             }
@@ -339,7 +339,7 @@ public class Json2XmlSerializer extends SerializerBase {
             throw new SerializationException("Invalid '" + attributeName + "' attribute found in " + element.getName());
         }
         // assign attribute -> determine if prefix is required based on the element namespace
-        XsdNode attributeNode = attributeNodes.get(0);
+        XsdAttribute attributeNode = attributeNodes.get(0);
         String attributeNamespaceUri = attributeNode.getUri();
         XmlNamespace attributeNamespace = elementNamespaceUri.equals(attributeNamespaceUri) ?
                                           XmlNamespace.EMPTY :

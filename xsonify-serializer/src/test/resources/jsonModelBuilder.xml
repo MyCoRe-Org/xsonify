@@ -1,0 +1,28 @@
+<root xmlns="https://test.com/jsonModelBuilderTest"
+      xmlns:sn1="https://test.com/sameName1"
+      xmlns:sn2="https://test.com/sameName2">
+
+  <sameName>a</sameName>
+  <sameName>b</sameName>
+  <sn1:sameName>c</sn1:sameName>
+  <sn2:sameName>d</sn2:sameName>
+  <type>
+    <typeElement1>type 1</typeElement1>
+    <typeElement2>type 2</typeElement2>
+  </type>
+  <groupElement1>group 1</groupElement1>
+  <groupElement2>group 1</groupElement2>
+  <containerA>
+    <localElement>1</localElement>
+  </containerA>
+  <containerA>
+    <localElement>2</localElement>
+  </containerA>
+  <containerB>
+    <localElement>containerB 1</localElement>
+  </containerB>
+  <containerB>
+    <localElement>containerB 2</localElement>
+  </containerB>
+
+</root>

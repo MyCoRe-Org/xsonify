@@ -7,4 +7,6 @@ module org.mycore.xsonify.serialize {
     requires org.mycore.xsonify.xsd;
 
     exports org.mycore.xsonify.serialize;
+    exports org.mycore.xsonify.serialize.model;
+    exports org.mycore.xsonify.serialize.model.old;
 }
