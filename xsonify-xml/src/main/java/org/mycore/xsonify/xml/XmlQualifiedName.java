@@ -27,7 +27,16 @@ public record XmlQualifiedName(String prefix, String localName) {
      */
     @Override
     public String toString() {
-        return ((prefix != null && !prefix.isEmpty()) ? (prefix + ":") : "") + localName;
+        return (hasPrefix() ? (prefix + ":") : "") + localName;
+    }
+
+    /**
+     * Checks if the qualified name has a non-empty prefix.
+     *
+     * @return {@code true} if the prefix is present and non-empty; {@code false} otherwise.
+     */
+    public boolean hasPrefix() {
+        return prefix != null && !prefix.isEmpty();
     }
 
     /**

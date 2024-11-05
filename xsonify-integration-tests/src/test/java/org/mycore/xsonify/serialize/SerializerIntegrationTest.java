@@ -117,12 +117,13 @@ public class SerializerIntegrationTest {
         Xsd xsd = XsdUtil.getXsdFromCatalog(schemaLocation);
 
         SerializerSettingsBuilder serializerSettingsBuilder = new SerializerSettingsBuilder();
+        SerializerSettings defaultSettings = serializerSettingsBuilder.build();
 
         // full include
         // - include root element
         // - include namespaces
-        test(xmlDocument, xsd, null, new ArrayList<>(), true, serializerSettingsBuilder
-            .reset()
+        test(xmlDocument, xsd, null, new ArrayList<>(), false, serializerSettingsBuilder
+            .resetTo(defaultSettings)
             .omitRootElement(false)
             .elementPrefixHandling(SerializerSettings.PrefixHandling.RETAIN_ORIGINAL)
             .namespaceHandling(SerializerSettings.NamespaceDeclaration.ADD)
@@ -132,48 +133,48 @@ public class SerializerIntegrationTest {
         // - include root element
         // - omit namespaces
         test(xmlDocument, xsd, rootName, namespaces, false, serializerSettingsBuilder
-            .reset()
+            .resetTo(defaultSettings)
             .omitRootElement(false)
             .build());
 
         // test default
         // - omitted root name
         // - omitted namespaces
-        test(xmlDocument, xsd, rootName, namespaces, false, serializerSettingsBuilder
-            .reset()
+        test(xmlDocument, xsd, rootName, namespaces, true, serializerSettingsBuilder
+            .resetTo(defaultSettings)
             .build());
 
         // test json structure
         test(xmlDocument, xsd, rootName, namespaces, false, serializerSettingsBuilder
-            .reset()
+            .resetTo(defaultSettings)
             .jsonStructure(SerializerSettings.JsonStructure.SINGLE_OR_ARRAY)
             .build());
         test(xmlDocument, xsd, rootName, namespaces, false, serializerSettingsBuilder
-            .reset()
+            .resetTo(defaultSettings)
             .jsonStructure(SerializerSettings.JsonStructure.ENFORCE_ARRAY)
             .build());
 
         // retain original attribute prefixes
         test(xmlDocument, xsd, rootName, namespaces, false, serializerSettingsBuilder
-            .reset()
+            .resetTo(defaultSettings)
             .attributePrefixHandling(SerializerSettings.PrefixHandling.RETAIN_ORIGINAL)
             .build());
 
         // retain original element prefixes
         test(xmlDocument, xsd, rootName, namespaces, false, serializerSettingsBuilder
-            .reset()
+            .resetTo(defaultSettings)
             .elementPrefixHandling(SerializerSettings.PrefixHandling.RETAIN_ORIGINAL)
             .build());
 
         // deactivate whitespace stripping
         test(xmlDocument, xsd, rootName, namespaces, false, serializerSettingsBuilder
-            .reset()
+            .resetTo(defaultSettings)
             .normalizeText(false)
             .build());
 
         // use UTF_8 encoding for mixed content
         test(xmlDocument, xsd, rootName, namespaces, false, serializerSettingsBuilder
-            .reset()
+            .resetTo(defaultSettings)
             .mixedContentHandling(SerializerSettings.MixedContentHandling.UTF_8_ENCODING)
             .build());
     }

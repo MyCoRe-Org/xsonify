@@ -1,6 +1,7 @@
 package org.mycore.xsonify.serialize;
 
 import static org.mycore.xsonify.serialize.SerializerSettings.AdditionalNamespaceDeclarationStrategy.MOVE_TO_COMMON_ANCESTOR;
+import static org.mycore.xsonify.serialize.SerializerSettings.FixedAttributeHandling.*;
 import static org.mycore.xsonify.serialize.SerializerSettings.JsonStructure.SCHEMA_BASED;
 import static org.mycore.xsonify.serialize.SerializerSettings.MixedContentHandling.JSON_CONVERSION;
 import static org.mycore.xsonify.serialize.SerializerSettings.NamespaceDeclaration.ADD_IF_XS_ANY;
@@ -22,6 +23,8 @@ import static org.mycore.xsonify.serialize.SerializerSettings.XsAnyNamespaceStra
  * @param plainTextHandling                      Specifies how plain text content is handled in the resulting JSON.
  * @param mixedContentHandling                   Specifies how to handle mixed content once it's detected.
  * @param additionalNamespaceDeclarationStrategy Specifies how to optimize namespaces declaration if the namespace information is omitted (namespaceHandling is set to OMIT)
+ * @param xsAnyNamespaceStrategy                 Strategy for applying a namespace to 'xs:any' content.
+ * @param fixedAttributeHandling                 Defines handling for fixed attributes.
  */
 public record SerializerSettings(
     boolean omitRootElement,
@@ -33,8 +36,8 @@ public record SerializerSettings(
     PlainTextHandling plainTextHandling,
     MixedContentHandling mixedContentHandling,
     AdditionalNamespaceDeclarationStrategy additionalNamespaceDeclarationStrategy,
-    XsAnyNamespaceStrategy xsAnyNamespaceStrategy
-) {
+    XsAnyNamespaceStrategy xsAnyNamespaceStrategy,
+    FixedAttributeHandling fixedAttributeHandling) {
 
     /**
      * Determines if XML namespaces are represented in the JSON output. This does not affect namespace prefixes. See
@@ -212,6 +215,27 @@ public record SerializerSettings(
         USE_PARENT
     }
 
+    /**
+     * Defines strategies for handling fixed attributes.
+     */
+    public enum FixedAttributeHandling {
+
+        /**
+         * Retains fixed attributes as they appear in the original XML, including in both JSON and XML outputs.
+         */
+        KEEP_ORIGINAL,
+
+        /**
+         * Completely removes fixed attributes from both JSON and XML outputs.
+         */
+        OMIT_FULLY,
+
+        /**
+         * Removes fixed attributes from the JSON output while restoring them in the XML output.
+         */
+        OMIT_IN_JSON
+    }
+
     // Default values.
     public static final boolean DEFAULT_OMIT_ROOT_ELEMENT = true;
     public static final NamespaceDeclaration DEFAULT_NAMESPACE_HANDLING = ADD_IF_XS_ANY;
@@ -224,7 +248,11 @@ public record SerializerSettings(
     public static final AdditionalNamespaceDeclarationStrategy DEFAULT_ADDITIONAL_NAMESPACE_DECLARATION_STRATEGY
         = MOVE_TO_COMMON_ANCESTOR;
     public static final XsAnyNamespaceStrategy DEFAULT_XS_ANY_NAMESPACE_STRATEGY = USE_EMPTY;
+    public static final FixedAttributeHandling DEFAULT_FIXED_ATTRIBUTE_HANDLING = KEEP_ORIGINAL;
 
+    /**
+     * Constructs a new instance of {@code SerializerSettings} with default configuration values.
+     */
     public SerializerSettings() {
         this(
             DEFAULT_OMIT_ROOT_ELEMENT,
@@ -236,8 +264,8 @@ public record SerializerSettings(
             DEFAULT_PLAIN_TEXT_HANDLING,
             DEFAULT_MIXED_CONTENT_HANDLING,
             DEFAULT_ADDITIONAL_NAMESPACE_DECLARATION_STRATEGY,
-            DEFAULT_XS_ANY_NAMESPACE_STRATEGY
-        );
+            DEFAULT_XS_ANY_NAMESPACE_STRATEGY,
+            DEFAULT_FIXED_ATTRIBUTE_HANDLING);
     }
 
 }

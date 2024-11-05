@@ -1,9 +1,17 @@
 package org.mycore.xsonify.serialize;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.mycore.xsonify.serialize.SerializerSettings.AdditionalNamespaceDeclarationStrategy;
+import org.mycore.xsonify.serialize.SerializerSettings.FixedAttributeHandling;
 import org.mycore.xsonify.serialize.SerializerSettings.NamespaceDeclaration;
 import org.mycore.xsonify.serialize.SerializerSettings.XsAnyNamespaceStrategy;
 import org.mycore.xsonify.xml.XmlContent;
@@ -18,66 +26,129 @@ import org.mycore.xsonify.xml.XmlNamespaceDeclarationRootStrategy;
 import org.mycore.xsonify.xml.XmlNamespaceDeclarationStrategy;
 import org.mycore.xsonify.xml.XmlQualifiedName;
 import org.mycore.xsonify.xsd.Xsd;
-import org.mycore.xsonify.xsd.XsdAnyException;
-import org.mycore.xsonify.xsd.XsdNoSuchNodeException;
+import org.mycore.xsonify.xsd.XsdException;
 import org.mycore.xsonify.xsd.node.XsdAttribute;
 import org.mycore.xsonify.xsd.node.XsdElement;
-import org.mycore.xsonify.xsd.node.XsdNode;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * A serializer that converts JSON objects into XML documents based on the
+ * provided {@link SerializerSettings} configuration and {@link SerializerStyle}.
+ *
+ * <p>To use, create an instance of {@code Json2XmlSerializer} with an {@link Xsd} schema,
+ * configure the desired settings, and call {@link #serialize(ObjectNode)} to perform
+ * the conversion.</p>
+ *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * Json2XmlSerializer serializer = new Json2XmlSerializer(xsd);
+ * XmlDocument xmlDoc = serializer.serialize(jsonObject);
+ * }</pre>
+ */
 public class Json2XmlSerializer extends SerializerBase {
 
     private XmlName rootName;
 
     private final Map<String, XmlNamespace> namespaceMap;
 
+    /**
+     * Constructs a {@code Json2XmlSerializer} with default settings and style.
+     *
+     * @param xsd the XML schema definition used for validating the JSON structure.
+     * @throws SerializationException if initialization fails due to schema configuration issues.
+     */
     public Json2XmlSerializer(Xsd xsd) throws SerializationException {
         this(xsd, new SerializerSettings());
     }
 
+    /**
+     * Constructs a {@code Json2XmlSerializer} with specific settings and default style.
+     *
+     * @param xsd      the XML schema definition used for validating the JSON structure.
+     * @param settings the serialization settings to control JSON-to-XML conversion.
+     * @throws SerializationException if initialization fails due to schema or settings issues.
+     */
     public Json2XmlSerializer(Xsd xsd, SerializerSettings settings) throws SerializationException {
         this(xsd, settings, new SerializerStyle());
     }
 
-    public Json2XmlSerializer(Xsd xsd, SerializerSettings settings, SerializerStyle style) throws
-        SerializationException {
+    /**
+     * Constructs a {@code Json2XmlSerializer} with specific settings and style configuration.
+     *
+     * @param xsd      the XML schema definition used for validating the JSON structure.
+     * @param settings the serialization settings to control JSON-to-XML conversion.
+     * @param style    the style configuration for customizing XML output.
+     * @throws SerializationException if initialization fails due to schema, settings, or style issues.
+     */
+    public Json2XmlSerializer(Xsd xsd, SerializerSettings settings, SerializerStyle style)
+        throws SerializationException {
         super(xsd, settings, style);
         this.rootName = null;
         this.namespaceMap = new LinkedHashMap<>();
     }
 
+    /**
+     * Sets the root XML element's name. This overrides any name derived from the JSON structure. This is required if
+     * the root name cannot be determined by the XSD structure.
+     *
+     * @param rootName the root XML element name to set.
+     */
     public void setRootName(XmlName rootName) {
         this.rootName = rootName;
     }
 
+    /**
+     * Retrieves the root XML element's name.
+     *
+     * @return the root XML element's {@link XmlName}, or {@code null} if not set.
+     */
     public XmlName getRootName() {
         return rootName;
     }
 
+    /**
+     * Returns the current namespace mappings, where each prefix is associated with a namespace URI.
+     *
+     * @return a map of namespace prefixes to {@link XmlNamespace} objects.
+     */
     public Map<String, XmlNamespace> getNamespaceMap() {
         return namespaceMap;
     }
 
+    /**
+     * Sets the namespaces for the serializer using a list of {@link XmlNamespace} objects.
+     * This method clears any existing namespaces before adding the new list.
+     *
+     * @param namespaces a list of {@link XmlNamespace} objects to be used in serialization.
+     * @return the current {@code Json2XmlSerializer} instance, for chaining.
+     */
     public Json2XmlSerializer setNamespaces(List<XmlNamespace> namespaces) {
         this.namespaceMap.clear();
         namespaces.forEach(namespace -> this.namespaceMap.put(namespace.prefix(), namespace));
         return this;
     }
 
+    /**
+     * Adds a single namespace to the serializer.
+     *
+     * @param namespace the {@link XmlNamespace} to add.
+     * @return the current {@code Json2XmlSerializer} instance, for chaining.
+     */
     public Json2XmlSerializer addNamespace(XmlNamespace namespace) {
         this.namespaceMap.put(namespace.prefix(), namespace);
         return this;
     }
 
+    /**
+     * Serializes a JSON object into an XML document based on the current settings, style and schema.
+     *
+     * @param jsonObject the JSON object to be serialized into XML.
+     * @return an {@link XmlDocument} representing the XML structure.
+     * @throws SerializationException if an error occurs during serialization, such as schema mismatches.
+     */
     public XmlDocument serialize(ObjectNode jsonObject) throws SerializationException {
         XmlDocument xmlDocument = createXmlDocument(jsonObject);
         optimizeNamespaceDeclaration(xmlDocument);
@@ -136,10 +207,9 @@ public class Json2XmlSerializer extends SerializerBase {
             return;
         }
         // choose between MOVE_TO_ROOT and MOVE_TO_ANCESTOR
-        XmlNamespaceDeclarationStrategy strategy =
-            AdditionalNamespaceDeclarationStrategy.MOVE_TO_ROOT.equals(strategySetting) ?
-            new XmlNamespaceDeclarationRootStrategy() :
-            new XmlNamespaceDeclarationAncestorStrategy();
+        XmlNamespaceDeclarationStrategy strategy
+            = AdditionalNamespaceDeclarationStrategy.MOVE_TO_ROOT.equals(strategySetting)
+                ? new XmlNamespaceDeclarationRootStrategy() : new XmlNamespaceDeclarationAncestorStrategy();
         try {
             strategy.apply(xmlDocument);
         } catch (XmlException e) {
@@ -263,10 +333,9 @@ public class Json2XmlSerializer extends SerializerBase {
     }
 
     private boolean useEmptyNamespaceForXsAny(SerializationContext context) {
-        boolean isChildOfXsAny =
-            context.xsdElement() == null &&
-                context.parentContext().xsdElement() != null &&
-                context.parentContext().xsdElement().hasAny();
+        boolean isChildOfXsAny = context.xsdElement() == null &&
+            context.parentContext().xsdElement() != null &&
+            context.parentContext().xsdElement().hasAny();
         if (!isChildOfXsAny) {
             return false;
         }
@@ -289,6 +358,21 @@ public class Json2XmlSerializer extends SerializerBase {
     }
 
     private void handleAttributes(SerializationContext context) throws SerializationException {
+        // fixed attributes
+        XsdElement xsdElement = context.xsdElement();
+        if (FixedAttributeHandling.OMIT_IN_JSON.equals(settings().fixedAttributeHandling()) && xsdElement != null) {
+            List<XsdAttribute> fixedAttributeList = xsdElement.collectAttributes().stream()
+                .filter(XsdAttribute::hasFixedValue)
+                .map(XsdAttribute::getReferenceOrSelf)
+                .toList();
+            for (XsdAttribute fixedAttribute : fixedAttributeList) {
+                XmlNamespace namespace = getNamespace(context, fixedAttribute.getUri());
+                XmlQualifiedName name = new XmlQualifiedName(namespace.prefix(), fixedAttribute.getLocalName());
+                String fixedValue = fixedAttribute.getFixedValue();
+                handleAttribute(context, name.toString(), fixedValue);
+            }
+        }
+        // json attributes
         for (Map.Entry<String, String> entry : context.jsonNode().getAttributes().entrySet()) {
             String name = entry.getKey();
             String value = entry.getValue();
@@ -318,33 +402,51 @@ public class Json2XmlSerializer extends SerializerBase {
             element.setAttribute(attributeName, attributeValue, XmlNamespace.EMPTY);
             return;
         }
+        XsdAttribute attributeNode = getAttributeNode(context, attributeName);
+        String attributeNamespaceUri = attributeNode.getUri();
+        String elementNamespaceUri = context.element().getNamespace().uri();
+        XmlNamespace attributeNamespace = elementNamespaceUri.equals(attributeNamespaceUri) ? XmlNamespace.EMPTY
+            : getNamespace(context, attributeNamespaceUri);
+        element.setAttribute(attributeName, attributeValue, attributeNamespace);
+    }
+
+    private XsdAttribute getAttributeNode(SerializationContext context, String attributeName)
+        throws SerializationException {
+        XmlElement element = context.element();
+        XmlQualifiedName qualifiedName = XmlQualifiedName.of(attributeName);
+        // prefix available, get the xsdAttribute by looking up expanded name
+        if (qualifiedName.hasPrefix()) {
+            XmlNamespace attributeNamespace = getNamespace(element, qualifiedName.prefix());
+            XmlExpandedName attributeExpandedName = new XmlExpandedName(attributeName, attributeNamespace.uri());
+            XsdAttribute xsdAttribute = context.xsdElement().getXsdAttribute(attributeExpandedName);
+            if (xsdAttribute == null) {
+                throw new SerializationException(
+                    "Invalid '" + attributeName + "' attribute found in " + element.getName());
+            }
+            return xsdAttribute;
+        }
+        // no prefix available, we have to guess
+        String elementNamespaceUri = context.element().getNamespace().uri();
         // get xsd attribute nodes -> in best case there should be only one
         List<XsdAttribute> attributeNodes = XsdAttribute.resolveReferences(
-            context.xsdElement().collectAttributes(attributeName));
-        String elementNamespaceUri = context.element().getNamespace().uri();
+            context.xsdElement().collectAttributes(qualifiedName.localName()));
         if (attributeNodes.size() > 1) {
             attributeNodes = attributeNodes.stream()
                 .filter(attributeNode -> elementNamespaceUri.equals(attributeNode.getUri()))
                 .toList();
-            if (attributeNodes.size() > 1) {
-                throw new SerializationException(
-                    "Multiple XSD attribute definitions found for '" + attributeName + "' in '" +
-                        element.getName() + "'. Unable to determine which one to choose: " + attributeNodes.stream()
-                        .map(XsdNode::getName)
+        }
+        if (attributeNodes.size() > 1) {
+            throw new SerializationException(
+                "Multiple XSD attribute definitions found for '" + attributeName + "' in '" +
+                    element.getName() + "'. Unable to determine which one to choose: " + attributeNodes.stream()
+                        .map(XsdAttribute::getName)
                         .map(XmlExpandedName::toString)
                         .collect(Collectors.joining(",")));
-            }
         }
         if (attributeNodes.isEmpty()) {
             throw new SerializationException("Invalid '" + attributeName + "' attribute found in " + element.getName());
         }
-        // assign attribute -> determine if prefix is required based on the element namespace
-        XsdNode attributeNode = attributeNodes.get(0);
-        String attributeNamespaceUri = attributeNode.getUri();
-        XmlNamespace attributeNamespace = elementNamespaceUri.equals(attributeNamespaceUri) ?
-                                          XmlNamespace.EMPTY :
-                                          getNamespace(context, attributeNamespaceUri);
-        element.setAttribute(attributeName, attributeValue, attributeNamespace);
+        return attributeNodes.get(0);
     }
 
     private void handleText(SerializationContext context) {
@@ -450,9 +552,7 @@ public class Json2XmlSerializer extends SerializerBase {
     }
 
     private ObjectNode getRootValue(ObjectNode json) {
-        return settings().omitRootElement() ?
-               json :
-               (ObjectNode) json.iterator().next();
+        return settings().omitRootElement() ? json : (ObjectNode) json.iterator().next();
     }
 
     private XsdElement getXsdElement(String jsonKey, SerializationNode serializationNode,
@@ -549,8 +649,8 @@ public class Json2XmlSerializer extends SerializerBase {
     }
 
     private XmlNamespace getNamespace(String jsonKey, JsonNode jsonNode) {
-        String prefix = style().xmlnsPrefix().equals(jsonKey) ? "" :
-                        jsonKey.substring(style().xmlnsPrefix().length() + 1);
+        String prefix
+            = style().xmlnsPrefix().equals(jsonKey) ? "" : jsonKey.substring(style().xmlnsPrefix().length() + 1);
         String uri = jsonNode.asText();
         return new XmlNamespace(prefix, uri);
     }
@@ -570,12 +670,8 @@ public class Json2XmlSerializer extends SerializerBase {
         try {
             XsdElement node = xsd().resolveXmlElement(element);
             return node.getElement().getNamespacesInScope().get(prefix);
-        } catch (XsdNoSuchNodeException noSuchNodeException) {
-            throw new SerializationException("Unable to determine xsd node path for " + element,
-                noSuchNodeException);
-        } catch (XsdAnyException anyException) {
-            // TODO: is this correct?
-            return XmlNamespace.EMPTY;
+        } catch (XsdException xsdException) {
+            throw new SerializationException("Unable to determine xsd node path for " + element, xsdException);
         }
     }
 

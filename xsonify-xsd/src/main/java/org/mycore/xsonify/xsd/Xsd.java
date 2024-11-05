@@ -1,5 +1,16 @@
 package org.mycore.xsonify.xsd;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+
 import org.mycore.xsonify.xml.XmlDocument;
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xml.XmlExpandedName;
@@ -14,27 +25,16 @@ import org.mycore.xsonify.xsd.node.XsdGroup;
 import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdSimpleType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
-
 /**
  * Represents an XSD (XML Schema Definition) and provides methods to interact with its structure and elements.
  * This class encapsulates the XSD's target namespace, associated documents, and named nodes.
  */
 public class Xsd {
 
+    /** A list of node types that can have named references in the XSD. */
     public static final List<Class<? extends XsdNode>> NAMED_TYPES = List.of(
         XsdElement.class, XsdGroup.class, XsdComplexType.class, XsdSimpleType.class,
-        XsdAttributeGroup.class, XsdAttribute.class
-    );
+        XsdAttributeGroup.class, XsdAttribute.class);
 
     private final String targetNamespace;
 
@@ -136,6 +136,11 @@ public class Xsd {
             .toList();
     }
 
+    /**
+     * Returns a collection of all named nodes in the XSD.
+     *
+     * @return a list of all named nodes.
+     */
     public List<? extends XsdNode> getNamedNodes() {
         return this.namedMap.values().stream()
             .flatMap(nodeMap -> nodeMap.values().stream())
@@ -160,6 +165,11 @@ public class Xsd {
         return collection;
     }
 
+    /**
+     * Adds a named node to the XSD if its type is recognized in {@link #NAMED_TYPES}.
+     *
+     * @param node the node to add.
+     */
     public void addNamedNode(XsdNode node) {
         if (!NAMED_TYPES.contains(node.getClass())) {
             return;
@@ -167,7 +177,7 @@ public class Xsd {
         Map<XmlExpandedName, XsdNode> nodeMap = this.namedMap.get(node.getClass());
         if (nodeMap.containsKey(node.getName())) {
             XsdNode original = nodeMap.get(node.getName());
-/*
+            /*
             TODO: this should be included -> only out commented because mods namespace uses different xlink than mycore
             throw new XsdParseException("Overwriting existing node " + node.getName().toString() + "\n" +
                 original.getElement() + " from " + original.getDocument().getSchemaLocation() +
@@ -177,10 +187,31 @@ public class Xsd {
         nodeMap.put(node.getName(), node);
     }
 
+    /**
+     * Retrieves a map of named nodes, organized by their class type and expanded names.
+     *
+     * @return a map of nodes, grouped by their types and expanded names.
+     */
     public LinkedHashMap<Class<? extends XsdNode>, Map<XmlExpandedName, XsdNode>> getNamedMap() {
         return namedMap;
     }
 
+    /**
+     * Collects all nodes of the specified type across the entire XSD schema.
+     *
+     * <p>This method retrieves all instances of the given {@link XsdNode} type, such as {@link XsdElement},
+     * {@link XsdAttribute}, etc., from the entire schema.</p>
+     *
+     * @param <T>  the type of nodes to collect
+     * @param type the {@code Class} object representing the type of nodes to collect
+     * @return a {@link Collection} containing all nodes of the specified type
+     *
+     * <h3>Example Usage:</h3>
+     * <pre>{@code
+     * // Collect all XsdElement nodes in the schema
+     * Collection<XsdElement> elements = xsd.collect(XsdElement.class);
+     * }</pre>
+     */
     public final <T extends XsdNode> Collection<T> collect(Class<T> type) {
         List<T> nodes = new ArrayList<>();
         for (XsdNode node : getNamedNodes()) {
@@ -189,6 +220,23 @@ public class Xsd {
         return nodes;
     }
 
+    /**
+     * Collects all nodes of the specified type within the subtree rooted at the given node.
+     *
+     * <p>This method retrieves all instances of the specified {@link XsdNode} type that are descendants
+     * of the provided root node.</p>
+     *
+     * @param <T>  the type of nodes to collect
+     * @param node the root {@link XsdNode} from which to start the collection
+     * @param type the {@code Class} object representing the type of nodes to collect
+     * @return a {@link List} containing all nodes of the specified type within the subtree
+     *
+     * <h3>Example Usage:</h3>
+     * <pre>{@code
+     * // Assume 'complexType' is an XsdComplexType instance
+     * List<XsdAttribute> attributes = xsd.collect(complexType, XsdAttribute.class);
+     * }</pre>
+     */
     public <T extends XsdNode> List<T> collect(XsdNode node, Class<T> type) {
         List<T> nodes = new ArrayList<>();
         collect(node, type, nodes);
@@ -206,11 +254,18 @@ public class Xsd {
     }
 
     /**
-     * <p>Collects nodes of the given type.</p>
-     * <p>Runs through the hierarchy to get the required nodes.</p>
+     * Collects all nodes that match any of the specified types across the entire XSD schema.
      *
-     * @param types types to collect
-     * @return collection of nodes
+     * <p>This method allows collecting multiple types of {@code XsdNode} instances in a single call.</p>
+     *
+     * @param types the {@code Class} objects representing the types of nodes to collect
+     * @return a {@link List} containing all nodes that match any of the specified types
+     *
+     * <h3>Example Usage:</h3>
+     * <pre>{@code
+     * // Collect all XsdElement and XsdAttribute nodes in the schema
+     * List<XsdNode> elementsAndAttributes = xsd.collect(XsdElement.class, XsdAttribute.class);
+     * }</pre>
      */
     @SafeVarargs
     public final List<XsdNode> collect(Class<? extends XsdNode>... types) {
@@ -222,13 +277,37 @@ public class Xsd {
         return nodes;
     }
 
+    /**
+     * Collects all nodes that match any of the specified types within the subtree rooted at the given node.
+     *
+     * <p>This method retrieves all instances of the specified {@code XsdNode} types that are descendants
+     * of the provided root node.</p>
+     *
+     * @param node  the root {@link XsdNode} from which to start the collection
+     * @param types a {@link List} of {@code Class} objects representing the types of nodes to collect
+     * @return a {@link List} containing all nodes that match any of the specified types within the subtree
+     *
+     * <h3>Example Usage:</h3>
+     * <pre>{@code
+     * // Assume 'complexType' is an XsdComplexType instance
+     * List<Class<? extends XsdNode>> typesToCollect = Arrays.asList(XsdElement.class, XsdAttribute.class);
+     * List<XsdNode> elementsAndAttributes = xsd.collect(complexType, typesToCollect);
+     * }</pre>
+     */
     public List<XsdNode> collect(XsdNode node, List<Class<? extends XsdNode>> types) {
         List<XsdNode> nodes = new ArrayList<>();
         collect(node, types, nodes);
         return nodes;
     }
 
-    public void collect(XsdNode node, List<Class<? extends XsdNode>> types, Collection<XsdNode> collection) {
+    /**
+     * Recursively collects nodes that match any of the specified types and adds them to the provided collection.
+     *
+     * @param node        the current {@link XsdNode} being inspected
+     * @param types       a {@link List} of {@code Class} objects representing the types of nodes to collect
+     * @param collection  the {@link Collection} to which matching nodes are added
+     */
+    private void collect(XsdNode node, List<Class<? extends XsdNode>> types, Collection<XsdNode> collection) {
         if (types.contains(node.getClass())) {
             collection.add(node);
         }
@@ -238,10 +317,18 @@ public class Xsd {
     }
 
     /**
-     * <p>Collects all nodes.</p>
-     * <p>Runs through the hierarchy.</p>
+     * Collects all nodes present in the entire XSD schema.
      *
-     * @return collection of nodes
+     * <p>This method retrieves every {@link XsdNode} instance defined within the schema, traversing all
+     * named nodes and their descendants.</p>
+     *
+     * @return a {@link Collection} containing all nodes in the schema
+     *
+     * <h3>Example Usage:</h3>
+     * <pre>{@code
+     * // Collect all nodes in the schema
+     * Collection<XsdNode> allNodes = xsd.collectAll();
+     * }</pre>
      */
     public Collection<XsdNode> collectAll() {
         List<XsdNode> collectedNodes = new ArrayList<>();
@@ -307,15 +394,46 @@ public class Xsd {
     }
 
     /**
-     * Returns a list of {@link XsdNode} matching the given path.
+     * Resolves an {@link XmlPath} to a list of corresponding {@link XsdNode} nodes within the XSD schema.
      *
-     * @param path the requested path
-     * @return list of xsd nodes
-     * @throws XsdNoSuchNodeException thrown if a node with the requested name couldn't be found
-     * @throws XsdAnyException        thrown if the path reaches a xs:any or xs:anyAttribute node,
-     *                                and it's unclear how to process further
+     * <p>This method navigates through the XSD schema based on the provided {@code XmlPath}. It supports
+     * resolving both element and attribute paths. The resolution process involves the following steps:
+     * </p>
+     *
+     * <p><strong>Example Usage:</strong></p>
+     * <pre>{@code
+     * // Assume an XML schema with a root element 'library' containing 'book' elements,
+     * // each 'book' having a 'title' attribute.
+     * XmlPath path = XmlPath.of("/library/book/@title");
+     * List<? extends XsdNode> nodes = xsd.resolvePath(path);
+     * // nodes now contains the XsdElement instance for 'library', the XsdElement for 'book',
+     * // and the XsdAttribute for 'title'.
+     * }</pre>
+     *
+     * <h3>Notes</h3>
+     * <ul>
+     *   <li>The method supports both element and attribute paths. When resolving attribute paths, it ensures
+     *       that the attribute is correctly associated with its parent element.</li>
+     *   <li>To resolve only element nodes without considering attributes, use {@link #resolveElementPath(XmlPath)}
+     *       instead.</li>
+     * </ul>
+     *
+     * @param path the {@link XmlPath} representing the sequence of XML elements and/or attributes to resolve in the schema.
+     *             The path should follow the structure of the XML document and include element names and namespaces as necessary.
+     * @return a {@link List} of {@link XsdNode} instances corresponding to the elements and/or attributes in the path,
+     *         maintaining the order from root to leaf.
+     * @throws XsdNoSuchNodeException if any element or attribute in the path cannot be found in the schema.
+     *                                This indicates that the schema does not define the specified node at the expected location in the hierarchy.
+     * @throws XsdAnyException        if the path traversal reaches an {@code xs:any} or {@code xs:anyAttribute} node,
+     *                                making further resolution ambiguous because {@code xs:any} allows for any element or attribute.
+     * @throws XsdAmbiguousNodeException  if multiple matching elements are found, causing ambiguity.
+     * @see XmlPath
+     * @see XsdNode
+     * @see XsdElement
+     * @see XsdAttribute
      */
-    public List<? extends XsdNode> resolvePath(XmlPath path) throws XsdNoSuchNodeException, XsdAnyException {
+    public List<? extends XsdNode> resolvePath(XmlPath path)
+        throws XsdNoSuchNodeException, XsdAnyException, XsdAmbiguousNodeException {
         if (path.isEmpty()) {
             return new ArrayList<>();
         }
@@ -330,7 +448,46 @@ public class Xsd {
         return resolveElementPath(path);
     }
 
-    public List<XsdElement> resolveElementPath(XmlPath path) throws XsdNoSuchNodeException, XsdAnyException {
+    /**
+     * Resolves an {@link XmlPath} to a list of corresponding {@link XsdElement} nodes within the XSD schema.
+     *
+     * <p>This method navigates through the XSD schema starting from the root element specified in the path.
+     * It attempts to find each element in the path hierarchy by matching element names and namespaces.
+     * The method returns a list of {@code XsdElement} instances that represent the sequence of elements
+     * in the provided {@code XmlPath}, maintaining the order from root to leaf.</p>
+     *
+     * <h3>Example Usage</h3>
+     * <pre>{@code
+     * // Assume an XML schema with a root element 'bookstore' containing 'book' elements, which in turn
+     * // contain 'title' elements.
+     * XmlPath path = XmlPath.of("/bookstore/book/title");
+     * List<XsdElement> elements = xsd.resolveElementPath(path);
+     * // elements now contains the XsdElement instances for 'bookstore', 'book', and 'title'.
+     * }</pre>
+     *
+     * <h3>Notes</h3>
+     * <ul>
+     *   <li>The method only resolves element nodes. If the path includes attributes, they will be ignored by this method.
+     *       To resolve attributes, use {@link #resolvePath(XmlPath)} instead.</li>
+     *   <li>This method is useful when you need to validate or inspect the schema definitions for a specific element
+     *       hierarchy in an XML document.</li>
+     * </ul>
+     *
+     * @param path the {@link XmlPath} representing the sequence of XML elements to resolve in the schema.
+     *             The path should consist of element names and namespaces corresponding to the XML structure.
+     * @return a {@link List} of {@link XsdElement} instances corresponding to the elements in the path,
+     *         from the root element to the leaf element.
+     * @throws XsdNoSuchNodeException if an element in the path cannot be found in the schema.
+     *                                This indicates that the schema does not define the specified element
+     *                                at the expected location in the hierarchy.
+     * @throws XsdAnyException if the path reaches an {@code xs:any} element in the schema,
+     *                         making further resolution ambiguous because {@code xs:any} allows for any element.
+     * @throws XsdAmbiguousNodeException  if multiple matching elements are found, causing ambiguity.
+     * @see XmlPath
+     * @see XsdElement
+     */
+    public List<XsdElement> resolveElementPath(XmlPath path)
+        throws XsdNoSuchNodeException, XsdAnyException, XsdAmbiguousNodeException {
         if (path.isEmpty()) {
             return new ArrayList<>();
         }
@@ -359,15 +516,27 @@ public class Xsd {
      * @return xsd node matching the element
      * @throws XsdNoSuchNodeException thrown if a node with the requested name couldn't be found
      * @throws XsdAnyException        thrown if the path reaches a xs:any, and it's unclear how to process further
+     * @throws XsdAmbiguousNodeException  if multiple matching elements are found, causing ambiguity.
      */
-    public XsdElement resolveXmlElement(XmlElement element) throws XsdNoSuchNodeException, XsdAnyException {
+    public XsdElement resolveXmlElement(XmlElement element)
+        throws XsdNoSuchNodeException, XsdAnyException, XsdAmbiguousNodeException {
         XmlPath path = XmlPath.of(element);
         List<? extends XsdNode> nodes = resolvePath(path);
         return !nodes.isEmpty() ? (XsdElement) nodes.get(nodes.size() - 1) : null;
     }
 
+    /**
+     * Resolves a specific element within the XSD schema hierarchy.
+     *
+     * @param parent        the parent {@link XsdElement} within which to search for the child element.
+     * @param elementToFind the {@link XmlName} representing the name and namespace of the element to find.
+     * @return the resolved {@link XsdElement} if exactly one matching element is found.
+     * @throws XsdNoSuchNodeException     if no matching element is found and no {@code xs:any} is present.
+     * @throws XsdAnyException            if no matching element is found but an {@code xs:any} allows for any element.
+     * @throws XsdAmbiguousNodeException  if multiple matching elements are found, causing ambiguity.
+     */
     private XsdElement resolvePathForElement(XsdElement parent, XmlName elementToFind) throws XsdAnyException,
-        XsdNoSuchNodeException {
+        XsdNoSuchNodeException, XsdAmbiguousNodeException {
         XmlExpandedName name = elementToFind.expandedName();
         List<XsdElement> children = parent.collectElements();
         Set<XsdElement> candidates = new LinkedHashSet<>();
@@ -381,8 +550,7 @@ public class Xsd {
             return candidates.iterator().next();
         }
         if (!candidates.isEmpty()) {
-            // TODO don't use RuntimeException
-            throw new RuntimeException("Ambiguous element definition found for '" + name + "': " + candidates);
+            throw new XsdAmbiguousNodeException("Ambiguous element definition found for '" + name + "': " + candidates);
         }
         if (parent.hasAny()) {
             throw new XsdAnyException(
@@ -421,6 +589,11 @@ public class Xsd {
         return "targetNamespace: " + getTargetNamespace() + System.lineSeparator() + toTreeString();
     }
 
+    /**
+     * Converts the XSD to a tree-structured string representation.
+     *
+     * @return the tree representation of the XSD.
+     */
     public String toTreeString() {
         StringBuilder sb = new StringBuilder();
         this.getNamedMap().forEach((nodeClass, map) -> {

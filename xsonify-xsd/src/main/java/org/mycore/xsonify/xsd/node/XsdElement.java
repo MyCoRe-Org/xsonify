@@ -1,14 +1,14 @@
 package org.mycore.xsonify.xsd.node;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdBuiltInDatatypes;
 import org.mycore.xsonify.xsd.XsdParser;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class XsdElement extends XsdNode implements XsdReferenceable<XsdElement> {
 
@@ -22,8 +22,7 @@ public class XsdElement extends XsdNode implements XsdReferenceable<XsdElement> 
         XsdGroup.class,
         XsdComplexType.class,
         XsdExtension.class, XsdRestriction.class,
-        XsdComplexContent.class
-    );
+        XsdComplexContent.class);
 
     /**
      * List of nodes which can contain xs:elements Either as a child or somewhere down their hierarchy.
@@ -33,8 +32,7 @@ public class XsdElement extends XsdNode implements XsdReferenceable<XsdElement> 
         XsdComplexType.class,
         XsdChoice.class, XsdAll.class, XsdSequence.class,
         XsdComplexContent.class,
-        XsdRestriction.class, XsdExtension.class
-    );
+        XsdRestriction.class, XsdExtension.class);
 
     /**
      * List of nodes which can contain attributes. Either as a child or somewhere down their hierarchy.
@@ -45,8 +43,7 @@ public class XsdElement extends XsdNode implements XsdReferenceable<XsdElement> 
         XsdChoice.class, XsdAll.class, XsdSequence.class,
         XsdSimpleContent.class, XsdComplexContent.class,
         XsdAttributeGroup.class,
-        XsdRestriction.class, XsdExtension.class
-    );
+        XsdRestriction.class, XsdExtension.class);
 
     /**
      * List of nodes which can contain xs:anyAttribute. Either as a child or somewhere down their hierarchy.
@@ -55,8 +52,7 @@ public class XsdElement extends XsdNode implements XsdReferenceable<XsdElement> 
         XsdAttributeGroup.class,
         XsdComplexContent.class,
         XsdExtension.class, XsdRestriction.class,
-        XsdComplexType.class
-    );
+        XsdComplexType.class);
 
     private XmlExpandedName referenceName;
 
@@ -191,6 +187,13 @@ public class XsdElement extends XsdNode implements XsdReferenceable<XsdElement> 
         return collectAttributes().stream()
             .filter(attributeNode -> attributeNode.getReferenceOrSelf().getLocalName().equals(attributeLocalName))
             .toList();
+    }
+
+    public XsdAttribute getXsdAttribute(XmlExpandedName expandedName) {
+        return collectAttributes().stream()
+            .filter(attributeNode -> attributeNode.getReferenceOrSelf().getName().equals(expandedName))
+            .findFirst()
+            .orElse(null);
     }
 
     public <T extends XsdNode> boolean has(Class<T> nodeClass, List<Class<? extends XsdNode>> searchNodes) {

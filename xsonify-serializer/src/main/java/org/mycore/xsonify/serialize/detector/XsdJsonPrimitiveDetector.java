@@ -1,9 +1,14 @@
 package org.mycore.xsonify.serialize.detector;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.mycore.xsonify.xml.XmlExpandedName;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
+import org.mycore.xsonify.xsd.XsdAmbiguousNodeException;
 import org.mycore.xsonify.xsd.XsdAnyException;
 import org.mycore.xsonify.xsd.XsdNoSuchNodeException;
 import org.mycore.xsonify.xsd.node.XsdAttribute;
@@ -17,10 +22,6 @@ import org.mycore.xsonify.xsd.node.XsdReferenceable;
 import org.mycore.xsonify.xsd.node.XsdRestriction;
 import org.mycore.xsonify.xsd.node.XsdSimpleType;
 import org.mycore.xsonify.xsd.node.XsdUnion;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Detector responsible for identifying the JSON primitive type (string, number, or boolean)
@@ -56,8 +57,7 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
         new XmlExpandedName("unsignedByte", "http://www.w3.org/2001/XMLSchema"),
         new XmlExpandedName("unsignedInt", "http://www.w3.org/2001/XMLSchema"),
         new XmlExpandedName("unsignedLong", "http://www.w3.org/2001/XMLSchema"),
-        new XmlExpandedName("unsignedShort", "http://www.w3.org/2001/XMLSchema")
-    );
+        new XmlExpandedName("unsignedShort", "http://www.w3.org/2001/XMLSchema"));
 
     private static final Map<XmlExpandedName, JsonPrimitive> BUILT_IN_ATTRIBUTES = Map.of(
         new XmlExpandedName("lang", XmlNamespace.XML.uri()), JsonPrimitive.STRING,
@@ -67,11 +67,9 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
         new XmlExpandedName("type", XmlNamespace.XML_SCHEMA_INSTANCE_URI), JsonPrimitive.STRING,
         new XmlExpandedName("nil", XmlNamespace.XML_SCHEMA_INSTANCE_URI), JsonPrimitive.BOOLEAN,
         new XmlExpandedName("schemaLocation", XmlNamespace.XML_SCHEMA_INSTANCE_URI), JsonPrimitive.STRING,
-        new XmlExpandedName("noNamespaceSchemaLocation", XmlNamespace.XML_SCHEMA_INSTANCE_URI), JsonPrimitive.STRING
-    );
+        new XmlExpandedName("noNamespaceSchemaLocation", XmlNamespace.XML_SCHEMA_INSTANCE_URI), JsonPrimitive.STRING);
 
-    private static final XmlExpandedName BOOLEAN =
-        new XmlExpandedName("boolean", "http://www.w3.org/2001/XMLSchema");
+    private static final XmlExpandedName BOOLEAN = new XmlExpandedName("boolean", "http://www.w3.org/2001/XMLSchema");
 
     private final Xsd xsd;
 
@@ -131,8 +129,8 @@ public class XsdJsonPrimitiveDetector implements XsdDetector<XsdJsonPrimitiveDet
             return this.nodeJsonPrimitiveMap.get(last);
         } catch (XsdAnyException anyException) {
             return JsonPrimitive.STRING;
-        } catch (XsdNoSuchNodeException noSuchNodeException) {
-            throw new XsdDetectorException("Unable to detected primitive for path '" + path + "'", noSuchNodeException);
+        } catch (XsdNoSuchNodeException | XsdAmbiguousNodeException xsdException) {
+            throw new XsdDetectorException("Unable to detected primitive for path '" + path + "'", xsdException);
         }
     }
 

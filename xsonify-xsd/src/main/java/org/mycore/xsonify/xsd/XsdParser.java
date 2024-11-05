@@ -1,5 +1,16 @@
 package org.mycore.xsonify.xsd;
 
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.mycore.xsonify.xml.XmlDocument;
 import org.mycore.xsonify.xml.XmlDocumentLoader;
 import org.mycore.xsonify.xml.XmlElement;
@@ -26,28 +37,15 @@ import org.mycore.xsonify.xsd.node.XsdSimpleType;
 import org.mycore.xsonify.xsd.node.XsdUnion;
 import org.xml.sax.SAXException;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 /**
  * The XsdParser class is responsible for parsing an XSD (XML Schema Definition)
- * schema file to generate a Xsd object.
- * <br />
- * The parser performs the following steps:
- * <ul>
- *  <li>Resolves the XSD documents by their schema locations.</li>
- *  <li>Resolves the fragments within the XSD documents.</li>
- *  <li>Creates a new Xsd object based on the resolved documents and fragments.</li>
- *  <li>Resolves the nodes that make up the XSD object.</li>
- * </ul>
+ * schema file to generate a {@link Xsd} object. It performs document loading, fragment
+ * resolution, and node linking to produce a structured XSD representation.
+ * <p>Usage:</p>
+ * <pre>{@code
+ * XsdParser parser = new XsdParser(new XmlDocumentLoader());
+ * Xsd xsd = parser.parse("path/to/schema.xsd");
+ * }</pre>
  */
 public class XsdParser {
 
@@ -82,10 +80,30 @@ public class XsdParser {
 
     private final XmlDocumentLoader documentLoader;
 
+    /**
+     * Creates a new {@code XsdParser} with the specified {@link XmlDocumentLoader}.
+     *
+     * @param documentLoader the loader responsible for loading XML documents.
+     */
     public XsdParser(XmlDocumentLoader documentLoader) {
         this.documentLoader = documentLoader;
     }
 
+    /**
+     * Parses an XSD schema file from a specified location and constructs an {@link Xsd} object.
+     *
+     * <p>This method:
+     * <ul>
+     *   <li>Loads and resolves XSD documents by their schema locations.</li>
+     *   <li>Resolves fragments within the XSD documents.</li>
+     *   <li>Creates an {@code Xsd} object based on the resolved documents and fragments.</li>
+     *   <li>Links and resolves the nodes that make up the XSD object.</li>
+     * </ul>
+     *
+     * @param schemaLocation the location of the XSD schema file, typically a URL or file path.
+     * @return the {@link Xsd} object representing the parsed schema.
+     * @throws XsdParseException if an error occurs while parsing the schema.
+     */
     public Xsd parse(String schemaLocation) throws XsdParseException {
         // resolve xsd documents
         DocumentResolver documentResolver = new DocumentResolver(schemaLocation, documentLoader);
@@ -165,7 +183,7 @@ public class XsdParser {
                     continue;
                 }
                 switch (type) {
-                case IMPORT_DIRECTIVE, INCLUDE_DIRECTIVE, REDEFINE_DIRECTIVE -> resolve(element);
+                    case IMPORT_DIRECTIVE, INCLUDE_DIRECTIVE, REDEFINE_DIRECTIVE -> resolve(element);
                 }
             }
         }
@@ -264,16 +282,16 @@ public class XsdParser {
                 return;
             }
             switch (type) {
-            case IMPORT_DIRECTIVE -> {
-                String schemaLocation = element.getAttribute("schemaLocation");
-                String namespace = element.getAttribute("namespace");
-                resolveFragment(new FragmentId(schemaLocation, namespace));
-            }
-            case INCLUDE_DIRECTIVE, REDEFINE_DIRECTIVE -> {
-                String schemaLocation = element.getAttribute("schemaLocation");
-                String namespace = fragment.getTargetNamespace();
-                resolveFragment(new FragmentId(schemaLocation, namespace));
-            }
+                case IMPORT_DIRECTIVE -> {
+                    String schemaLocation = element.getAttribute("schemaLocation");
+                    String namespace = element.getAttribute("namespace");
+                    resolveFragment(new FragmentId(schemaLocation, namespace));
+                }
+                case INCLUDE_DIRECTIVE, REDEFINE_DIRECTIVE -> {
+                    String schemaLocation = element.getAttribute("schemaLocation");
+                    String namespace = fragment.getTargetNamespace();
+                    resolveFragment(new FragmentId(schemaLocation, namespace));
+                }
             }
         }
 
@@ -390,17 +408,17 @@ public class XsdParser {
 
         private void resolveNode(XsdNode node) throws XsdParseException {
             switch (node.getType()) {
-            case XsdElement.TYPE -> resolveElement((XsdElement) node);
-            case XsdGroup.TYPE -> resolveGroup((XsdGroup) node);
-            case XsdComplexType.TYPE, XsdSimpleType.TYPE,
-                XsdChoice.TYPE, XsdAll.TYPE, XsdSequence.TYPE,
-                XsdComplexContent.TYPE, XsdSimpleContent.TYPE -> resolveChildren(node);
-            case XsdAttribute.TYPE -> resolveAttribute((XsdAttribute) node);
-            case XsdAttributeGroup.TYPE -> resolveAttributeGroup((XsdAttributeGroup) node);
-            case XsdRestriction.TYPE -> resolveRestriction((XsdRestriction) node);
-            case XsdExtension.TYPE -> resolveExtension((XsdExtension) node);
-            case XsdUnion.TYPE -> resolveUnion((XsdUnion) node);
-            case XsdList.TYPE -> resolveList((XsdList) node);
+                case XsdElement.TYPE -> resolveElement((XsdElement) node);
+                case XsdGroup.TYPE -> resolveGroup((XsdGroup) node);
+                case XsdComplexType.TYPE, XsdSimpleType.TYPE,
+                    XsdChoice.TYPE, XsdAll.TYPE, XsdSequence.TYPE,
+                    XsdComplexContent.TYPE, XsdSimpleContent.TYPE -> resolveChildren(node);
+                case XsdAttribute.TYPE -> resolveAttribute((XsdAttribute) node);
+                case XsdAttributeGroup.TYPE -> resolveAttributeGroup((XsdAttributeGroup) node);
+                case XsdRestriction.TYPE -> resolveRestriction((XsdRestriction) node);
+                case XsdExtension.TYPE -> resolveExtension((XsdExtension) node);
+                case XsdUnion.TYPE -> resolveUnion((XsdUnion) node);
+                case XsdList.TYPE -> resolveList((XsdList) node);
             }
         }
 
@@ -443,6 +461,10 @@ public class XsdParser {
         private void resolveAttribute(XsdAttribute attributeNode) throws XsdParseException {
             String type = attributeNode.getAttribute("type");
             String ref = attributeNode.getAttribute("ref");
+            String fixed = attributeNode.getAttribute("fixed");
+            if (fixed != null) {
+                attributeNode.setFixedValue(fixed);
+            }
             if (type != null) {
                 XmlExpandedName dataType = XmlExpandedName.of(type);
                 attributeNode.setDatatypeName(dataType);
@@ -598,11 +620,10 @@ public class XsdParser {
             XsdNode parentNode) throws XsdParseException {
             try {
                 Constructor<T> nodeConstructor = nodeClass.getConstructor(
-                    Xsd.class, String.class, XmlElement.class, XsdNode.class
-                );
+                    Xsd.class, String.class, XmlElement.class, XsdNode.class);
                 return nodeConstructor.newInstance(xsd, uri, element, parentNode);
-            } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-                IllegalAccessException e) {
+            } catch (InvocationTargetException | NoSuchMethodException | InstantiationException
+                | IllegalAccessException e) {
                 throw new XsdParseException("Unable to instantiate '" + nodeClass + "'", e);
             }
         }

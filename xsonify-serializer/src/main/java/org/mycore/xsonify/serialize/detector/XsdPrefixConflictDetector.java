@@ -1,15 +1,5 @@
 package org.mycore.xsonify.serialize.detector;
 
-import org.mycore.xsonify.xml.XmlBuiltInAttributes;
-import org.mycore.xsonify.xml.XmlExpandedName;
-import org.mycore.xsonify.xml.XmlPath;
-import org.mycore.xsonify.xsd.Xsd;
-import org.mycore.xsonify.xsd.XsdAnyException;
-import org.mycore.xsonify.xsd.XsdNoSuchNodeException;
-import org.mycore.xsonify.xsd.node.XsdAttribute;
-import org.mycore.xsonify.xsd.node.XsdElement;
-import org.mycore.xsonify.xsd.node.XsdNode;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,6 +7,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.mycore.xsonify.xml.XmlBuiltInAttributes;
+import org.mycore.xsonify.xml.XmlExpandedName;
+import org.mycore.xsonify.xml.XmlPath;
+import org.mycore.xsonify.xsd.Xsd;
+import org.mycore.xsonify.xsd.XsdAmbiguousNodeException;
+import org.mycore.xsonify.xsd.XsdAnyException;
+import org.mycore.xsonify.xsd.XsdNoSuchNodeException;
+import org.mycore.xsonify.xsd.node.XsdAttribute;
+import org.mycore.xsonify.xsd.node.XsdElement;
+import org.mycore.xsonify.xsd.node.XsdNode;
 
 /**
  * Detects potential naming conflicts in XML schemas based on the prefix of XML elements and attributes.
@@ -114,8 +115,8 @@ public class XsdPrefixConflictDetector implements XsdDetector<Boolean> {
     private boolean checkElement(XmlPath path) throws XsdDetectorException {
         try {
             return check(path, this.elementNameConflicts);
-        } catch (XsdNoSuchNodeException noSuchElementException) {
-            throw new XsdDetectorException("Unable to serialize path: " + path, noSuchElementException);
+        } catch (XsdNoSuchNodeException | XsdAmbiguousNodeException xsdException) {
+            throw new XsdDetectorException("Unable to serialize path: " + path, xsdException);
         } catch (XsdAnyException anyException) {
             return true;
         }
@@ -124,19 +125,19 @@ public class XsdPrefixConflictDetector implements XsdDetector<Boolean> {
     private boolean checkAttribute(XmlPath path) throws XsdDetectorException {
         try {
             return check(path, this.attributeNameConflicts);
-        } catch (XsdNoSuchNodeException noSuchElementException) {
+        } catch (XsdNoSuchNodeException | XsdAmbiguousNodeException xsdException) {
             XmlPath.Node attributeNode = path.last();
             if (XmlBuiltInAttributes.is(attributeNode.name().expandedName())) {
                 return true;
             }
-            throw new XsdDetectorException("Unable to serialize path: " + path, noSuchElementException);
+            throw new XsdDetectorException("Unable to serialize path: " + path, xsdException);
         } catch (XsdAnyException anyException) {
             return true;
         }
     }
 
     private boolean check(XmlPath path, Map<XsdNode, Map<String, Set<XmlExpandedName>>> nameConflicts)
-        throws XsdAnyException, XsdNoSuchNodeException {
+        throws XsdAnyException, XsdNoSuchNodeException, XsdAmbiguousNodeException {
         List<? extends XsdNode> nodes = xsd.resolvePath(path);
         XsdNode nodeToCheck = nodes.get(nodes.size() - 1);
         if (nodes.size() == 1) {

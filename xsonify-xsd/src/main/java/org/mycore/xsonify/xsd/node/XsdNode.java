@@ -144,6 +144,11 @@ public abstract class XsdNode {
         return false;
     }
 
+    /**
+     * Creates a deep copy of this {@code XsdNode}, cloning all child nodes.
+     *
+     * @return A cloned instance.
+     */
     public abstract XsdNode clone();
 
     protected void cloneChildren(XsdNode newParent) {

@@ -1,7 +1,5 @@
 package org.mycore.xsonify.xml;
 
-import org.xml.sax.SAXException;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -15,7 +13,7 @@ public class XmlResourceDocumentLoader implements XmlDocumentLoader {
     }
 
     @Override
-    public XmlDocument load(String systemResource) throws IOException, SAXException, XmlParseException {
+    public XmlDocument load(String systemResource) throws IOException, XmlParseException {
         URL url = ClassLoader.getSystemResource(systemResource);
         if (url == null) {
             throw new NullPointerException("Unable to locate system resource " + systemResource);

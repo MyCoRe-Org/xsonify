@@ -1,9 +1,13 @@
 package org.mycore.xsonify.serialize;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+
+import org.mycore.xsonify.serialize.SerializerSettings.FixedAttributeHandling;
 import org.mycore.xsonify.serialize.SerializerSettings.NamespaceDeclaration;
 import org.mycore.xsonify.serialize.detector.XsdDetectorException;
 import org.mycore.xsonify.serialize.detector.XsdJsonPrimitiveDetector;
@@ -19,37 +23,77 @@ import org.mycore.xsonify.xml.XmlText;
 import org.mycore.xsonify.xsd.Xsd;
 import org.mycore.xsonify.xsd.XsdAnyException;
 import org.mycore.xsonify.xsd.XsdBuiltInDatatypes;
-import org.mycore.xsonify.xsd.XsdNoSuchNodeException;
+import org.mycore.xsonify.xsd.XsdException;
+import org.mycore.xsonify.xsd.node.XsdAttribute;
 import org.mycore.xsonify.xsd.node.XsdDatatype;
 import org.mycore.xsonify.xsd.node.XsdElement;
 import org.mycore.xsonify.xsd.node.XsdNode;
 import org.mycore.xsonify.xsd.node.XsdSequence;
 import org.mycore.xsonify.xsd.node.XsdSimpleType;
 
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * A serializer that converts XML documents into JSON format based on the provided
+ * {@link SerializerSettings} configuration and a {@link SerializerStyle}.
+ *
+ * <p>Use this serializer by creating an instance with an {@link Xsd} schema
+ * and calling the {@link #serialize(XmlDocument)} method.</p>
+ *
+ * <p>Example usage:
+ * <pre>{@code
+ * Xml2JsonSerializer serializer = new Xml2JsonSerializer(xsd);
+ * ObjectNode json = serializer.serialize(xmlDocument);
+ * }</pre>
+ */
 public class Xml2JsonSerializer extends SerializerBase {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    /**
+     * Constructs an {@code Xml2JsonSerializer} with the default {@link SerializerSettings} and {@link SerializerStyle}.
+     *
+     * @param xsd the XML schema definition to use for the serialization process.
+     * @throws SerializationException if the serializer cannot be initialized with the provided schema.
+     */
     public Xml2JsonSerializer(Xsd xsd) throws SerializationException {
-        super(xsd, new SerializerSettings());
+        this(xsd, new SerializerSettings());
     }
 
+    /**
+     * Constructs an {@code Xml2JsonSerializer} with the specified settings and default {@link SerializerStyle}.
+     *
+     * @param xsd      the XML schema definition to use for serialization.
+     * @param settings the serializer settings to customize the XML-to-JSON process.
+     * @throws SerializationException if initialization fails with the provided schema or settings.
+     */
     public Xml2JsonSerializer(Xsd xsd, SerializerSettings settings) throws SerializationException {
-        super(xsd, settings, new SerializerStyle());
+        this(xsd, settings, new SerializerStyle());
     }
 
-    public Xml2JsonSerializer(Xsd xsd, SerializerSettings settings, SerializerStyle style) throws
-        SerializationException {
+    /**
+     * Constructs an {@code Xml2JsonSerializer} with specific settings and style.
+     *
+     * @param xsd      the XML schema definition to use for serialization.
+     * @param settings the serializer settings to customize the XML-to-JSON process.
+     * @param style    the style configuration for formatting JSON output.
+     * @throws SerializationException if initialization fails with the provided schema, settings, or style.
+     */
+    public Xml2JsonSerializer(Xsd xsd, SerializerSettings settings, SerializerStyle style)
+        throws SerializationException {
         super(xsd, settings, style);
     }
 
+    /**
+     * Serializes an XML document into JSON format.
+     *
+     * @param document the XML document to be serialized.
+     * @return an {@link ObjectNode} representing the serialized JSON output.
+     * @throws SerializationException if an error occurs during serialization.
+     */
     public ObjectNode serialize(XmlDocument document) throws SerializationException {
         try {
             XmlElement root = document.getRoot();
@@ -98,9 +142,8 @@ public class Xml2JsonSerializer extends SerializerBase {
         for (List<SerializationContext> childContextList : context.getGroupedChildren()) {
             SerializationContext firstChildContext = childContextList.get(0);
             String name = getName(firstChildContext);
-            JsonNode childNode = useArray(childContextList) ?
-                                 serializeChildElements(childContextList) :
-                                 serializeChildElement(firstChildContext, name);
+            JsonNode childNode = useArray(childContextList) ? serializeChildElements(childContextList)
+                : serializeChildElement(firstChildContext, name);
             if (childNode != null) {
                 context.json().set(name, childNode);
             }
@@ -125,9 +168,9 @@ public class Xml2JsonSerializer extends SerializerBase {
             String text = xmlElement.getTextNormalized();
             SerializationContext parentContext = context.parentContext();
             switch (jsonPrimitive) {
-            case BOOLEAN -> parentContext.json().put(propertyName, Boolean.parseBoolean(text));
-            case NUMBER -> parentContext.json().put(propertyName, new BigDecimal(text));
-            case STRING -> parentContext.json().put(propertyName, getText(xmlElement));
+                case BOOLEAN -> parentContext.json().put(propertyName, Boolean.parseBoolean(text));
+                case NUMBER -> parentContext.json().put(propertyName, new BigDecimal(text));
+                case STRING -> parentContext.json().put(propertyName, getText(xmlElement));
             }
             return null;
         }
@@ -143,9 +186,9 @@ public class Xml2JsonSerializer extends SerializerBase {
                 XmlPath.of(xmlElement));
             String text = xmlElement.getTextNormalized();
             switch (jsonPrimitive) {
-            case BOOLEAN -> jsonArray.add(Boolean.parseBoolean(text));
-            case NUMBER -> jsonArray.add(new BigDecimal(text));
-            case STRING -> jsonArray.add(getText(xmlElement));
+                case BOOLEAN -> jsonArray.add(Boolean.parseBoolean(text));
+                case NUMBER -> jsonArray.add(new BigDecimal(text));
+                case STRING -> jsonArray.add(getText(xmlElement));
             }
             return;
         }
@@ -180,9 +223,7 @@ public class Xml2JsonSerializer extends SerializerBase {
     private String getAttributeName(XmlAttribute attribute) throws XsdDetectorException {
         if (SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT.equals(settings().attributePrefixHandling())) {
             boolean hasNameConflict = prefixConflictDetector().detect(attribute);
-            return getAttributeName(hasNameConflict ?
-                                    attribute.getQualifiedName() :
-                                    attribute.getLocalName());
+            return getAttributeName(hasNameConflict ? attribute.getQualifiedName() : attribute.getLocalName());
         }
         return getAttributeName(attribute.getQualifiedName());
     }
@@ -296,20 +337,17 @@ public class Xml2JsonSerializer extends SerializerBase {
         context.xmlElement()
             .getNamespacesIntroduced()
             .values()
-            .forEach(ns ->
-                context.json().put(getXmlnsPrefix(ns), ns.uri())
-            );
+            .forEach(ns -> context.json().put(getXmlnsPrefix(ns), ns.uri()));
     }
 
     private void handleText(SerializationContext context) throws XsdDetectorException {
         XsdJsonPrimitiveDetector.JsonPrimitive jsonPrimitive = jsonPrimitiveDetector().detect(
-            XmlPath.of(context.xmlElement())
-        );
+            XmlPath.of(context.xmlElement()));
         String text = context.xmlElement().getTextNormalized();
         switch (jsonPrimitive) {
-        case BOOLEAN -> context.json().put(style().textKey(), Boolean.parseBoolean(text));
-        case NUMBER -> context.json().put(style().textKey(), new BigDecimal(text));
-        case STRING -> context.json().put(style().textKey(), getText(context.xmlElement()));
+            case BOOLEAN -> context.json().put(style().textKey(), Boolean.parseBoolean(text));
+            case NUMBER -> context.json().put(style().textKey(), new BigDecimal(text));
+            case STRING -> context.json().put(style().textKey(), getText(context.xmlElement()));
         }
     }
 
@@ -324,18 +362,29 @@ public class Xml2JsonSerializer extends SerializerBase {
 
     private void handleAttributes(SerializationContext context) throws XsdDetectorException {
         for (XmlAttribute attribute : context.xmlElement().getAttributes()) {
-            handleAttribute(attribute, context.json());
+            XsdAttribute xsdAttribute = null;
+            if (context.xsdElement() != null) {
+                xsdAttribute = context.xsdElement().getXsdAttribute(attribute.getExpandedName());
+            }
+            handleAttribute(attribute, xsdAttribute, context.json());
         }
     }
 
-    private void handleAttribute(XmlAttribute attribute, ObjectNode json) throws XsdDetectorException {
+    private void handleAttribute(XmlAttribute attribute, XsdAttribute xsdAttribute, ObjectNode json)
+        throws XsdDetectorException {
         final String attributeName = getAttributeName(attribute);
         final String attributeValue = attribute.getValue();
+        FixedAttributeHandling fixedAttributeHandling = settings().fixedAttributeHandling();
+        if ((FixedAttributeHandling.OMIT_FULLY.equals(fixedAttributeHandling) ||
+            FixedAttributeHandling.OMIT_IN_JSON.equals(fixedAttributeHandling))
+            && xsdAttribute != null && xsdAttribute.hasFixedValue()) {
+            return;
+        }
         XsdJsonPrimitiveDetector.JsonPrimitive jsonPrimitive = jsonPrimitiveDetector().detect(XmlPath.of(attribute));
         switch (jsonPrimitive) {
-        case BOOLEAN -> json.put(attributeName, Boolean.parseBoolean(attributeValue));
-        case NUMBER -> json.put(attributeName, new BigDecimal(attributeValue));
-        case STRING -> json.put(attributeName, attributeValue);
+            case BOOLEAN -> json.put(attributeName, Boolean.parseBoolean(attributeValue));
+            case NUMBER -> json.put(attributeName, new BigDecimal(attributeValue));
+            case STRING -> json.put(attributeName, attributeValue);
         }
     }
 
@@ -428,7 +477,7 @@ public class Xml2JsonSerializer extends SerializerBase {
             this.groupedChildren = null;
             try {
                 this.xsdElement = xsd().resolveXmlElement(element);
-            } catch (XsdAnyException | XsdNoSuchNodeException resolveException) {
+            } catch (XsdException resolveException) {
                 this.xsdElement = null;
             }
             this.json = MAPPER.createObjectNode();
@@ -498,8 +547,7 @@ public class Xml2JsonSerializer extends SerializerBase {
             LinkedHashMap<XmlName, List<SerializationContext>> map = new LinkedHashMap<>();
             for (SerializationContext context : getChildren()) {
                 List<SerializationContext> contextList = map.computeIfAbsent(
-                    context.xmlElement().getName(), k -> new ArrayList<>()
-                );
+                    context.xmlElement().getName(), k -> new ArrayList<>());
                 contextList.add(context);
             }
             this.groupedChildren = map.values();

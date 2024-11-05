@@ -3,7 +3,7 @@ package org.mycore.xsonify.xsd;
 /**
  * Represents an exception thrown when a node is expected but couldn't be found in the XSD schema.
  */
-public class XsdNoSuchNodeException extends Exception {
+public class XsdNoSuchNodeException extends XsdException {
 
     /**
      * Constructs a new {@code XsdNoSuchNodeException} with the specified detail message.

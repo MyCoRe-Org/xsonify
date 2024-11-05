@@ -7,7 +7,7 @@ package org.mycore.xsonify.xsd;
  * while parsing or processing an XSD document.
  * </p>
  */
-public class XsdParseException extends Exception {
+public class XsdParseException extends XsdException {
 
     /**
      * Constructs a new XsdParseException with the specified detail message.

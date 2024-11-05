@@ -7,7 +7,7 @@ package org.mycore.xsonify.xsd;
  * making further processing or determination unclear.
  * </p>
  */
-public class XsdAnyException extends Exception {
+public class XsdAnyException extends XsdException {
 
     /**
      * Constructs a new {@code XsdAnyException} with the specified detail message.

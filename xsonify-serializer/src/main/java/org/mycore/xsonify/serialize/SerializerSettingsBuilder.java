@@ -1,23 +1,14 @@
 package org.mycore.xsonify.serialize;
 
-import org.mycore.xsonify.serialize.SerializerSettings.AdditionalNamespaceDeclarationStrategy;
-import org.mycore.xsonify.serialize.SerializerSettings.NamespaceDeclaration;
-import org.mycore.xsonify.serialize.SerializerSettings.XsAnyNamespaceStrategy;
-
-import static org.mycore.xsonify.serialize.SerializerSettings.DEFAULT_ADDITIONAL_NAMESPACE_DECLARATION_STRATEGY;
-import static org.mycore.xsonify.serialize.SerializerSettings.DEFAULT_ATTRIBUTE_PREFIX_HANDLING;
-import static org.mycore.xsonify.serialize.SerializerSettings.DEFAULT_ELEMENT_PREFIX_HANDLING;
-import static org.mycore.xsonify.serialize.SerializerSettings.DEFAULT_JSON_STRUCTURE;
-import static org.mycore.xsonify.serialize.SerializerSettings.DEFAULT_MIXED_CONTENT_HANDLING;
-import static org.mycore.xsonify.serialize.SerializerSettings.DEFAULT_NAMESPACE_HANDLING;
-import static org.mycore.xsonify.serialize.SerializerSettings.DEFAULT_NORMALIZE_TEXT;
-import static org.mycore.xsonify.serialize.SerializerSettings.DEFAULT_OMIT_ROOT_ELEMENT;
-import static org.mycore.xsonify.serialize.SerializerSettings.DEFAULT_PLAIN_TEXT_HANDLING;
-import static org.mycore.xsonify.serialize.SerializerSettings.DEFAULT_XS_ANY_NAMESPACE_STRATEGY;
+import static org.mycore.xsonify.serialize.SerializerSettings.FixedAttributeHandling;
 import static org.mycore.xsonify.serialize.SerializerSettings.JsonStructure;
 import static org.mycore.xsonify.serialize.SerializerSettings.MixedContentHandling;
 import static org.mycore.xsonify.serialize.SerializerSettings.PlainTextHandling;
 import static org.mycore.xsonify.serialize.SerializerSettings.PrefixHandling;
+
+import org.mycore.xsonify.serialize.SerializerSettings.AdditionalNamespaceDeclarationStrategy;
+import org.mycore.xsonify.serialize.SerializerSettings.NamespaceDeclaration;
+import org.mycore.xsonify.serialize.SerializerSettings.XsAnyNamespaceStrategy;
 
 /**
  * Builder class for {@link SerializerSettings}. This class provides a flexible and readable way to create
@@ -51,22 +42,42 @@ public class SerializerSettingsBuilder {
     private MixedContentHandling mixedContentHandling;
     private AdditionalNamespaceDeclarationStrategy additionalNamespaceDeclarationStrategy;
     private XsAnyNamespaceStrategy xsAnyNamespaceStrategy;
+    private FixedAttributeHandling fixedAttributeHandling;
 
+    /**
+     * Constructs a new {@code SerializerSettingsBuilder} with default values.
+     */
     public SerializerSettingsBuilder() {
         this.reset();
     }
 
+    /**
+     * Resets the builder to default values.
+     *
+     * @return the current builder instance with default settings applied.
+     */
     public SerializerSettingsBuilder reset() {
-        this.omitRootElement = DEFAULT_OMIT_ROOT_ELEMENT;
-        this.namespaceDeclaration = DEFAULT_NAMESPACE_HANDLING;
-        this.normalizeText = DEFAULT_NORMALIZE_TEXT;
-        this.elementPrefixHandling = DEFAULT_ELEMENT_PREFIX_HANDLING;
-        this.attributePrefixHandling = DEFAULT_ATTRIBUTE_PREFIX_HANDLING;
-        this.jsonStructure = DEFAULT_JSON_STRUCTURE;
-        this.plainTextHandling = DEFAULT_PLAIN_TEXT_HANDLING;
-        this.mixedContentHandling = DEFAULT_MIXED_CONTENT_HANDLING;
-        this.additionalNamespaceDeclarationStrategy = DEFAULT_ADDITIONAL_NAMESPACE_DECLARATION_STRATEGY;
-        this.xsAnyNamespaceStrategy = DEFAULT_XS_ANY_NAMESPACE_STRATEGY;
+        return resetTo(new SerializerSettings());
+    }
+
+    /**
+     * Resets the builder's properties to the values of a provided {@link SerializerSettings} instance.
+     *
+     * @param settings the {@link SerializerSettings} instance to copy values from.
+     * @return the current builder instance with properties set to the provided instance's values.
+     */
+    public SerializerSettingsBuilder resetTo(SerializerSettings settings) {
+        this.omitRootElement = settings.omitRootElement();
+        this.namespaceDeclaration = settings.namespaceDeclaration();
+        this.normalizeText = settings.normalizeText();
+        this.elementPrefixHandling = settings.elementPrefixHandling();
+        this.attributePrefixHandling = settings.attributePrefixHandling();
+        this.jsonStructure = settings.jsonStructure();
+        this.plainTextHandling = settings.plainTextHandling();
+        this.mixedContentHandling = settings.mixedContentHandling();
+        this.additionalNamespaceDeclarationStrategy = settings.additionalNamespaceDeclarationStrategy();
+        this.xsAnyNamespaceStrategy = settings.xsAnyNamespaceStrategy();
+        this.fixedAttributeHandling = settings.fixedAttributeHandling();
         return this;
     }
 
@@ -110,7 +121,8 @@ public class SerializerSettingsBuilder {
         return this;
     }
 
-    public SerializerSettingsBuilder additionalNamespaceDeclarationStrategy(AdditionalNamespaceDeclarationStrategy strategy) {
+    public SerializerSettingsBuilder
+        additionalNamespaceDeclarationStrategy(AdditionalNamespaceDeclarationStrategy strategy) {
         this.additionalNamespaceDeclarationStrategy = strategy;
         return this;
     }
@@ -120,10 +132,20 @@ public class SerializerSettingsBuilder {
         return this;
     }
 
+    public SerializerSettingsBuilder fixedAttributeHandling(FixedAttributeHandling handling) {
+        this.fixedAttributeHandling = handling;
+        return this;
+    }
+
+    /**
+     * Builds and returns a {@link SerializerSettings} instance with the current configuration.
+     *
+     * @return a new {@link SerializerSettings} instance.
+     */
     public SerializerSettings build() {
         return new SerializerSettings(omitRootElement, namespaceDeclaration, normalizeText, elementPrefixHandling,
-            attributePrefixHandling, jsonStructure, plainTextHandling,
-            mixedContentHandling, additionalNamespaceDeclarationStrategy, xsAnyNamespaceStrategy);
+            attributePrefixHandling, jsonStructure, plainTextHandling, mixedContentHandling,
+            additionalNamespaceDeclarationStrategy, xsAnyNamespaceStrategy, fixedAttributeHandling);
     }
 
 }

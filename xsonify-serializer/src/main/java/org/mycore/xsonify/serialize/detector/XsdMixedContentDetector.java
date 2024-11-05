@@ -2,6 +2,7 @@ package org.mycore.xsonify.serialize.detector;
 
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xsd.Xsd;
+import org.mycore.xsonify.xsd.XsdAmbiguousNodeException;
 import org.mycore.xsonify.xsd.XsdAnyException;
 import org.mycore.xsonify.xsd.XsdNoSuchNodeException;
 import org.mycore.xsonify.xsd.node.XsdComplexContent;
@@ -169,8 +170,8 @@ public class XsdMixedContentDetector implements XsdDetector<Boolean> {
             return false;
         } catch (XsdAnyException anyException) {
             return false;
-        } catch (XsdNoSuchNodeException noSuchNodeException) {
-            throw new XsdDetectorException("Unable to detect mixed content for '" + path + "'.", noSuchNodeException);
+        } catch (XsdNoSuchNodeException | XsdAmbiguousNodeException xsdException) {
+            throw new XsdDetectorException("Unable to detect mixed content for '" + path + "'.", xsdException);
         }
     }
 
