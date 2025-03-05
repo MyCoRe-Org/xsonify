@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.mycore.xsonify.serialize.SerializerSettings.AdditionalNamespaceDeclarationStrategy;
 import org.mycore.xsonify.serialize.SerializerSettings.FixedAttributeHandling;
 import org.mycore.xsonify.serialize.SerializerSettings.NamespaceDeclaration;
+import org.mycore.xsonify.serialize.SerializerSettings.PrefixHandling;
 import org.mycore.xsonify.serialize.SerializerSettings.XsAnyNamespaceStrategy;
 import org.mycore.xsonify.xml.XmlContent;
 import org.mycore.xsonify.xml.XmlDocument;
@@ -52,7 +53,7 @@ public class Json2XmlSerializer extends SerializerBase {
 
     private XmlName rootName;
 
-    private final Map<String, XmlNamespace> namespaceMap;
+    private final Map<String, XmlNamespace> defaultNamespaceMap;
 
     /**
      * Constructs a {@code Json2XmlSerializer} with default settings and style.
@@ -87,7 +88,7 @@ public class Json2XmlSerializer extends SerializerBase {
         throws SerializationException {
         super(xsd, settings, style);
         this.rootName = null;
-        this.namespaceMap = new LinkedHashMap<>();
+        this.defaultNamespaceMap = new LinkedHashMap<>();
     }
 
     /**
@@ -114,8 +115,8 @@ public class Json2XmlSerializer extends SerializerBase {
      *
      * @return a map of namespace prefixes to {@link XmlNamespace} objects.
      */
-    public Map<String, XmlNamespace> getNamespaceMap() {
-        return namespaceMap;
+    public Map<String, XmlNamespace> getDefaultNamespaceMap() {
+        return defaultNamespaceMap;
     }
 
     /**
@@ -126,8 +127,8 @@ public class Json2XmlSerializer extends SerializerBase {
      * @return the current {@code Json2XmlSerializer} instance, for chaining.
      */
     public Json2XmlSerializer setNamespaces(List<XmlNamespace> namespaces) {
-        this.namespaceMap.clear();
-        namespaces.forEach(namespace -> this.namespaceMap.put(namespace.prefix(), namespace));
+        this.defaultNamespaceMap.clear();
+        namespaces.forEach(namespace -> this.defaultNamespaceMap.put(namespace.prefix(), namespace));
         return this;
     }
 
@@ -138,7 +139,7 @@ public class Json2XmlSerializer extends SerializerBase {
      * @return the current {@code Json2XmlSerializer} instance, for chaining.
      */
     public Json2XmlSerializer addNamespace(XmlNamespace namespace) {
-        this.namespaceMap.put(namespace.prefix(), namespace);
+        this.defaultNamespaceMap.put(namespace.prefix(), namespace);
         return this;
     }
 
@@ -181,14 +182,15 @@ public class Json2XmlSerializer extends SerializerBase {
                 throw new SerializationException("Unable to find root node '" + localName + "' in xsd definition");
             }
             context = new SerializationContext(null, xsdElement, jsonNode);
-            xmlName = getName(context, jsonKey);
+            xmlName = getName(context);
         }
         return createXmlDocument(xmlName, context);
     }
 
-    private XmlDocument createXmlDocument(XmlName xmlName, SerializationContext context) throws SerializationException {
+    private XmlDocument createXmlDocument(XmlName rootName, SerializationContext context)
+        throws SerializationException {
         XmlDocument xmlDocument = new XmlDocument();
-        XmlElement rootElement = new XmlElement(xmlName, xmlDocument);
+        XmlElement rootElement = new XmlElement(rootName, xmlDocument);
         context.setElement(rootElement);
         xmlDocument.setRoot(rootElement);
         handleObject(context);
@@ -237,7 +239,7 @@ public class Json2XmlSerializer extends SerializerBase {
         throws SerializationException {
         XsdElement xsdNode = getXsdElement(jsonKey, serializationNode, parentContext);
         SerializationContext context = new SerializationContext(parentContext, xsdNode, serializationNode);
-        XmlName name = getName(context, jsonKey);
+        XmlName name = getName(context);
         context.setElement(new XmlElement(name, parentContext.getDocument()));
         parentContext.children().add(context);
         handleObject(context);
@@ -332,28 +334,18 @@ public class Json2XmlSerializer extends SerializerBase {
         handleChildren(context);
     }
 
-    private boolean useEmptyNamespaceForXsAny(SerializationContext context) {
-        boolean isChildOfXsAny = context.xsdElement() == null &&
-            context.parentContext().xsdElement() != null &&
-            context.parentContext().xsdElement().hasAny();
-        if (!isChildOfXsAny) {
-            return false;
-        }
-        NamespaceDeclaration namespaceDeclaration = settings().namespaceDeclaration();
-        if (NamespaceDeclaration.OMIT.equals(namespaceDeclaration)) {
-            return XsAnyNamespaceStrategy.USE_EMPTY.equals(settings().xsAnyNamespaceStrategy());
-        }
-        String prefix = context.jsonNode().getName().prefix();
-        return XmlNamespace.EMPTY.prefix().equals(prefix);
-    }
-
     private void handleAdditionalNamespaces(SerializationContext context) {
         XmlElement element = context.element();
         String currentNamespacePrefix = element.getNamespace().prefix();
+        String currentNamespaceUri = element.getNamespace().uri();
         context.jsonNode().getNamespaces().forEach((prefix, namespace) -> {
-            if (!prefix.equals(currentNamespacePrefix)) {
-                element.setAdditionalNamespace(namespace);
+            if (prefix.equals(currentNamespacePrefix)) {
+                return;
             }
+            if (prefix.isEmpty() && namespace.uri().equals(currentNamespaceUri)) {
+                return;
+            }
+            element.setAdditionalNamespace(namespace);
         });
     }
 
@@ -366,7 +358,7 @@ public class Json2XmlSerializer extends SerializerBase {
                 .map(XsdAttribute::getReferenceOrSelf)
                 .toList();
             for (XsdAttribute fixedAttribute : fixedAttributeList) {
-                XmlNamespace namespace = getNamespace(context, fixedAttribute.getUri());
+                XmlNamespace namespace = getNamespaceForUri(fixedAttribute.getUri(), context);
                 XmlQualifiedName name = new XmlQualifiedName(namespace.prefix(), fixedAttribute.getLocalName());
                 String fixedValue = fixedAttribute.getFixedValue();
                 handleAttribute(context, name.toString(), fixedValue);
@@ -406,7 +398,7 @@ public class Json2XmlSerializer extends SerializerBase {
         String attributeNamespaceUri = attributeNode.getUri();
         String elementNamespaceUri = context.element().getNamespace().uri();
         XmlNamespace attributeNamespace = elementNamespaceUri.equals(attributeNamespaceUri) ? XmlNamespace.EMPTY
-            : getNamespace(context, attributeNamespaceUri);
+            : getNamespaceForUri(attributeNamespaceUri, context);
         element.setAttribute(attributeName, attributeValue, attributeNamespace);
     }
 
@@ -484,12 +476,12 @@ public class Json2XmlSerializer extends SerializerBase {
      * @param uri     uri of the namespace
      * @return namespace or null
      */
-    private XmlNamespace getNamespace(SerializationContext context, String uri) {
+    private XmlNamespace getNamespaceForUri(String uri, SerializationContext context) {
         if (uri == null || uri.isEmpty()) {
             return XmlNamespace.EMPTY;
         }
         // check preset
-        XmlNamespace namespace = getNamespaceMap().values().stream()
+        XmlNamespace namespace = getDefaultNamespaceMap().values().stream()
             .filter(xmlNamespace -> xmlNamespace.uri().equals(uri))
             .findFirst()
             .orElse(null);
@@ -507,7 +499,7 @@ public class Json2XmlSerializer extends SerializerBase {
                 return namespace;
             }
         }
-        return new XmlNamespace("", uri);
+        return new XmlNamespace(XmlNamespace.EMPTY.prefix(), uri);
     }
 
     /**
@@ -540,15 +532,11 @@ public class Json2XmlSerializer extends SerializerBase {
         return rootEntry.getKey();
     }
 
-    private XmlName getName(SerializationContext context, String jsonKey) {
+    private XmlName getName(SerializationContext context) throws SerializationException {
         Objects.requireNonNull(context);
-        Objects.requireNonNull(jsonKey);
-        XmlQualifiedName qualifiedName = XmlQualifiedName.of(jsonKey);
-        if (useEmptyNamespaceForXsAny(context)) {
-            return new XmlName(qualifiedName.localName(), XmlNamespace.EMPTY);
-        }
-        XmlNamespace namespace = getNamespace(context, qualifiedName);
-        return new XmlName(qualifiedName.localName(), namespace != null ? namespace : XmlNamespace.EMPTY);
+        XmlNamespace namespace = getNamespace(context);
+        XmlQualifiedName serializedName = context.serializationNode.getName();
+        return new XmlName(serializedName.localName(), namespace != null ? namespace : XmlNamespace.EMPTY);
     }
 
     private ObjectNode getRootValue(ObjectNode json) {
@@ -591,37 +579,70 @@ public class Json2XmlSerializer extends SerializerBase {
         if (candidates.size() == 1) {
             return candidates.get(0);
         }
-        XmlNamespace namespace = getNamespace(serializationNode, parentContext);
+        String prefix = serializationNode.getName().prefix();
+        XmlNamespace namespace = getNamespaceForPrefix(prefix, serializationNode, parentContext);
+        if (namespace == null) {
+            namespace = getNamespaceFromXsd(prefix);
+        }
         if (namespace != null) {
+            XmlNamespace finalNamespace = namespace;
             return candidates.stream()
-                .filter(xsdNode -> xsdNode.getReferenceOrSelf().getUri().equals(namespace.uri()))
+                .filter(xsdNode -> xsdNode.getReferenceOrSelf().getUri().equals(finalNamespace.uri()))
                 .findFirst()
                 .orElse(null);
         }
         return null;
     }
 
-    private XmlNamespace getNamespace(SerializationContext context, XmlQualifiedName jsonKey) {
-        if (context.xsdElement() != null) {
-            String prefix = jsonKey.prefix();
-            String uri = context.xsdElement().getUri();
-            if (!prefix.isEmpty()) {
-                return new XmlNamespace(prefix, uri);
-            }
-            return getNamespace(context, uri);
+    private XmlNamespace getNamespace(SerializationContext context) throws SerializationException {
+        // XS:ANY
+        if (context.isChildOfXsAny()) {
+            return getNamespaceForXsAny(context);
         }
-        return getNamespace(context.serializationNode, context.parentContext);
+        // URI
+        String uri = XmlNamespace.EMPTY.uri();
+        if (context.xsdElement != null) {
+            uri = context.xsdElement.getUri();
+        }
+        // PREFIX
+        XmlQualifiedName serializedName = context.serializationNode.getName();
+        boolean prefixesRetained = settings().elementPrefixHandling().equals(PrefixHandling.RETAIN_ORIGINAL);
+        if (prefixesRetained) {
+            String prefix = serializedName.prefix();
+            return new XmlNamespace(prefix, uri);
+        }
+        return getNamespaceForUri(uri, context);
     }
 
-    /**
-     * @param serializationNode
-     * @param parentContext
-     * @return
-     */
-    private XmlNamespace getNamespace(SerializationNode serializationNode, SerializationContext parentContext) {
-        String prefix = serializationNode.getName().prefix();
+    private XmlNamespace getNamespaceForXsAny(SerializationContext context) throws SerializationException {
+        NamespaceDeclaration namespaceDeclaration = settings().namespaceDeclaration();
+        // HANDLE OMITTED NAMESPACES
+        if (NamespaceDeclaration.OMIT.equals(namespaceDeclaration)) {
+            XsAnyNamespaceStrategy xsAnyNamespaceStrategy = settings().xsAnyNamespaceStrategy();
+            if (XsAnyNamespaceStrategy.USE_EMPTY.equals(xsAnyNamespaceStrategy)) {
+                return XmlNamespace.EMPTY;
+            } else {
+                XmlElement parentElement = context.getParentElement();
+                if (parentElement != null) {
+                    return parentElement.getNamespace();
+                }
+                throw new SerializationException(
+                    "Try to get namespace from xml parent, but parent does not exist for json node: "
+                        + context.jsonNode().name);
+            }
+        }
+        // HANDLE AVAILABLE NAMESPACES
+        String prefix = context.jsonNode().getName().prefix();
+        if (XmlNamespace.EMPTY.prefix().equals(prefix)) {
+            return XmlNamespace.EMPTY;
+        }
+        return getNamespaceForPrefix(prefix, context.serializationNode, context.parentContext);
+    }
+
+    private XmlNamespace getNamespaceForPrefix(String prefix, SerializationNode serializationNode,
+        SerializationContext parentContext) {
         // namespace is set
-        XmlNamespace namespace = getNamespaceMap().get(prefix);
+        XmlNamespace namespace = getDefaultNamespaceMap().get(prefix);
         if (namespace != null) {
             return namespace;
         }
@@ -636,11 +657,12 @@ public class Json2XmlSerializer extends SerializerBase {
         XmlElement parentElement = parentContext != null ? parentContext.element : null;
         if (parentElement != null) {
             namespace = parentElement.getNamespace(prefix);
-            if (namespace != null) {
-                return namespace;
-            }
+            return namespace;
         }
-        // collect from xsd
+        return null;
+    }
+
+    private XmlNamespace getNamespaceFromXsd(String prefix) {
         Set<XmlNamespace> xmlNamespaces = xsd().collectNamespaces(prefix);
         if (xmlNamespaces != null && xmlNamespaces.size() == 1) {
             return xmlNamespaces.iterator().next();
@@ -662,7 +684,7 @@ public class Json2XmlSerializer extends SerializerBase {
             return namespace;
         }
         // check predefined namespaces
-        namespace = namespaceMap.get(prefix);
+        namespace = defaultNamespaceMap.get(prefix);
         if (namespace != null) {
             return namespace;
         }
@@ -726,6 +748,20 @@ public class Json2XmlSerializer extends SerializerBase {
 
         public List<SerializationContext> children() {
             return children;
+        }
+
+        public boolean isChildOfXsAny() {
+            if (xsdElement != null) {
+                return false;
+            }
+            SerializationContext parentContext = parentContext();
+            while (parentContext != null) {
+                if (parentContext.xsdElement != null) {
+                    return parentContext.xsdElement.hasAny();
+                }
+                parentContext = parentContext.parentContext();
+            }
+            return false;
         }
 
     }

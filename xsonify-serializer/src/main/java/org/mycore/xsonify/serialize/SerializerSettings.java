@@ -23,7 +23,7 @@ import static org.mycore.xsonify.serialize.SerializerSettings.XsAnyNamespaceStra
  * @param plainTextHandling                      Specifies how plain text content is handled in the resulting JSON.
  * @param mixedContentHandling                   Specifies how to handle mixed content once it's detected.
  * @param additionalNamespaceDeclarationStrategy Specifies how to optimize namespaces declaration if the namespace information is omitted (namespaceHandling is set to OMIT)
- * @param xsAnyNamespaceStrategy                 Strategy for applying a namespace to 'xs:any' content.
+ * @param xsAnyNamespaceStrategy                 Strategy for applying namespaces in 'xs:any' content if namespace declaration is omitted.
  * @param fixedAttributeHandling                 Defines handling for fixed attributes.
  */
 public record SerializerSettings(
@@ -182,13 +182,14 @@ public record SerializerSettings(
     }
 
     /**
-     * <p>Determines the strategy on how to apply a namespace for 'xs:any' content.</p>
-     * <p>This strategy is only used:</p>
+     * Determines the strategy on how to apply a namespace for 'xs:any' content.
+     * <p>
+     * This strategy is only used:
      * <ul>
      *     <li>if {@link NamespaceDeclaration#OMIT} is set</li>
      *     <li>in the JSON -> XML serialisation process</li>
      * </ul>
-     * <p>Due to the lack of a XsdNode it is impossible to determine what namespace to use for an element.</p>
+     * Due to the lack of a XsdNode it is impossible to determine what namespace to use for an element.
      */
     public enum XsAnyNamespaceStrategy {
         /**

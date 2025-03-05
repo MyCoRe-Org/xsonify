@@ -1,6 +1,17 @@
 package org.mycore.xsonify.serialize;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import static org.mycore.xsonify.xml.XmlBaseTest.CMD_NS;
+import static org.mycore.xsonify.xml.XmlBaseTest.MODS_NS;
+import static org.mycore.xsonify.xml.XmlBaseTest.XLINK_NS;
+import static org.mycore.xsonify.xml.XmlBaseTest.XSI_NS;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -16,16 +27,7 @@ import org.mycore.xsonify.xsd.XsdParseException;
 import org.mycore.xsonify.xsd.XsdUtil;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.mycore.xsonify.xml.XmlBaseTest.CMD_NS;
-import static org.mycore.xsonify.xml.XmlBaseTest.MODS_NS;
-import static org.mycore.xsonify.xml.XmlBaseTest.XLINK_NS;
-import static org.mycore.xsonify.xml.XmlBaseTest.XSI_NS;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class SerializerIntegrationTest {
 
@@ -45,7 +47,7 @@ public class SerializerIntegrationTest {
     @Test
     public void test() throws Exception {
         // load xml
-        URL resource = getResource("/xml/openagrar_mods_00084602.xml");
+        URL resource = getResource("/xml/bibthk_mods_00005057.xml");
         XmlParser parser = new XmlSaxParser();
         XmlDocument xmlDocument = parser.parse(resource);
 
@@ -58,11 +60,13 @@ public class SerializerIntegrationTest {
         // to json
         SerializerSettings settings = new SerializerSettingsBuilder()
             .omitRootElement(false)
-            //.elementPrefixHandling(SerializerSettings.PrefixHandling.RETAIN_ORIGINAL)
-            //.namespaceHandling(SerializerSettings.NamespaceHandling.ADD)
+            .elementPrefixHandling(SerializerSettings.PrefixHandling.RETAIN_ORIGINAL)
+            .attributePrefixHandling(SerializerSettings.PrefixHandling.RETAIN_ORIGINAL)
+            .additionalNamespaceDeclarationStrategy(SerializerSettings.AdditionalNamespaceDeclarationStrategy.NONE)
+            //.namespaceHandling(SerializerSettings.NamespaceDeclaration.ADD)
             //.plainTextHandling(SerializerSettings.PlainTextHandling.SIMPLIFY_OR_WRAP)
             //.jsonStructure(SerializerSettings.JsonStructure.SCHEMA_BASED)
-            //.attributePrefixHandling(SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT)
+
             //.mixedContentHandling(SerializerSettings.MixedContentHandling.UTF_8_ENCODING)
             .build();
         Xml2JsonSerializer xml2jsonSerializer = new Xml2JsonSerializer(xsd, settings);
@@ -75,7 +79,7 @@ public class SerializerIntegrationTest {
         // back to xml
         Json2XmlSerializer json2xmlSerializer = new Json2XmlSerializer(xsd, settings)
             .addNamespace(new XmlNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance"))
-            /*.addNamespace(new XmlNamespace("mods", "http://www.loc.gov/mods/v3"))*/;
+            .addNamespace(new XmlNamespace("mods", "http://www.loc.gov/mods/v3"));
 
         XmlDocument serializedXml = json2xmlSerializer.serialize(serializedJson);
         System.out.println(serializedXml.toXml(true));
@@ -96,6 +100,12 @@ public class SerializerIntegrationTest {
     public void openagrar() throws Exception {
         test(getResource("/xml/openagrar_mods_00084602.xml"), new XmlName("mycoreobject", XmlNamespace.EMPTY),
             List.of(XSI_NS, XLINK_NS, MODS_NS, CMD_NS));
+    }
+
+    @Test
+    public void bibthk() throws Exception {
+        test(getResource("/xml/bibthk_mods_00005057.xml"), new XmlName("mycoreobject", XmlNamespace.EMPTY),
+            List.of(XSI_NS, XLINK_NS, MODS_NS));
     }
 
     @Test
@@ -121,6 +131,7 @@ public class SerializerIntegrationTest {
 
         // full include
         // - include root element
+        // - retain prefixes
         // - include namespaces
         test(xmlDocument, xsd, null, new ArrayList<>(), false, serializerSettingsBuilder
             .resetTo(defaultSettings)
@@ -140,7 +151,7 @@ public class SerializerIntegrationTest {
         // test default
         // - omitted root name
         // - omitted namespaces
-        test(xmlDocument, xsd, rootName, namespaces, true, serializerSettingsBuilder
+        test(xmlDocument, xsd, rootName, namespaces, false, serializerSettingsBuilder
             .resetTo(defaultSettings)
             .build());
 
@@ -194,13 +205,20 @@ public class SerializerIntegrationTest {
             jsonSerializer.setNamespaces(namespaces);
             serializedDocument = jsonSerializer.serialize(serializedJson);
 
-            // check if they are equal
-            XmlEqualityChecker equalityChecker = new XmlEqualityChecker();
-            equalityChecker.equals(xmlDocument.getRoot(), serializedDocument.getRoot(), true);
-
-            /*XmlHashEqualityChecker hashEqualityChecker = new XmlHashEqualityChecker();
-            List<String> errors = hashEqualityChecker.equalsDebug(xmlDocument.getRoot(), serializedDocument.getRoot());
-            if(!errors.isEmpty()) {
+            XmlEqualityChecker hashEqualityChecker = new XmlEqualityChecker()
+                .setIgnoreOrder(true)
+                .setNormalizeText(settings.normalizeText())
+                .setIgnoreAdditionalNamespaces(true)
+                .setIgnoreElementPrefix(
+                    settings.elementPrefixHandling().equals(SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT));
+            XmlEqualityChecker.EqualityResult equalityResult
+                = hashEqualityChecker.equalsWithResult(xmlDocument.getRoot(), serializedDocument.getRoot());
+            if (!equalityResult.isEqual()) {
+                System.out.println(equalityResult.getDifference());
+                print(xsd, xmlDocument, serializedJson, serializedDocument);
+                Assertions.fail();
+            }
+            /*if(!errors.isEmpty()) {
                 errors.forEach(System.out::println);
                 print(xsd, xmlDocument, serializedJson, serializedDocument);
                 Assertions.fail();

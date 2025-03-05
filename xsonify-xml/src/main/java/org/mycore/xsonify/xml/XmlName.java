@@ -3,9 +3,13 @@ package org.mycore.xsonify.xml;
 import java.util.function.Function;
 
 /**
- * <p>Represents an XML name that consists of a local part and a namespace, defined by the XML Namespaces specification.</p>
- * <p>The namespace includes a prefix and a namespace URI. If the namespace has a prefix, the qualified name of the XML name
- * will be in the form "prefix:localName". Otherwise, it will just be the local name.</p>
+ * Represents an XML name that consists of a local part and a namespace, defined by the XML Namespaces specification.
+ * <p>
+ * The namespace includes a prefix and a namespace URI. If the namespace has a prefix, the qualified name of the XML
+ * name will be in the form "prefix:localName". Otherwise, it will just be the local name.
+ *
+ * @param local local name like 'title'
+ * @param namespace namespace part with prefix and uri
  */
 public record XmlName(String local, XmlNamespace namespace) {
 

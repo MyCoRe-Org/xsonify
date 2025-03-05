@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mycoreobject xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="datamodel-mods.xsd" ID="bibthk_mods_00005057" version="2020.06.1-SNAPSHOT"
+              label="">
+    <structure>
+        <children class="MCRMetaLinkID">
+            <child inherited="0" xlink:type="locator" xlink:title="bibthk" xlink:href="bibthk_mods_00005056"/>
+        </children>
+    </structure>
+    <metadata>
+        <def.modsContainer class="MCRMetaXML" heritable="false" notinherit="true">
+            <modsContainer inherited="0">
+                <mods:mods xmlns:mods="http://www.loc.gov/mods/v3">
+                    <mods:genre authorityURI="http://bibliografie.th-koeln.de/classifications/ubogenre"
+                                valueURI="http://bibliografie.th-koeln.de/classifications/ubogenre#proceedings"
+                                type="intern"/>
+                    <titleInfo xmlns="http://www.loc.gov/mods/v3">
+                        <title>Cross Reality and Data Science in Engineering</title>
+                        <subTitle>Proceedings of the 17th International Conference on Remote Engineering and Virtual
+                            Instrumentation
+                        </subTitle>
+                    </titleInfo>
+                    <name xmlns="http://www.loc.gov/mods/v3" type="personal">
+                        <namePart type="family">Thomas</namePart>
+                        <namePart type="given">Mueller</namePart>
+                        <role>
+                            <roleTerm authority="marcrelator" type="code">edt</roleTerm>
+                        </role>
+                    </name>
+                    <name xmlns="http://www.loc.gov/mods/v3" type="personal">
+                        <namePart type="family">Christian</namePart>
+                        <namePart type="given">Schneider</namePart>
+                        <role>
+                            <roleTerm authority="marcrelator" type="code">edt</roleTerm>
+                        </role>
+                    </name>
+                    <mods:originInfo>
+                        <mods:dateIssued encoding="w3cdtf">2020</mods:dateIssued>
+                        <mods:publisher>Springer International Publishing</mods:publisher>
+                        <place xmlns="http://www.loc.gov/mods/v3">
+                            <placeTerm type="text">Cham</placeTerm>
+                        </place>
+                    </mods:originInfo>
+                    <relatedItem xmlns="http://www.loc.gov/mods/v3" type="series">
+                        <titleInfo>
+                            <title>Advances in Intelligent Systems and Computing</title>
+                        </titleInfo>
+                        <mods:genre authorityURI="http://bibliografie.th-koeln.de/classifications/ubogenre"
+                                    valueURI="http://bibliografie.th-koeln.de/classifications/ubogenre#series"
+                                    type="intern"/>
+                        <mods:part>
+                            <mods:detail type="volume">
+                                <mods:number>1231</mods:number>
+                            </mods:detail>
+                        </mods:part>
+                    </relatedItem>
+                    <mods:identifier type="issn">2194-5357</mods:identifier>
+                    <mods:identifier type="issn">2194-5365</mods:identifier>
+                    <mods:identifier type="isbn">978-3-030-52574-3</mods:identifier>
+                    <mods:identifier type="isbn">978-3-030-52575-0</mods:identifier>
+                    <identifier xmlns="http://www.loc.gov/mods/v3" type="doi">10.1007/978-3-030-52575-0</identifier>
+                    <mods:name type="conference">
+                        <mods:namePart>17th International Conference on Remote Engineering and Virtual Instrumentation;
+                            Athens, GA, USA; 26.02.-28.02.2020
+                        </mods:namePart>
+                    </mods:name>
+                    <mods:extension/>
+                </mods:mods>
+            </modsContainer>
+        </def.modsContainer>
+    </metadata>
+    <service>
+        <servdates class="MCRMetaISO8601Date">
+            <servdate type="createdate" inherited="0">2021-03-01T14:20:14.490Z</servdate>
+            <servdate type="modifydate" inherited="0">2025-02-20T10:01:11.069Z</servdate>
+        </servdates>
+    </service>
+</mycoreobject>

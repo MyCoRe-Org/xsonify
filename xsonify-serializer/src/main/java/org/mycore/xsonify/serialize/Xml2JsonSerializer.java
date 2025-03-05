@@ -16,7 +16,6 @@ import org.mycore.xsonify.xml.XmlContent;
 import org.mycore.xsonify.xml.XmlDocument;
 import org.mycore.xsonify.xml.XmlElement;
 import org.mycore.xsonify.xml.XmlExpandedName;
-import org.mycore.xsonify.xml.XmlName;
 import org.mycore.xsonify.xml.XmlNamespace;
 import org.mycore.xsonify.xml.XmlPath;
 import org.mycore.xsonify.xml.XmlText;
@@ -202,22 +201,7 @@ public class Xml2JsonSerializer extends SerializerBase {
 
     private String getName(SerializationContext context) throws XsdDetectorException {
         XmlElement element = context.xmlElement();
-        if (SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT.equals(settings().elementPrefixHandling())) {
-            // check name conflict
-            if (prefixConflictDetector().detect(element)) {
-                return element.getQualifiedName().toString();
-            }
-            // check namespace conflict
-            String namespaceUri = element.getNamespace().uri();
-            if (element.getNamespacesInScope().values().stream()
-                .map(XmlNamespace::uri)
-                .filter(uri -> uri.equals(namespaceUri))
-                .count() > 1) {
-                return element.getQualifiedName().toString();
-            }
-            return element.getLocalName();
-        }
-        return element.getQualifiedName().toString();
+        return context.omitElementPrefix ? element.getLocalName() : element.getQualifiedName().toString();
     }
 
     private String getAttributeName(XmlAttribute attribute) throws XsdDetectorException {
@@ -232,8 +216,8 @@ public class Xml2JsonSerializer extends SerializerBase {
         return style().attributePrefix() + attributeName;
     }
 
-    private String getXmlnsPrefix(XmlNamespace namespace) {
-        if (namespace.prefix().isEmpty()) {
+    private String getXmlnsPrefix(SerializationContext context, XmlNamespace namespace) {
+        if (namespace.prefix().isEmpty() || (namespace.equals(context.getNamespace()) && context.omitElementPrefix)) {
             return style().xmlnsPrefix();
         }
         return style().xmlnsPrefix() + ":" + namespace.prefix();
@@ -310,7 +294,7 @@ public class Xml2JsonSerializer extends SerializerBase {
         return XsdSimpleType.TYPE.equals(child.getType());
     }
 
-    private boolean useIndex(SerializationContext context) {
+    private boolean useIndex(SerializationContext context) throws XsdDetectorException {
         boolean hasSequence = context.xsdElement().has(XsdSequence.class, XsdElement.CONTAINER_NODES);
         if (!hasSequence) {
             return false;
@@ -337,7 +321,7 @@ public class Xml2JsonSerializer extends SerializerBase {
         context.xmlElement()
             .getNamespacesIntroduced()
             .values()
-            .forEach(ns -> context.json().put(getXmlnsPrefix(ns), ns.uri()));
+            .forEach(ns -> context.json().put(getXmlnsPrefix(context, ns), ns.uri()));
     }
 
     private void handleText(SerializationContext context) throws XsdDetectorException {
@@ -465,12 +449,14 @@ public class Xml2JsonSerializer extends SerializerBase {
         private List<SerializationContext> children;
         private Collection<List<SerializationContext>> groupedChildren;
         private boolean useIndex;
+        private final boolean omitElementPrefix;
 
-        public SerializationContext(XmlElement element) {
+        public SerializationContext(XmlElement element) throws XsdDetectorException {
             this(element, null);
         }
 
-        public SerializationContext(XmlElement element, SerializationContext parentContext) {
+        public SerializationContext(XmlElement element, SerializationContext parentContext)
+            throws XsdDetectorException {
             this.xmlElement = element;
             this.parent = parentContext;
             this.children = null;
@@ -483,6 +469,7 @@ public class Xml2JsonSerializer extends SerializerBase {
             this.json = MAPPER.createObjectNode();
             this.positionInParent = parentContext != null ? parentContext().xmlElement().indexOfElement(element) : null;
             this.useIndex = false;
+            this.omitElementPrefix = omitPrefix(element);
         }
 
         public XmlElement xmlElement() {
@@ -513,14 +500,14 @@ public class Xml2JsonSerializer extends SerializerBase {
             return positionInParent;
         }
 
-        public List<SerializationContext> getChildren() {
+        public List<SerializationContext> getChildren() throws XsdDetectorException {
             if (this.children == null) {
                 buildChildren();
             }
             return this.children;
         }
 
-        public Collection<List<SerializationContext>> getGroupedChildren() {
+        public Collection<List<SerializationContext>> getGroupedChildren() throws XsdDetectorException {
             if (this.groupedChildren == null) {
                 buildGroupedChildren();
             }
@@ -535,7 +522,7 @@ public class Xml2JsonSerializer extends SerializerBase {
             this.useIndex = useIndex;
         }
 
-        private void buildChildren() {
+        private void buildChildren() throws XsdDetectorException {
             this.children = new ArrayList<>();
             for (XmlElement childElement : xmlElement.getElements()) {
                 SerializationContext childContext = new SerializationContext(childElement, this);
@@ -543,14 +530,21 @@ public class Xml2JsonSerializer extends SerializerBase {
             }
         }
 
-        private void buildGroupedChildren() {
-            LinkedHashMap<XmlName, List<SerializationContext>> map = new LinkedHashMap<>();
+        private void buildGroupedChildren() throws XsdDetectorException {
+            LinkedHashMap<String, List<SerializationContext>> map = new LinkedHashMap<>();
             for (SerializationContext context : getChildren()) {
                 List<SerializationContext> contextList = map.computeIfAbsent(
-                    context.xmlElement().getName(), k -> new ArrayList<>());
+                    getName(context), xmlName -> new ArrayList<>());
                 contextList.add(context);
             }
             this.groupedChildren = map.values();
+        }
+
+        private boolean omitPrefix(XmlElement element) throws XsdDetectorException {
+            if (SerializerSettings.PrefixHandling.OMIT_IF_NO_CONFLICT.equals(settings().elementPrefixHandling())) {
+                return !prefixConflictDetector().detect(element);
+            }
+            return false;
         }
 
         @Override

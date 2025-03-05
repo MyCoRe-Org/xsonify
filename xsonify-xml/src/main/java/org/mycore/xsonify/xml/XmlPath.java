@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * A lightweight API providing functionality for navigating XML data similar to XPath, but with a simpler approach.
@@ -29,6 +30,9 @@ public class XmlPath implements Iterable<XmlPath.Node> {
 
     public List<Node> nodes;
 
+    /**
+     * Creates an empty XmlPath.
+     */
     public XmlPath() {
         this.nodes = new ArrayList<>();
     }
@@ -63,14 +67,29 @@ public class XmlPath implements Iterable<XmlPath.Node> {
         this.nodes.add(index, new Node(name, type));
     }
 
+    /**
+     * Checks if the path is empty.
+     *
+     * @return {@code true} if empty, otherwise {@code false}
+     */
     public boolean isEmpty() {
         return this.nodes.isEmpty();
     }
 
+    /**
+     * Returns the number of nodes in the path.
+     *
+     * @return the size of the path
+     */
     public int size() {
         return this.nodes.size();
     }
 
+    /**
+     * Returns the root node (first node in the path).
+     *
+     * @return the root node, or {@code null} if empty
+     */
     public Node root() {
         if (this.nodes.isEmpty()) {
             return null;
@@ -78,6 +97,11 @@ public class XmlPath implements Iterable<XmlPath.Node> {
         return this.nodes.get(0);
     }
 
+    /**
+     * Returns the last node in the path.
+     *
+     * @return the last node, or {@code null} if empty
+     */
     public Node last() {
         if (this.nodes.isEmpty()) {
             return null;
@@ -85,10 +109,21 @@ public class XmlPath implements Iterable<XmlPath.Node> {
         return this.nodes.get(this.nodes.size() - 1);
     }
 
+    /**
+     * Retrieves the node at the specified index.
+     *
+     * @param index the index of the node
+     * @return the node at the given index
+     */
     public Node at(int index) {
         return this.nodes.get(index);
     }
 
+    /**
+     * Returns all nodes in the path.
+     *
+     * @return the list of nodes
+     */
     public List<Node> getNodes() {
         return nodes;
     }
@@ -98,6 +133,11 @@ public class XmlPath implements Iterable<XmlPath.Node> {
         return nodes.iterator();
     }
 
+    /**
+     * Returns a new XmlPath containing only element nodes, stopping at the first attribute.
+     *
+     * @return a new XmlPath with only element nodes
+     */
     public XmlPath elements() {
         XmlPath elementsPath = new XmlPath();
         for (Node node : nodes) {
@@ -110,15 +150,52 @@ public class XmlPath implements Iterable<XmlPath.Node> {
         return elementsPath;
     }
 
+    /**
+     * Returns a new XmlPath that represents the relative path from the given base.
+     * For instance, if this path is /a/b/c/d and base is /a/b, then the method returns /c/d.
+     *
+     * @param base the base path to subtract
+     * @return the relative XmlPath
+     * @throws IllegalArgumentException if the base path is not a prefix of this path
+     */
+    public XmlPath relativeTo(XmlPath base) {
+        if (base.size() > this.size()) {
+            throw new IllegalArgumentException("Base path is longer than the current path.");
+        }
+        for (int i = 0; i < base.size(); i++) {
+            if (!this.at(i).equals(base.at(i))) {
+                throw new IllegalArgumentException("Base path is not a prefix of the current path.");
+            }
+        }
+        XmlPath relativePath = new XmlPath();
+        for (int i = base.size(); i < this.size(); i++) {
+            relativePath.add(this.at(i));
+        }
+        return relativePath;
+    }
+
     @Override
     public String toString() {
+        return toString((node) -> node.name.toString());
+    }
+
+    /**
+     * Returns a string representation of the path, ignoring namespace prefixes.
+     *
+     * @return the string representation without prefixes
+     */
+    public String toStringIgnorePrefix() {
+        return toString((node) -> node.name.local());
+    }
+
+    private String toString(Function<Node, String> nameResolver) {
         StringBuilder sb = new StringBuilder();
         nodes.forEach(node -> {
             sb.append("/");
             if (Type.ATTRIBUTE.equals(node.type)) {
                 sb.append("@");
             }
-            sb.append(node.name);
+            sb.append(nameResolver.apply(node));
         });
         return sb.toString();
     }
@@ -209,6 +286,9 @@ public class XmlPath implements Iterable<XmlPath.Node> {
         });
     }
 
+    /**
+     * Represents a node in the path.
+     */
     public record Node(XmlName name, Type type) {
 
         public boolean isAttribute() {

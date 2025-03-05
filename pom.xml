@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.mycore</groupId>
     <artifactId>mycore-parent</artifactId>
-    <version>54-SNAPSHOT</version>
+    <version>56</version>
   </parent>
   <groupId>org.mycore.xsonify</groupId>
   <artifactId>xsonify-parent</artifactId>
@@ -26,7 +26,7 @@
   </scm>
 
   <properties>
-    <jackson.version>2.15.0</jackson.version>
+    <jackson.version>2.18.0</jackson.version>
     <license.name>mit</license.name>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
@@ -39,7 +39,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.11.0</version>
+          <version>3.14.0</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -50,7 +50,7 @@
       <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
-        <version>5.10.0</version>
+        <version>5.12.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
