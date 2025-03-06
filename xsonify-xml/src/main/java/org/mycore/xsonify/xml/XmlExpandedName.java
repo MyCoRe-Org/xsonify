@@ -11,6 +11,9 @@ import java.util.function.Function;
  * meaning that the name is not in any namespace.
  * <p>
  * The expanded name comes in the form of "{namespaceURI}localName".
+ *
+ * @param local the local name e.g. titleInfo
+ * @param uri the namespace uri
  */
 public record XmlExpandedName(String local, String uri) {
 

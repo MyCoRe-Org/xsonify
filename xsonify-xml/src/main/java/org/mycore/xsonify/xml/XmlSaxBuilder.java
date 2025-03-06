@@ -1,12 +1,12 @@
 package org.mycore.xsonify.xml;
 
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * <p>Custom SAX handler for building an XML document using the provided API.</p>
@@ -22,27 +22,54 @@ import java.util.Stack;
 public class XmlSaxBuilder extends DefaultHandler {
 
     protected final Stack<XmlElement> elementStack;
+
     protected XmlDocument xmlDocument;
 
     protected final Map<String, XmlNamespace> prefixToNamespaceMap;
 
     protected final Map<String, XmlNamespace> inheritedNamespaces;
 
+    /**
+     * Constructs a new {@code XmlSaxBuilder}.
+     */
     public XmlSaxBuilder() {
         this.elementStack = new Stack<>();
         this.prefixToNamespaceMap = new HashMap<>();
         this.inheritedNamespaces = new HashMap<>();
     }
 
+    /**
+     * Returns the {@link XmlDocument} that has been built by this SAX builder.
+     *
+     * @return the constructed XML document
+     */
     public XmlDocument getDocument() {
         return xmlDocument;
     }
 
+    /**
+     * Invoked at the start of document parsing.
+     * Initializes a new {@link XmlDocument} instance.
+     *
+     * @throws SAXException if a SAX error occurs during the start of document parsing
+     */
     @Override
     public void startDocument() throws SAXException {
         xmlDocument = new XmlDocument();
     }
 
+    /**
+     * Called at the start of an XML element.
+     * <p>
+     * This method creates a new {@link XmlElement} with the appropriate namespace,
+     * adds any namespace declarations and attributes, and attaches the element to its parent or the document root.
+     *
+     * @param uri the Namespace URI, or the empty string if the element has no Namespace URI or if Namespace processing is not being performed
+     * @param localName the local name (without prefix), or the empty string if Namespace processing is not being performed
+     * @param qName the qualified name (with prefix), or the empty string if qualified names are not available
+     * @param attributes the attributes attached to the element. If there are no attributes, it shall be an empty Attributes object
+     * @throws SAXException if a SAX error occurs during element processing
+     */
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
         String prefix = qName.contains(":") ? qName.split(":")[0] : "";
@@ -101,6 +128,16 @@ public class XmlSaxBuilder extends DefaultHandler {
         return prefixToNamespaceMap.getOrDefault(prefix, XmlNamespace.EMPTY);
     }
 
+    /**
+     * Invoked at the end of an XML element.
+     * <p>
+     * This method removes the current element from the internal element stack.
+     *
+     * @param uri the Namespace URI, or the empty string if the element has no Namespace URI or if Namespace processing is not being performed
+     * @param localName the local name (without prefix), or the empty string if Namespace processing is not being performed
+     * @param qName the qualified name (with prefix), or the empty string if qualified names are not available
+     * @throws SAXException if a SAX error occurs during element processing
+     */
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
         elementStack.pop();

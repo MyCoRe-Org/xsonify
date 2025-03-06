@@ -206,7 +206,7 @@ public class Xsd {
      * @param type the {@code Class} object representing the type of nodes to collect
      * @return a {@link Collection} containing all nodes of the specified type
      *
-     * <h3>Example Usage:</h3>
+     * <h4>Example Usage:</h4>
      * <pre>{@code
      * // Collect all XsdElement nodes in the schema
      * Collection<XsdElement> elements = xsd.collect(XsdElement.class);
@@ -231,7 +231,7 @@ public class Xsd {
      * @param type the {@code Class} object representing the type of nodes to collect
      * @return a {@link List} containing all nodes of the specified type within the subtree
      *
-     * <h3>Example Usage:</h3>
+     * <h4>Example Usage:</h4>
      * <pre>{@code
      * // Assume 'complexType' is an XsdComplexType instance
      * List<XsdAttribute> attributes = xsd.collect(complexType, XsdAttribute.class);
@@ -261,7 +261,7 @@ public class Xsd {
      * @param types the {@code Class} objects representing the types of nodes to collect
      * @return a {@link List} containing all nodes that match any of the specified types
      *
-     * <h3>Example Usage:</h3>
+     * <h4>Example Usage:</h4>
      * <pre>{@code
      * // Collect all XsdElement and XsdAttribute nodes in the schema
      * List<XsdNode> elementsAndAttributes = xsd.collect(XsdElement.class, XsdAttribute.class);
@@ -287,7 +287,7 @@ public class Xsd {
      * @param types a {@link List} of {@code Class} objects representing the types of nodes to collect
      * @return a {@link List} containing all nodes that match any of the specified types within the subtree
      *
-     * <h3>Example Usage:</h3>
+     * <h4>Example Usage:</h4>
      * <pre>{@code
      * // Assume 'complexType' is an XsdComplexType instance
      * List<Class<? extends XsdNode>> typesToCollect = Arrays.asList(XsdElement.class, XsdAttribute.class);
@@ -324,7 +324,7 @@ public class Xsd {
      *
      * @return a {@link Collection} containing all nodes in the schema
      *
-     * <h3>Example Usage:</h3>
+     * <h4>Example Usage:</h4>
      * <pre>{@code
      * // Collect all nodes in the schema
      * Collection<XsdNode> allNodes = xsd.collectAll();
@@ -410,7 +410,7 @@ public class Xsd {
      * // and the XsdAttribute for 'title'.
      * }</pre>
      *
-     * <h3>Notes</h3>
+     * <h4>Notes</h4>
      * <ul>
      *   <li>The method supports both element and attribute paths. When resolving attribute paths, it ensures
      *       that the attribute is correctly associated with its parent element.</li>
@@ -456,7 +456,7 @@ public class Xsd {
      * The method returns a list of {@code XsdElement} instances that represent the sequence of elements
      * in the provided {@code XmlPath}, maintaining the order from root to leaf.</p>
      *
-     * <h3>Example Usage</h3>
+     * <h4>Example Usage</h4>
      * <pre>{@code
      * // Assume an XML schema with a root element 'bookstore' containing 'book' elements, which in turn
      * // contain 'title' elements.
@@ -465,7 +465,7 @@ public class Xsd {
      * // elements now contains the XsdElement instances for 'bookstore', 'book', and 'title'.
      * }</pre>
      *
-     * <h3>Notes</h3>
+     * <h4>Notes</h4>
      * <ul>
      *   <li>The method only resolves element nodes. If the path includes attributes, they will be ignored by this method.
      *       To resolve attributes, use {@link #resolvePath(XmlPath)} instead.</li>

@@ -6,13 +6,14 @@ package org.mycore.xsonify.xml;
  * A qualified XML name is typically used to refer to elements and attributes in XML documents.
  * It might have a prefix associated with a namespace and a local name which is the actual
  * element or attribute name.
- * </p>
  * <p>
  * Example:
  * <br>
  * In the XML fragment {@code <pfx:elementName>}, "pfx" is the prefix and "elementName" is the local name.
  * The full qualified name is represented as "pfx:elementName".
- * </p>
+ *
+ * @param prefix the namespace prefix. e.g. mods
+ * @param localName the local name e.g. titleInfo
  */
 public record XmlQualifiedName(String prefix, String localName) {
 

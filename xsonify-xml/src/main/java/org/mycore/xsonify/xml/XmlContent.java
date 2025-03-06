@@ -10,6 +10,7 @@ package org.mycore.xsonify.xml;
 public abstract class XmlContent {
 
     private XmlDocument document;
+
     private XmlElement parent;
 
     /**
@@ -39,6 +40,11 @@ public abstract class XmlContent {
         this.setDocumentAndPropagate(parent != null ? parent.getDocument() : null);
     }
 
+    /**
+     * Returns the parent element of this content.
+     *
+     * @return the parent element or null
+     */
     public XmlElement getParent() {
         return parent;
     }
@@ -90,8 +96,19 @@ public abstract class XmlContent {
      */
     protected abstract XmlContent copy(XmlDocument document);
 
+    /**
+     * Formats the xml as a pretty string and appends it to the given string builder.
+     *
+     * @param sb the string builder to append this xml content
+     * @param indent the indent to make the xml pretty
+     */
     abstract void toPrettyXml(StringBuilder sb, String indent);
 
+    /**
+     * Formats the xml as string and appends it to the given string builder.
+     *
+     * @param sb the string builder to append this xml content
+     */
     abstract void toXml(StringBuilder sb);
 
     /**

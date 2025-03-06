@@ -1,10 +1,6 @@
 package org.mycore.xsonify.xml;
 
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -164,6 +160,7 @@ public class XmlElement extends XmlContent {
      *
      * @param qualifiedName the qualified name of the attribute to set
      * @param value         the value of the attribute
+     * @throws XmlException if the qualified name cannot be resolved to a prefix 
      */
     public void setAttribute(String qualifiedName, String value) throws XmlException {
         String prefix;
@@ -981,9 +978,9 @@ public class XmlElement extends XmlContent {
      * @param content the encoded content string
      * @param charset the character set to use for decoding
      * @return list of XmlElement objects
+     * @throws XmlParseException if the content could not be decoded
      */
-    public static List<XmlContent> decodeContent(String content, Charset charset)
-        throws ParserConfigurationException, SAXException, IOException, XmlParseException {
+    public static List<XmlContent> decodeContent(String content, Charset charset) throws XmlParseException {
         return decodeContent(content, charset, new ArrayList<>());
     }
 
@@ -995,9 +992,10 @@ public class XmlElement extends XmlContent {
      * @param charset    the character set to use for decoding
      * @param namespaces collection of namespaces to correctly parse the given content
      * @return list of XmlElement objects
+     * @throws XmlParseException if the content could not be decoded
      */
     public static List<XmlContent> decodeContent(String content, Charset charset, Collection<XmlNamespace> namespaces)
-        throws ParserConfigurationException, SAXException, IOException, XmlParseException {
+        throws XmlParseException {
         // build xml string
         StringBuilder sb = new StringBuilder();
         sb.append("<root");
@@ -1007,17 +1005,26 @@ public class XmlElement extends XmlContent {
         sb.append("</root>");
 
         // parse
-        XmlParser parser = new XmlSaxParser();
-        try (InputStream inputStream = new ByteArrayInputStream(sb.toString().getBytes(charset))) {
-            XmlDocument document = parser.parse(inputStream);
-            List<XmlContent> xmlContentList = document.getRoot().getContent();
-            xmlContentList.forEach(XmlContent::detach);
-            return xmlContentList;
+        try {
+            XmlParser parser = new XmlSaxParser();
+            try (InputStream inputStream = new ByteArrayInputStream(sb.toString().getBytes(charset))) {
+                XmlDocument document = parser.parse(inputStream);
+                List<XmlContent> xmlContentList = document.getRoot().getContent();
+                xmlContentList.forEach(XmlContent::detach);
+                return xmlContentList;
+            }
+        } catch (XmlParseException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new XmlParseException("Unable to decode content " + content + " with charset " + charset, e);
         }
     }
 
     /**
      * Record for storing information about a child node and whether it should have a trailing whitespace.
+     * 
+     * @param content the content
+     * @param trailing should it have trailing whitespaces
      */
     public record TrailingInfo(XmlContent content, boolean trailing) {
     }

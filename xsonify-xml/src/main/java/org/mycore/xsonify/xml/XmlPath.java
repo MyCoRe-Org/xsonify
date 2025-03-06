@@ -28,6 +28,9 @@ public class XmlPath implements Iterable<XmlPath.Node> {
         ELEMENT, ATTRIBUTE;
     }
 
+    /**
+     * Contains the nodes of this XmlPath.
+     */
     public List<Node> nodes;
 
     /**
@@ -288,6 +291,9 @@ public class XmlPath implements Iterable<XmlPath.Node> {
 
     /**
      * Represents a node in the path.
+     * 
+     * @param name of the node e.g. mods:titleInfo
+     * @param type of the node either element or attribute
      */
     public record Node(XmlName name, Type type) {
 

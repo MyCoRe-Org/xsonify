@@ -1,16 +1,19 @@
 package org.mycore.xsonify.xml;
 
 /**
- * <p>Represents an XML namespace as defined by the XML Namespaces specification.</p>
- *
- * <p>An XML namespace is a pair consisting of a prefix and a namespace URI. The prefix may be empty,
+ * Represents an XML namespace as defined by the XML Namespaces specification.
+ * <p>
+ * An XML namespace is a pair consisting of a prefix and a namespace URI. The prefix may be empty,
  * in which case the namespace is the default namespace. The URI may also be empty,
- * in which case the namespace is undeclared.</p>
+ * in which case the namespace is undeclared.
+ * <p>
+ * This class also defines some commonly used namespaces as constants, such as the empty namespace,
+ * the XML namespace, and the XMLNS namespace.
+ * <p>
+ * Furthermore, it provides the URIs for the XML Schema and the XML Schema Instance namespaces as constants.
  *
- * <p>This class also defines some commonly used namespaces as constants, such as the empty namespace,
- * the XML namespace, and the XMLNS namespace.</p>
- *
- * <p>Furthermore, it provides the URIs for the XML Schema and the XML Schema Instance namespaces as constants.</p>
+ * @param prefix the namespace prefix. e.g. mods
+ * @param uri the namespace uri
  */
 public record XmlNamespace(String prefix, String uri) {
 
