@@ -27,6 +27,7 @@
 
   <properties>
     <jackson.version>2.18.0</jackson.version>
+    <java.target.version>17</java.target.version>
     <license.name>mit</license.name>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
